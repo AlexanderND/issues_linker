@@ -1,0 +1,64 @@
+
+======================================= КОМАНДЫ ДЛЯ ЗАПУСКА МОИХ СЕРВЕРОВ =======================================
+
+
+Запуск моего сервера:
+$ cd ./PycharmProjects/issues_link_github_and_redmine
+$ python3 manage.py runserver 0:9000
+
+
+Запуск сервера redmine:
+$ cd ./redmine-3.4.11
+$ bundle exec rails server webrick -e production
+Или, для режима development:
+$ bundle exec rails server webrick -e development
+
+
+======================================== КОМАНДЫ ДЛЯ ОБЩЕНИЯ С СЕРВЕРАМИ ========================================
+
+
+POST issues from REDMINE to the SERVER:
+$ curl -v -H "Content-Type: application/json" -POST --data-binary "@/home/aleksandr.nenakhov/Projects/test_data/test_data_from_rm.json" http://c0009:9000/payloads_from_redmine/ > /home/aleksandr.nenakhov/Projects/test_data/request_output.html
+
+
+POST issues from GITHUB to the SERVER:
+$ curl -v -H "Content-Type: application/json" -POST --data-binary "@/home/aleksandr.nenakhov/Projects/test_data/test_data_from_gh.json" http://c0009:9000/payloads_from_github/ > /home/aleksandr.nenakhov/Projects/test_data/request_output.html
+
+
+POST issues to GITHUB:
+$ curl -v -H "Content-Type: application/json" -H "Authorization: token <GITHUB API TOKEN>" -POST --data-binary "@/home/aleksandr.nenakhov/Projects/test_data/test_data_gh.json" https://api.github.com/repositories/194635238/issues > /home/aleksandr.nenakhov/Projects/test_data/request_output.html
+
+
+POST webhooks to GITHUB:
+$ curl -v -H "Content-Type: application/json" -H "Authorization: token <GITHUB API TOKEN>" -POST --data-binary "@/home/aleksandr.nenakhov/Projects/test_data/webhook_test.json" https://api.github.com/repositories/194635238/hooks > /home/aleksandr.nenakhov/Projects/test_data/request_output.html
+
+
+POST issues to REDMINE:
+$ curl -v -H "Content-Type: application/json" -H "X-Redmine-API-Key: <REDMINE API TOKEN>" -POST --data-binary "@/home/aleksandr.nenakhov/Projects/test_data/test_data_rm.json" https://redmine.redsolution.ru/issues.json > /home/aleksandr.nenakhov/Projects/test_data/request_output.html
+
+
+POST issues to REDMINE (мой сервер):
+$ curl -v -H "Content-Type: application/json" -H "X-Redmine-API-Key: 4b6654fff1ed25d42d7926929dca5fd89cf03f5b" -POST --data-binary "@/home/aleksandr.nenakhov/Projects/test_data/test_data_rm_2.json" http://localhost:3000/issues.json > /home/aleksandr.nenakhov/Projects/test_data/request_output.html
+
+
+GET issues from GITHUB:
+$ curl -v -H "Content-Type: application/json" -H "Authorization: token <GITHUB API TOKEN>" https://api.github.com/repos/AlexanderND/test > /home/aleksandr.nenakhov/Projects/test_data/request_output.html
+
+??? update (PUT) issues in REDMINE:
+$ curl -v -H "Content-Type: application/json" -H "X-Redmine-API-Key: 4b6654fff1ed25d42d7926929dca5fd89cf03f5b" -PUT --data-binary "@/home/aleksandr.nenakhov/Projects/test_data/test_data_rm_put.json" http://localhost:3000/issues.json > /home/aleksandr.nenakhov/Projects/test_data/request_output.html
+
+
+================================================ ПОЛЕЗНЫЕ ССЫЛКИ ================================================
+
+Django REST framowork tutorial: https://www.django-rest-framework.org/tutorial/quickstart/
+
+Установка gem-ов https://gorails.com/setup/ubuntu/16.04
+Установка сервера redmine: https://www.redmine.org/projects/redmine/wiki/RusRedmineInstall
+
+Вебхуки для редмайна: https://github.com/suer/redmine_webhook
+
+Формат текста в Редмайне: https://www.redmine.org/projects/redmine/wiki/RedmineTextFormattingRus
+
+Настройка GIT: https://help.github.com/en/articles/adding-an-existing-project-to-github-using-the-command-line
+
+
