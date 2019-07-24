@@ -87,6 +87,7 @@ def process_comment_payload_from_gh(payload):
         return comment_body
 
 
+    # TODO: исправить привязку комментириев
     def post_comment(issue, linked_issues):
 
         # дополнительная проверка, что issue связаны
@@ -137,8 +138,8 @@ def process_comment_payload_from_gh(payload):
                                       data=issue_templated,
                                       headers=headers)
 
-
-        # ------------------------------------------- СВЯЗЫВАЕМ КОММЕНТАРИИ --------------------------------------------
+        '''
+        # ------------------------------------------- ПРИВЯЗКА КОММЕНТАРИЕВ --------------------------------------------
 
 
         #занесение в базу данных информацию о том, что комментарии связаны
@@ -154,6 +155,10 @@ def process_comment_payload_from_gh(payload):
 
         # ДЕБАГГИНГ
         link_log_comment_gh(request_result, issue, linked_issues, linked_comments)
+        '''
+
+        # ДЕБАГГИНГ
+        link_log_comment_gh(request_result, issue, linked_issues)
 
         return request_result
 

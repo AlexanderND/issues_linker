@@ -4,7 +4,9 @@ from jinja2 import Template
 import json
 from django.http import HttpResponse                            # ответы серверу (редмайну)
 
-from issues_linker.quickstart.models import Linked_Issues       # поиск связанных issues
+from issues_linker.quickstart.models import Linked_Issues       # связанные issues
+from issues_linker.quickstart.models import Linked_Comments     # связанные комментарии
+
 from issues_linker.my_functions import WRITE_LOG                # ведение логов
 from issues_linker.my_functions import align_special_symbols    # обработка спец. символов (\ -> \\)
 from issues_linker.my_functions import read_file                # загрузка файла (возвращает строку)
@@ -156,6 +158,7 @@ def process_payload_from_rm(payload):
 
         return request_result
 
+    # TODO: исправить привязку комментириев
     def post_comment(issue, linked_issues):
 
 
@@ -188,10 +191,25 @@ def process_payload_from_rm(payload):
 
         WRITE_LOG(str(request_result.text))
 
+        '''
+        # ------------------------------------------- ПРИВЯЗКА КОММЕНТАРИЕВ --------------------------------------------
+
+
+        #занесение в базу данных информацию о том, что комментарии связаны
+        posted_comment = json.loads(request_result.text)
+        linked_comments = Linked_Comments.objects.create_linked_comments(
+            issue['comment_id'],
+            posted_comment['id'],
+            linked_issues)
+
+        # ДЕБАГГИНГ
+        link_log_rm_comment(request_result, issue, linked_issues, linked_comments)
+        '''
+
         # ДЕБАГГИНГ
         link_log_rm_comment(request_result, issue, linked_issues)
 
-        return 0
+        return request_result
 
     def edit_issue(issue, linked_issues):
         # открыть / закрыть issue
