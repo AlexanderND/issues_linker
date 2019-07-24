@@ -4,7 +4,9 @@ from jinja2 import Template
 import json
 from django.http import HttpResponse                            # ответы серверу (гитхабу)
 
-from issues_linker.quickstart.models import Linked_Issues       # поиск связанных issues
+from issues_linker.quickstart.models import Linked_Issues       # связанные issues
+from issues_linker.quickstart.models import Linked_Comments     # связанные комментарии
+
 from issues_linker.my_functions import WRITE_LOG                # ведение логов
 from issues_linker.my_functions import align_special_symbols    # обработка спец. символов (\ -> \\)
 from issues_linker.my_functions import read_file                # загрузка файла (возвращает строку)
@@ -134,8 +136,24 @@ def process_comment_payload_from_gh(payload):
         request_result = requests.put(issue_url_rm,
                                       data=issue_templated,
                                       headers=headers)
+
+
+        # ------------------------------------------- СВЯЗЫВАЕМ КОММЕНТАРИИ --------------------------------------------
+
+
+        #занесение в базу данных информацию о том, что комментарии связаны
+        #posted_comment = json.loads(request_result.text)
+        WRITE_LOG(str(request_result.text))
+        #WRITE_LOG(str(request_result))
+        posted_comment = request_result.text
+        linked_comments = Linked_Comments.objects.create_linked_comments(
+            #posted_comment['journal']['id'],
+            1,
+            issue['comment_id'],
+            linked_issues)
+
         # ДЕБАГГИНГ
-        link_log_comment_gh(request_result, issue, linked_issues)
+        link_log_comment_gh(request_result, issue, linked_issues, linked_comments)
 
         return request_result
 

@@ -4,7 +4,8 @@ from jinja2 import Template
 import json
 from django.http import HttpResponse                            # ответы серверу (гитхабу)
 
-from issues_linker.quickstart.models import Linked_Issues       # поиск связанных issues
+from issues_linker.quickstart.models import Linked_Issues       # связанные issues
+
 from issues_linker.my_functions import WRITE_LOG                # ведение логов
 from issues_linker.my_functions import align_special_symbols    # обработка спец. символов (\ -> \\)
 from issues_linker.my_functions import read_file                # загрузка файла (возвращает строку)
@@ -128,6 +129,10 @@ def process_payload_from_gh(payload):
         request_result = requests.post(url_rm,
                                        data=issue_templated,
                                        headers=headers)
+
+
+        # ---------------------------------------------- СВЯЗЫВАЕМ ISSUES ----------------------------------------------
+
 
         # занесение в базу данных информацию о том, что данные issues связаны
         posted_issue = json.loads(request_result.text)

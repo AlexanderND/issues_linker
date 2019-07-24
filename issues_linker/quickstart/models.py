@@ -1,7 +1,6 @@
 from django.db import models
-from issues_linker.my_functions import WRITE_LOG
 
-# убрал везде save() (кроме linked_issues), чтобы бесполезные данные не созранялись
+# убрал везде save() (кроме linked_issues), чтобы даннае не сохранялись (пока)
 
 # ======================================================= GITHUB =======================================================
 # TODO: добавить поля status и т.п.
@@ -315,7 +314,7 @@ class Linked_Comments(models.Model):
     linked_issues_id = models.BigIntegerField(blank=1, null=1)  # id связанных issue на сервере
 
     db_table = 'linked_comments'
-    objects = Linked_Issues_Manager()
+    objects = Linked_Comments_Manager()
 
     class Meta:
         verbose_name = 'linked_comments'

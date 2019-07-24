@@ -185,6 +185,9 @@ def process_payload_from_rm(payload):
         request_result = requests.post(issue_comments_url_gh,
                                        data=comment_templated,
                                        headers=headers)
+
+        WRITE_LOG(str(request_result.text))
+
         # ДЕБАГГИНГ
         link_log_rm_comment(request_result, issue, linked_issues)
 
@@ -261,6 +264,7 @@ def process_payload_from_rm(payload):
     elif (issue['action'] == 'updated'):
 
         if (chk_if_rm_user_is_a_bot(issue['user_id'])):
+            #WRITE_LOG(str(payload))
 
             error_text = prevent_cyclic_rm(issue)
             return HttpResponse(error_text, status=200)
