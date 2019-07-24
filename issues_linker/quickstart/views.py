@@ -1,14 +1,19 @@
 #from django.contrib.auth.models import User, Group
 from rest_framework import viewsets
-from issues_linker.quickstart.serializers import Payload_GH_Serializer, Payload_RM_Serializer, Linked_Issues_Serializer
+
+# мои модели (хранение на сервере)
+from issues_linker.quickstart.serializers import Payload_GH_Serializer, Payload_RM_Serializer
+from issues_linker.quickstart.models import Payload_GH, Payload_RM
+
+# мои модели (связь)
+from issues_linker.quickstart.models import Linked_Issues, Linked_Comments
+from issues_linker.quickstart.serializers import Linked_Issues_Serializer,Linked_Comments_Serializer
 
 from issues_linker.process_payload_from_gh import process_payload_from_gh    # загрузка issue в Redmine
 from issues_linker.process_payload_from_rm import process_payload_from_rm    # загрузка issue в Github
-from issues_linker.process_comment_payload_from_gh import process_comment_payload_from_gh     # загрузка комментариев к issue в Github
-from issues_linker.quickstart.models import Payload_GH, Payload_RM, Linked_Issues  # мои модели
+# загрузка комментариев к issue в Github
+from issues_linker.process_comment_payload_from_gh import process_comment_payload_from_gh
 
-import json
-from issues_linker.my_functions import WRITE_LOG
 
 '''# testing
 class UserViewSet(viewsets.ModelViewSet):
@@ -30,6 +35,7 @@ class GroupViewSet(viewsets.ModelViewSet):
 # ======================================================= GITHUB =======================================================
 
 
+# TODO: добавлять в очередь
 ''' payloads от гитхаба '''
 class Payload_From_GH_ViewSet(viewsets.ModelViewSet):
     """
@@ -42,13 +48,13 @@ class Payload_From_GH_ViewSet(viewsets.ModelViewSet):
 
     # переопределение create, чтобы сразу отправлять загруженные issue на RM
     def create(self, request, *args, **kwargs):
-        # TODO: добавлять в очередь
 
         process_result = process_payload_from_gh(request.data)
 
         #return super(Payload_From_GH_ViewSet, self).create(request, *args, **kwargs)
         return process_result
 
+# TODO: добавлять в очередь
 ''' payloads от гитхаба (комментарии) '''
 class Comment_Payload_From_GH_ViewSet(viewsets.ModelViewSet):
     """
@@ -61,7 +67,6 @@ class Comment_Payload_From_GH_ViewSet(viewsets.ModelViewSet):
 
     # переопределение create, чтобы сразу отправлять загруженные issue на RM
     def create(self, request, *args, **kwargs):
-        # TODO: добавлять в очередь
 
         process_result = process_comment_payload_from_gh(request.data)
 
@@ -72,6 +77,7 @@ class Comment_Payload_From_GH_ViewSet(viewsets.ModelViewSet):
 # ======================================================= REDMINE ======================================================
 
 
+# TODO: добавлять в очередь
 ''' payloads от редмайна '''
 class Payload_From_RM_ViewSet(viewsets.ModelViewSet):
     """
@@ -85,7 +91,6 @@ class Payload_From_RM_ViewSet(viewsets.ModelViewSet):
 
     # переопределение create, чтобы сразу отправлять загруженные issue на GH
     def create(self, request, *args, **kwargs):
-        # TODO: добавлять в очередь
 
         process_result = process_payload_from_rm(request.data)
 
@@ -104,3 +109,12 @@ class Linked_Issues_ViewSet(viewsets.ModelViewSet):
     """
     queryset = Linked_Issues.objects.all()
     serializer_class = Linked_Issues_Serializer
+
+''' связынные комментарии в issue'''
+class Linked_Comments_ViewSet(viewsets.ModelViewSet):
+    """
+    Linked_Comments_ViewSet.
+    Здесь хранится информация о том, какие комментарии связаны между собой.
+    """
+    queryset = Linked_Comments.objects.all()
+    serializer_class = Linked_Comments_Serializer

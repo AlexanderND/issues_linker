@@ -15,7 +15,12 @@ Including another URLconf
 """
 from django.urls import include, path
 from rest_framework import routers
-from issues_linker.quickstart import views
+
+# мои модели (хранение на сервере)
+from issues_linker.quickstart.views import Payload_From_GH_ViewSet, Comment_Payload_From_GH_ViewSet, Payload_From_RM_ViewSet
+
+# мои модели (связь)
+from issues_linker.quickstart.views import Linked_Issues_ViewSet, Linked_Comments_ViewSet
 
 router = routers.DefaultRouter()
 
@@ -23,10 +28,13 @@ router = routers.DefaultRouter()
 router.register(r'users', views.UserViewSet)
 router.register(r'groups', views.GroupViewSet)'''
 
-router.register(r'payloads_from_github', views.Payload_From_GH_ViewSet)
-router.register(r'comment_payloads_from_github', views.Comment_Payload_From_GH_ViewSet)
-router.register(r'payloads_from_redmine', views.Payload_From_RM_ViewSet)
-router.register(r'linked_issues', views.Linked_Issues_ViewSet)
+router.register(r'payloads_from_github', Payload_From_GH_ViewSet)
+router.register(r'comment_payloads_from_github', Comment_Payload_From_GH_ViewSet)
+router.register(r'payloads_from_redmine', Payload_From_RM_ViewSet)
+
+# СВЯЗЬ
+router.register(r'linked_issues', Linked_Issues_ViewSet)
+router.register(r'linked_comments', Linked_Comments_ViewSet)
 
 # Wire up our API using automatic URL routing.
 # Additionally, we include login URLs for the browsable API.

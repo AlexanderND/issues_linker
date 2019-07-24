@@ -3,9 +3,16 @@
   <component name="ChangeListManager">
     <list default="true" id="38aad10f-4a4a-4f09-83c2-5eb801d8a0d7" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/issues_linker/README" beforeDir="false" afterPath="$PROJECT_DIR$/issues_linker/README" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/issues_linker/process_payload_from_gh.py" beforeDir="false" afterPath="$PROJECT_DIR$/issues_linker/process_payload_from_gh.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/db.sqlite3" beforeDir="false" afterPath="$PROJECT_DIR$/db.sqlite3" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/issues_linker/quickstart/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/issues_linker/quickstart/models.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/issues_linker/quickstart/serializers.py" beforeDir="false" afterPath="$PROJECT_DIR$/issues_linker/quickstart/serializers.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/issues_linker/quickstart/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/issues_linker/quickstart/views.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/issues_linker/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/issues_linker/urls.py" afterDir="false" />
     </list>
+    <ignored path="issues_linker/logs/server_log.txt" />
+    <ignored path="issues_linker/api_keys/api_key_redmime_local.txt" />
+    <ignored path="issues_linker/api_keys/api_key_github.txt" />
+    <ignored path="issues_linker/api_keys/" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -17,8 +24,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/issues_linker/my_functions.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="600">
-              <caret line="63" column="18" lean-forward="true" selection-start-line="63" selection-start-column="18" selection-end-line="63" selection-end-column="18" />
+            <state relative-caret-position="525">
+              <caret line="58" column="17" lean-forward="true" selection-start-line="58" selection-start-column="17" selection-end-line="58" selection-end-column="17" />
               <folding>
                 <element signature="e#0#9#0" expanded="true" />
                 <element signature="e#175#454#0" />
@@ -39,11 +46,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/issues_linker/process_payload_from_gh.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="301">
-              <caret line="256" column="84" selection-start-line="256" selection-start-column="84" selection-end-line="256" selection-end-column="84" />
+            <state relative-caret-position="120">
+              <caret line="28" lean-forward="true" selection-start-line="28" selection-end-line="28" />
               <folding>
                 <element signature="e#1595#2540#0" />
                 <element signature="e#3468#4034#0" />
@@ -64,7 +71,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/issues_linker/process_comment_payload_from_gh.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state>
+            <state relative-caret-position="630">
+              <caret line="160" column="51" lean-forward="true" selection-start-line="160" selection-start-column="51" selection-end-line="160" selection-end-column="51" />
               <folding>
                 <element signature="e#1612#2794#0" />
                 <element signature="e#3716#4172#0" />
@@ -100,8 +108,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/issues_linker/quickstart/models.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-92">
-              <caret line="116" selection-start-line="116" selection-end-line="116" />
+            <state relative-caret-position="326">
+              <caret line="288" column="58" selection-start-line="288" selection-start-column="58" selection-end-line="288" selection-end-column="58" />
               <folding>
                 <element signature="e#0#28#0" expanded="true" />
                 <element signature="e#476#1002#0" />
@@ -118,6 +126,8 @@
                 <element signature="e#6669#7058#0" />
                 <element signature="e#7184#7546#0" />
                 <element signature="e#7584#7881#0" />
+                <element signature="e#8143#8871#0" />
+                <element signature="e#8913#9447#0" />
               </folding>
             </state>
           </provider>
@@ -126,9 +136,11 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/issues_linker/quickstart/serializers.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="45">
-              <caret line="3" column="18" selection-start-line="3" selection-start-column="18" selection-end-line="3" selection-end-column="18" />
+            <state>
+              <caret column="50" selection-start-column="50" selection-end-column="50" />
               <folding>
+                <element signature="e#52#90#0" expanded="true" />
+                <element signature="e#259#565#1" />
                 <element signature="e#786#1001#0" />
                 <element signature="e#1108#1296#0" />
                 <element signature="e#1399#1785#0" />
@@ -141,13 +153,14 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/issues_linker/quickstart/views.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="540">
-              <caret line="52" column="61" selection-start-line="52" selection-start-column="61" selection-end-line="52" selection-end-column="61" />
+            <state relative-caret-position="191">
+              <caret line="31" column="41" lean-forward="true" selection-start-line="31" selection-start-column="41" selection-end-line="31" selection-end-column="41" />
               <folding>
                 <element signature="e#52#87#0" expanded="true" />
+                <element signature="e#710#1134#1" />
                 <element signature="e#1346#1896#0" />
                 <element signature="e#2006#2594#0" />
                 <element signature="e#2807#3358#0" />
@@ -159,8 +172,11 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/issues_linker/urls.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="210">
-              <caret line="14" column="3" selection-start-line="14" selection-start-column="3" selection-end-line="14" selection-end-column="3" />
+            <state relative-caret-position="510">
+              <caret line="34" column="7" lean-forward="true" selection-start-line="34" selection-start-column="7" selection-end-line="34" selection-end-column="7" />
+              <folding>
+                <element signature="e#637#674#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -240,6 +256,10 @@
         <option value="$PROJECT_DIR$/issues_linker/my_functions.py" />
         <option value="$PROJECT_DIR$/issues_linker/process_comment_payload_from_gh.py" />
         <option value="$PROJECT_DIR$/issues_linker/process_payload_from_gh.py" />
+        <option value="$PROJECT_DIR$/issues_linker/quickstart/models.py" />
+        <option value="$PROJECT_DIR$/issues_linker/quickstart/serializers.py" />
+        <option value="$PROJECT_DIR$/issues_linker/urls.py" />
+        <option value="$PROJECT_DIR$/issues_linker/quickstart/views.py" />
       </list>
     </option>
   </component>
@@ -256,7 +276,22 @@
     </navigator>
     <panes>
       <pane id="Scope" />
-      <pane id="ProjectPane" />
+      <pane id="ProjectPane">
+        <subPane>
+          <expand>
+            <path>
+              <item name="issues_linker" type="b2602c69:ProjectViewProjectNode" />
+              <item name="issues_linker" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="issues_linker" type="b2602c69:ProjectViewProjectNode" />
+              <item name="issues_linker" type="462c0819:PsiDirectoryNode" />
+              <item name="issues_linker" type="462c0819:PsiDirectoryNode" />
+            </path>
+          </expand>
+          <select />
+        </subPane>
+      </pane>
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -364,6 +399,14 @@
       <option name="presentableId" value="Default" />
       <updated>1562679470129</updated>
     </task>
+    <task id="LOCAL-00001" summary="second commit (not from console)">
+      <created>1563958275750</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1563958275750</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="TodoView">
@@ -388,9 +431,9 @@
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" weight="0.32960325" />
-      <window_info anchor="bottom" id="Version Control" order="7" />
-      <window_info active="true" anchor="bottom" id="Terminal" order="8" visible="true" weight="0.39245668" />
-      <window_info anchor="bottom" id="Event Log" order="9" side_tool="true" />
+      <window_info active="true" anchor="bottom" id="Version Control" order="7" sideWeight="0.49945414" visible="true" weight="0.32925585" />
+      <window_info anchor="bottom" id="Terminal" order="8" sideWeight="0.49945414" weight="0.39245668" />
+      <window_info anchor="bottom" id="Event Log" order="9" sideWeight="0.50054586" side_tool="true" weight="0.32925585" />
       <window_info anchor="bottom" id="Python Console" order="10" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
@@ -415,6 +458,10 @@
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
     </layout-to-restore>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="second commit (not from console)" />
+    <option name="LAST_COMMIT_MESSAGE" value="second commit (not from console)" />
   </component>
   <component name="editorHistoryManager">
     <entry file="file://$PROJECT_DIR$/env/lib/python3.5/site-packages/django/apps/registry.py">
@@ -502,66 +549,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/issues_linker/urls.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="210">
-          <caret line="14" column="3" selection-start-line="14" selection-start-column="3" selection-end-line="14" selection-end-column="3" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/issues_linker/quickstart/views.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="540">
-          <caret line="52" column="61" selection-start-line="52" selection-start-column="61" selection-end-line="52" selection-end-column="61" />
-          <folding>
-            <element signature="e#52#87#0" expanded="true" />
-            <element signature="e#1346#1896#0" />
-            <element signature="e#2006#2594#0" />
-            <element signature="e#2807#3358#0" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/issues_linker/quickstart/serializers.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="45">
-          <caret line="3" column="18" selection-start-line="3" selection-start-column="18" selection-end-line="3" selection-end-column="18" />
-          <folding>
-            <element signature="e#786#1001#0" />
-            <element signature="e#1108#1296#0" />
-            <element signature="e#1399#1785#0" />
-            <element signature="e#2011#2228#0" />
-            <element signature="e#2327#2764#0" />
-            <element signature="e#2879#3192#0" />
-            <element signature="e#3296#3625#0" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/issues_linker/quickstart/models.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-92">
-          <caret line="116" selection-start-line="116" selection-end-line="116" />
-          <folding>
-            <element signature="e#0#28#0" expanded="true" />
-            <element signature="e#476#1002#0" />
-            <element signature="e#1038#1711#0" />
-            <element signature="e#1831#2090#0" />
-            <element signature="e#2131#2378#0" />
-            <element signature="e#2508#3058#0" />
-            <element signature="e#3096#3760#0" />
-            <element signature="e#4034#4383#0" />
-            <element signature="e#4421#4650#0" />
-            <element signature="e#4799#5363#0" />
-            <element signature="e#5399#6090#0" />
-            <element signature="e#6239#6625#0" />
-            <element signature="e#6669#7058#0" />
-            <element signature="e#7184#7546#0" />
-            <element signature="e#7584#7881#0" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/issues_linker/process_payload_from_rm.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="348">
@@ -581,9 +568,30 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/issues_linker/process_payload_from_gh.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="120">
+          <caret line="28" lean-forward="true" selection-start-line="28" selection-end-line="28" />
+          <folding>
+            <element signature="e#1595#2540#0" />
+            <element signature="e#3468#4034#0" />
+            <element signature="e#4178#4595#0" />
+            <element signature="e#4635#6374#0" />
+            <element signature="e#6438#8741#0" />
+            <element signature="e#8829#9677#0" />
+            <element signature="e#9807#10005#0" />
+            <element signature="e#10056#10310#0" />
+            <element signature="e#10671#10925#0" />
+            <element signature="e#10977#11192#0" />
+            <element signature="e#11212#11528#0" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/issues_linker/process_comment_payload_from_gh.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state>
+        <state relative-caret-position="630">
+          <caret line="160" column="51" lean-forward="true" selection-start-line="160" selection-start-column="51" selection-end-line="160" selection-end-column="51" />
           <folding>
             <element signature="e#1612#2794#0" />
             <element signature="e#3716#4172#0" />
@@ -596,8 +604,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/issues_linker/my_functions.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="600">
-          <caret line="63" column="18" lean-forward="true" selection-start-line="63" selection-start-column="18" selection-end-line="63" selection-end-column="18" />
+        <state relative-caret-position="525">
+          <caret line="58" column="17" lean-forward="true" selection-start-line="58" selection-start-column="17" selection-end-line="58" selection-end-column="17" />
           <folding>
             <element signature="e#0#9#0" expanded="true" />
             <element signature="e#175#454#0" />
@@ -617,22 +625,70 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/issues_linker/process_payload_from_gh.py">
+    <entry file="file://$PROJECT_DIR$/issues_linker/urls.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="301">
-          <caret line="256" column="84" selection-start-line="256" selection-start-column="84" selection-end-line="256" selection-end-column="84" />
+        <state relative-caret-position="510">
+          <caret line="34" column="7" lean-forward="true" selection-start-line="34" selection-start-column="7" selection-end-line="34" selection-end-column="7" />
           <folding>
-            <element signature="e#1595#2540#0" />
-            <element signature="e#3468#4034#0" />
-            <element signature="e#4178#4595#0" />
-            <element signature="e#4635#6374#0" />
-            <element signature="e#6438#8741#0" />
-            <element signature="e#8829#9677#0" />
-            <element signature="e#9807#10005#0" />
-            <element signature="e#10056#10310#0" />
-            <element signature="e#10671#10925#0" />
-            <element signature="e#10977#11192#0" />
-            <element signature="e#11212#11528#0" />
+            <element signature="e#637#674#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/issues_linker/quickstart/models.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="326">
+          <caret line="288" column="58" selection-start-line="288" selection-start-column="58" selection-end-line="288" selection-end-column="58" />
+          <folding>
+            <element signature="e#0#28#0" expanded="true" />
+            <element signature="e#476#1002#0" />
+            <element signature="e#1038#1711#0" />
+            <element signature="e#1831#2090#0" />
+            <element signature="e#2131#2378#0" />
+            <element signature="e#2508#3058#0" />
+            <element signature="e#3096#3760#0" />
+            <element signature="e#4034#4383#0" />
+            <element signature="e#4421#4650#0" />
+            <element signature="e#4799#5363#0" />
+            <element signature="e#5399#6090#0" />
+            <element signature="e#6239#6625#0" />
+            <element signature="e#6669#7058#0" />
+            <element signature="e#7184#7546#0" />
+            <element signature="e#7584#7881#0" />
+            <element signature="e#8143#8871#0" />
+            <element signature="e#8913#9447#0" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/issues_linker/quickstart/serializers.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state>
+          <caret column="50" selection-start-column="50" selection-end-column="50" />
+          <folding>
+            <element signature="e#52#90#0" expanded="true" />
+            <element signature="e#259#565#1" />
+            <element signature="e#786#1001#0" />
+            <element signature="e#1108#1296#0" />
+            <element signature="e#1399#1785#0" />
+            <element signature="e#2011#2228#0" />
+            <element signature="e#2327#2764#0" />
+            <element signature="e#2879#3192#0" />
+            <element signature="e#3296#3625#0" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/issues_linker/quickstart/views.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="191">
+          <caret line="31" column="41" lean-forward="true" selection-start-line="31" selection-start-column="41" selection-end-line="31" selection-end-column="41" />
+          <folding>
+            <element signature="e#52#87#0" expanded="true" />
+            <element signature="e#710#1134#1" />
+            <element signature="e#1346#1896#0" />
+            <element signature="e#2006#2594#0" />
+            <element signature="e#2807#3358#0" />
           </folding>
         </state>
       </provider>

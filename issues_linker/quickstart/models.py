@@ -281,3 +281,42 @@ class Linked_Issues(models.Model):
     class Meta:
         verbose_name = 'linked_issues'
         verbose_name_plural = 'linked_issues'
+
+
+# ==================================================== СВЯЗЬ COMMENTS ==================================================
+
+
+'''Класс "Linked_Comments" - связанные комментарии в issue (comment_id_rm - comment_id_gh, linked_issues_id)'''
+class Linked_Comments_Manager(models.Manager):
+    use_in_migrations = True
+
+    def create_linked_comments(self, comment_id_rm, comment_id_gh, linked_issues):
+        linked_comments = self.model(comment_id_rm=comment_id_rm,
+                                     comment_id_gh=comment_id_gh,
+                                     linked_issues_id=linked_issues.id)
+        linked_comments.save()  # сохранение linked_comments в базе данных
+
+        return linked_comments
+
+    def get_by_natural_key(self, id):
+        return self.get(id=id)
+
+    def get_by_comment_id_rm(self, comment_id_rm):
+        return self.filter(comment_id_rm=comment_id_rm)
+
+    def get_by_comment_id_gh(self, comment_id_gh):
+        return self.filter(comment_id_gh=comment_id_gh)
+
+class Linked_Comments(models.Model):
+
+    comment_id_rm = models.BigIntegerField(blank=1, null=1)     # id комментария в редмайне
+    comment_id_gh = models.BigIntegerField(blank=1, null=1)     # id комментария в гитхабе
+
+    linked_issues_id = models.BigIntegerField(blank=1, null=1)  # id связанных issue на сервере
+
+    db_table = 'linked_comments'
+    objects = Linked_Issues_Manager()
+
+    class Meta:
+        verbose_name = 'linked_comments'
+        verbose_name_plural = 'linked_comments'
