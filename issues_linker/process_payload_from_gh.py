@@ -254,7 +254,7 @@ def process_payload_from_gh(payload):
             error_text = prevent_cyclic_gh(issue)
             return HttpResponse(error_text, status=200)
 
-        request_result = edit_issue(issue, linked_issues, status_ids_rm[4])      # 4 - status "closed"
+        request_result = edit_issue(issue, linked_issues, status_ids_rm[5])      # 5 - status "closed"
 
     elif (issue['action'] == 'reopened'):
 

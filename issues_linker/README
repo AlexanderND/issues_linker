@@ -3,7 +3,7 @@
 
 
 Запуск моего сервера:
-$ cd ./PycharmProjects/issues_link_github_and_redmine
+$ cd ./PycharmProjects/issues_linker
 $ python3 manage.py runserver 0:9000
 
 
@@ -12,6 +12,20 @@ $ cd ./redmine-3.4.11
 $ bundle exec rails server webrick -e production
 Или, для режима development:
 $ bundle exec rails server webrick -e development
+
+
+============================================= PUSH commit to github =============================================
+
+
+echo "# test-2" >> README.md
+git init
+git add README.md
+git commit -m "first commit"
+git remote add origin https://github.com/AlexanderND/issues_linker.git
+git push -u origin master
+
+git commit -m "second commit"
+git push -u origin master
 
 
 ======================================== КОМАНДЫ ДЛЯ ОБЩЕНИЯ С СЕРВЕРАМИ ========================================
