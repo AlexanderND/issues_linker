@@ -122,7 +122,8 @@ def link_log_rm_post(result, issue, linked_issues):
 
 # TODO: комментарий, вместо issue
 # при изменении в редмайне: всегда оставляем комментарий об изменении в гитхабе, затем производим сами изменения
-def link_log_rm_comment(result, issue, linked_issues, linked_comments):
+def link_log_rm_comment(result, issue, linked_issues):
+#def link_log_rm_comment(result, issue, linked_issues, linked_comments):
 
     action_gh = 'POST'
 
@@ -270,13 +271,14 @@ def link_log_issue_gh(result, issue, linked_issues):
     return 0
 
 # TODO: комментарий, вместо issue
-def link_log_comment_gh(result, issue, linked_issues, linked_comments):
+def link_log_comment_gh(result, issue, linked_issues):
+#def link_log_comment_gh(result, issue, linked_issues, linked_comments):
 
     action_rm = 'EDIT'
 
     WRITE_LOG('\n' + '=' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 35 + '\n' +
               'received webhook from GITHUB: issues_comment | ' + 'action: ' + issue['action'] + '\n' +
-              action_rm + ' result in REDMINE: ' + str(result.status_code) + ' ' + str(result.reason) + '\n' +
+              #action_rm + ' result in REDMINE: ' + str(result.status_code) + ' ' + str(result.reason) + '\n' +
               '---------ISSUES---------\n' +
               'GITHUB  | url:           ' + issue['issue_url'] + '\n' +
               '        | issue_title:   ' + issue['title'] + '\n' +
@@ -287,10 +289,10 @@ def link_log_comment_gh(result, issue, linked_issues, linked_comments):
               '        | user_login:    ' + str(issue['user_login']) + '\n' +
               'REDMINE | url:           ' + url_rm + '\n' +
               '        | issue_id:      ' + str(linked_issues.issue_id_rm) + '\n'
-              '        | project_id:    ' + str(project_id_rm) + '\n'
-              '---------COMMENTS---------\n' +
-              'GITHUB  | comment_id:    ' + str(linked_comments.comment_id_rm) + '\n' +
-              'REDMINE | comment_id:    ' + str(linked_comments.comment_id_gh))
+              '        | project_id:    ' + str(project_id_rm) + '\n')
+              #'---------COMMENTS---------\n' +
+              #'GITHUB  | comment_id:    ' + str(linked_comments.comment_id_rm) + '\n' +
+              #'REDMINE | comment_id:    ' + str(linked_comments.comment_id_gh))
     return 0
 
 

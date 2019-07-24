@@ -285,6 +285,7 @@ class Linked_Issues(models.Model):
 # ==================================================== СВЯЗЬ COMMENTS ==================================================
 
 
+# TODO: поле ManyToMany с issues
 '''Класс "Linked_Comments" - связанные комментарии в issue (comment_id_rm - comment_id_gh, linked_issues_id)'''
 class Linked_Comments_Manager(models.Manager):
     use_in_migrations = True

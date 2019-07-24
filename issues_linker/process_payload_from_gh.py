@@ -72,6 +72,8 @@ def process_payload_from_gh(payload):
 
     # добавляем фразу бота к описанию issue, со ссылкой на аккаунт пользователя в гитхабе
     def bot_speech_issue_body(issue):
+
+        # добавляем фразу бота
         user_url_gh = '"' + issue['user_login'] + '":' + 'https://github.com/' + issue['user_login']
         issue_url_gh = '"Github":' + issue['issue_url']
         issue_body = 'I am a bot, bleep-bloop.\n' +\
@@ -82,7 +84,11 @@ def process_payload_from_gh(payload):
         if (issue['body'] == ''):
             issue_body += '.'
         else:
-            issue_body += ': \n\n' + issue['body']
+            # добавляем цитирование
+            issue_body_ = issue['body'].replace('\n', '\n>')
+            issue_body_ = '>' + issue_body_
+
+            issue_body += ': \n\n' + issue_body_
 
         return issue_body
 
@@ -169,9 +175,16 @@ def process_payload_from_gh(payload):
         # проверяем, если автор issue - бот
         if (chk_if_gh_user_is_a_bot(issue['issue_author_id'])):
             # удаляем фразу бота
-            bot_phrase, sep, issue_body = issue['body'].partition(':')
+            #bot_phrase, sep, issue_body = issue['body'].partition(':')
+
+            error_text = "ERROR: EDITED BOT-POSTED ISSUE"
+            WRITE_LOG('\n' + '='*35 + ' ' + str(datetime.datetime.today()) + ' ' + '='*35 + '\n' +
+                      'received webhook from GITHUB: issues | ' + 'action: ' + str(issue['action']) + '\n' +
+                      error_text)
+            return HttpResponse(error_text, status=403)
+
         else:
-            issue_body = issue['body']
+            issue_body = bot_speech_issue_body(issue)   # добавляем фразу бота
 
         comment_body = bot_speech_comment_on_action(issue)  # добавляем фразу бота в комментарий к действию
 

@@ -78,10 +78,16 @@ def process_comment_payload_from_gh(payload):
 
     # добавляем фразу бота к комментарию, со ссылкой на аккаунт пользователя в гитхабе
     def bot_speech_comment(issue):
+
+        # добавляем цитирование
+        comment_body = issue['comment_body'].replace('\n', '\n>')
+        comment_body = '>' + comment_body
+
+        # добавляем фразу бота
         user_url = '"' + issue['user_login'] + '":' + 'https://github.com/' + issue['user_login']
         issue_url = '"Github":' + issue['issue_url']
         comment_body = 'I am a bot, bleep-bloop.\n' +\
-                     user_url + ' Has left a comment on ' + issue_url + ': \n\n' + issue['comment_body']
+                     user_url + ' Has left a comment on ' + issue_url + ': \n\n' + comment_body
                      #user_url + ' Has ' + issue['action'] + ' a comment on ' + issue_url + ': \n\n' + issue['comment_body']
 
         return comment_body

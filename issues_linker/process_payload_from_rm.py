@@ -42,6 +42,8 @@ def process_payload_from_rm(payload):
         payload_parsed['user_firstname'] = payload['issue']['author']['firstname']
         payload_parsed['user_lastname'] = payload['issue']['author']['lastname']
 
+        payload_parsed['issue_author_id'] = payload['issue']['author']['id']
+
         # при update возможна добавка комментария
         if (payload_parsed['action'] == 'updated'):
 
@@ -95,6 +97,8 @@ def process_payload_from_rm(payload):
 
     # добавляем фразу бота к описанию issue
     def bot_speech_issue_body(issue):
+
+        # добавляем фразу бота
         issue_body = 'I am a bot, bleep-bloop.\n' +\
                      issue['user_firstname'] + ' ' + issue['user_lastname'] + ' (' + issue['user_login'] +\
                      ') Has opened the issue in Redmine'
@@ -103,16 +107,27 @@ def process_payload_from_rm(payload):
         if (issue['body'] == ''):
             issue_body += '.'
         else:
-            issue_body += ': \n\n' + issue['body']
+            # добавляем цитирование
+            issue_body_ = issue['body'].replace('\n', '\n>')
+            issue_body_ = '>' + issue_body_
+
+            issue_body += ': \n\n' + issue_body_
 
         return issue_body
 
     # добавляем фразу бота к комментарию
     def bot_speech_comment(issue):
+
+        # добавляем цитирование
+        comment_body = issue['comment_body'].replace('\n', '\n>')
+        comment_body = '>' + comment_body
+
+        # добавляем фразу бота
         comment_body = 'I am a bot, bleep-bloop.\n' +\
                        issue['user_firstname'] + ' ' + issue['user_lastname'] + ' (' + issue['user_login'] +\
                        ') Has commented / edited with comment the issue in Redmine: \n\n' +\
-                       issue['comment_body']
+                       comment_body
+
         return comment_body
 
     # добавляем фразу бота (комментарием) к действию в редмайне (закрыл, изменил и т.д.)
@@ -233,11 +248,22 @@ def process_payload_from_rm(payload):
 
         # ------------------------------------------- ОБРАБАТЫВАЕМ ФРАЗУ БОТА ------------------------------------------
 
-
         #title = '[From Redmine (edited)] ' + issue['title']
         title = issue['title']
-        #issue_body = bot_speech_issue_body(issue)               # добавляем фразу бота
-        issue_body = issue['body']
+
+        # проверяем, если автор issue - бот
+        if (chk_if_rm_user_is_a_bot(issue['issue_author_id'])):
+            # удаляем фразу бота
+            #bot_phrase, sep, issue_body = issue['body'].partition(':')
+
+            error_text = "ERROR: EDITED BOT-POSTED ISSUE"
+            WRITE_LOG('\n' + '='*35 + ' ' + str(datetime.datetime.today()) + ' ' + '='*35 + '\n' +
+                      'received webhook from REDMINE: issues | ' + 'action: ' + str(issue['action']) + '\n' +
+                      error_text)
+            return HttpResponse(error_text, status=403)
+
+        else:
+            issue_body = bot_speech_issue_body(issue)  # добавляем фразу бота
 
         # обработка спец. символов
         title = align_special_symbols(title)
@@ -282,7 +308,6 @@ def process_payload_from_rm(payload):
     elif (issue['action'] == 'updated'):
 
         if (chk_if_rm_user_is_a_bot(issue['user_id'])):
-            #WRITE_LOG(str(payload))
 
             error_text = prevent_cyclic_rm(issue)
             return HttpResponse(error_text, status=200)
