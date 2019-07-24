@@ -208,6 +208,38 @@ def prevent_cyclic_rm(issue):
 
     return error_text
 
+# TODO: доделать функцию сопоставления label-а в гитхабе и tracker_ids_rm / status_ids_rm / priority_ids_rm
+# функция сопостовления label-а в гитхабе редмайну
+def match_label_ro_rm(label_rm):
+
+    label_gh = {}
+
+    label_gh['type'], label_gh['name'] = str(label_rm).split(': ')
+
+    '''if (label_gh['type'] == 'Приоритет'):
+        if (label_gh['name'] == 'Низкий'):
+        elif (label_gh['name'] == 'Нормальный'):
+        elif (label_gh['name'] == 'Высокий'):
+        else:
+            WRITE_LOG('ERROR: UNKNOWN PRIORITY')
+        
+    elif (label_gh['type'] == 'Статус'):
+        if (label_gh['name'] == 'Низкий'):
+        elif (label_gh['name'] == 'Нормальный'):
+        elif (label_gh['name'] == 'Высокий'):
+        else:
+            WRITE_LOG('ERROR: UNKNOWN PRIORITY')
+    elif (label_gh['type'] == 'Трекер'):
+        if (label_gh['name'] == 'Низкий'):
+        elif (label_gh['name'] == 'Нормальный'):
+        elif (label_gh['name'] == 'Высокий'):
+        else:
+            WRITE_LOG('ERROR: UNKNOWN PRIORITY')
+    else:
+        WRITE_LOG('ERROR: UNKNOWN LABEL')'''
+
+    return label_gh
+
 
 # ======================================================== GITHUB ======================================================
 

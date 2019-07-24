@@ -21,6 +21,8 @@ from issues_linker.my_functions import chk_if_gh_user_is_a_bot  # проверк
 from issues_linker.my_functions import link_log_issue_gh        # лог связи issues
 from issues_linker.my_functions import prevent_cyclic_gh        # предотвращение зацикливания
 
+from issues_linker.my_functions import match_label_ro_rm        # сопостовление label-а в гитхабе редмайну
+
 
 def process_payload_from_gh(payload):
 
@@ -49,6 +51,15 @@ def process_payload_from_gh(payload):
 
         # ссылка на issue (для фразы бота и логов)
         payload_parsed['issue_url'] = payload['issue']['html_url']
+
+        if (payload_parsed['action'] == 'labeled'):
+            #WRITE_LOG(str(payload))
+            #payload_parsed['label'] = payload['labels'][0]['name']
+            payload_parsed['label'] = payload['label']['name']
+            payload_parsed['labels'] = payload['issue']['labels']
+            #WRITE_LOG('\n'+str(payload_parsed['label']))
+            #WRITE_LOG('\n'+str(payload_parsed['labels']))
+
 
         return payload_parsed
 
@@ -291,6 +302,17 @@ def process_payload_from_gh(payload):
             return HttpResponse(error_text, status=200)
 
         request_result = delete_issue(issue, linked_issues)
+
+    elif (issue['action'] == 'labeled'):
+
+        if (chk_if_gh_user_is_a_bot(issue['user_id'])):
+
+            error_text = prevent_cyclic_gh(issue)
+            return HttpResponse(error_text, status=200)
+
+        match_label_ro_rm(issue['label'])
+        return HttpResponse(status=200)
+        #request_result = edit_issue(issue, linked_issues, status_ids_rm[0])      # 0 - status "new"
 
     else:
         error_text = 'ERROR: WRONG ACTION'

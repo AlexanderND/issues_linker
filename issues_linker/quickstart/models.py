@@ -286,8 +286,6 @@ class Linked_Comments(models.Model):
 
 # TODO: поле ManyToMany с комментариями (проверить работу)
 '''Класс "Linked_Issues" - связанные issues (id_issue_rm - id_repo_gh, id_issue_gh)'''
-
-
 class Linked_Issues_Manager(models.Manager):
     use_in_migrations = True
 
@@ -313,7 +311,6 @@ class Linked_Issues_Manager(models.Manager):
     def get_by_issue_id_gh(self, issue_id_gh):
         return self.filter(issue_id_gh=issue_id_gh)
 
-
 class Linked_Issues(models.Model):
     issue_id_rm = models.BigIntegerField(blank=1, null=1)       # id issue в редмайне
     issue_id_gh = models.BigIntegerField(blank=1, null=1)       # id issue в гитхабе
@@ -321,7 +318,7 @@ class Linked_Issues(models.Model):
     repos_id_gh = models.BigIntegerField(blank=1, null=1)       # id репозитория в гитхабе
     issue_num_gh = models.BigIntegerField(blank=1, null=1)      # issue['number'] в гитхабе (номер issue в репозитории)
 
-    comments = models.ManyToManyField(Linked_Comments, blank=1, null=1)     # комментарии к issue
+    comments = models.ManyToManyField(Linked_Comments, blank=1)     # комментарии к issue
 
 
     db_table = 'linked_issues'
