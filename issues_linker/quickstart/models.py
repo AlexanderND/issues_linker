@@ -241,51 +241,9 @@ class Payload_RM(models.Model):
         verbose_name_plural = 'payloads_from_rm'
 
 
-# ===================================================== СВЯЗЬ ISSUES ===================================================
-
-
-'''Класс "Linked_Issues" - связанные issues (id_issue_rm - id_repo_gh, id_issue_gh)'''
-class Linked_Issues_Manager(models.Manager):
-    use_in_migrations = True
-
-    def create_linked_issues(self, issue_id_rm, issue_id_gh, repos_id_gh, issue_num_gh):
-        linked_issues = self.model(issue_id_rm=issue_id_rm,
-                                   issue_id_gh=issue_id_gh,
-                                   repos_id_gh=repos_id_gh,
-                                   issue_num_gh=issue_num_gh)
-        linked_issues.save()   # сохранение linked_issues в базе данных
-
-        return linked_issues
-
-    def get_by_natural_key(self, id):
-        return self.get(id=id)
-
-    def get_by_issue_id_rm(self, issue_id_rm):
-        return self.filter(issue_id_rm=issue_id_rm)
-
-    def get_by_issue_id_gh(self, issue_id_gh):
-        return self.filter(issue_id_gh=issue_id_gh)
-
-class Linked_Issues(models.Model):
-
-    issue_id_rm = models.BigIntegerField(blank=1, null=1)   # id issue в редмайне
-    issue_id_gh = models.BigIntegerField(blank=1, null=1)   # id issue в гитхабе
-
-    repos_id_gh = models.BigIntegerField(blank=1, null=1)   # id репозитория в гитхабе
-    issue_num_gh = models.BigIntegerField(blank=1, null=1)  # issue['number'] в гитхабе (номер issue в репозитории)
-
-    db_table = 'linked_issues'
-    objects = Linked_Issues_Manager()
-
-    class Meta:
-        verbose_name = 'linked_issues'
-        verbose_name_plural = 'linked_issues'
-
-
 # ==================================================== СВЯЗЬ COMMENTS ==================================================
 
 
-# TODO: поле ManyToMany с issues
 '''Класс "Linked_Comments" - связанные комментарии в issue (comment_id_rm - comment_id_gh, linked_issues_id)'''
 class Linked_Comments_Manager(models.Manager):
     use_in_migrations = True
@@ -297,6 +255,7 @@ class Linked_Comments_Manager(models.Manager):
         linked_comments.save()  # сохранение linked_comments в базе данных
 
         return linked_comments
+
 
     def get_by_natural_key(self, id):
         return self.get(id=id)
@@ -312,7 +271,7 @@ class Linked_Comments(models.Model):
     comment_id_rm = models.BigIntegerField(blank=1, null=1)     # id комментария в редмайне
     comment_id_gh = models.BigIntegerField(blank=1, null=1)     # id комментария в гитхабе
 
-    linked_issues_id = models.BigIntegerField(blank=1, null=1)  # id связанных issue на сервере
+    #linked_issues_id = models.BigIntegerField(blank=1, null=1)  # id связанных issue на сервере
 
     db_table = 'linked_comments'
     objects = Linked_Comments_Manager()
@@ -320,3 +279,54 @@ class Linked_Comments(models.Model):
     class Meta:
         verbose_name = 'linked_comments'
         verbose_name_plural = 'linked_comments'
+
+
+# ===================================================== СВЯЗЬ ISSUES ===================================================
+
+
+# TODO: поле ManyToMany с комментариями (проверить работу)
+'''Класс "Linked_Issues" - связанные issues (id_issue_rm - id_repo_gh, id_issue_gh)'''
+
+
+class Linked_Issues_Manager(models.Manager):
+    use_in_migrations = True
+
+    def create_linked_issues(self, issue_id_rm, issue_id_gh, repos_id_gh, issue_num_gh):
+        linked_issues = self.model(issue_id_rm=issue_id_rm,
+                                   issue_id_gh=issue_id_gh,
+                                   repos_id_gh=repos_id_gh,
+                                   issue_num_gh=issue_num_gh)
+        linked_issues.save()  # сохранение linked_issues в базе данных
+
+        return linked_issues
+
+    def add_comment(self, comment):
+        self.comments.add(comment)
+
+
+    def get_by_natural_key(self, id):
+        return self.get(id=id)
+
+    def get_by_issue_id_rm(self, issue_id_rm):
+        return self.filter(issue_id_rm=issue_id_rm)
+
+    def get_by_issue_id_gh(self, issue_id_gh):
+        return self.filter(issue_id_gh=issue_id_gh)
+
+
+class Linked_Issues(models.Model):
+    issue_id_rm = models.BigIntegerField(blank=1, null=1)       # id issue в редмайне
+    issue_id_gh = models.BigIntegerField(blank=1, null=1)       # id issue в гитхабе
+
+    repos_id_gh = models.BigIntegerField(blank=1, null=1)       # id репозитория в гитхабе
+    issue_num_gh = models.BigIntegerField(blank=1, null=1)      # issue['number'] в гитхабе (номер issue в репозитории)
+
+    comments = models.ManyToManyField(Linked_Comments, blank=1, null=1)     # комментарии к issue
+
+
+    db_table = 'linked_issues'
+    objects = Linked_Issues_Manager()
+
+    class Meta:
+        verbose_name = 'linked_issues'
+        verbose_name_plural = 'linked_issues'

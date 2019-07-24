@@ -22,6 +22,7 @@ class GroupSerializer(serializers.HyperlinkedModelSerializer):
 
 # ======================================================= GITHUB =======================================================
 
+
 ''' issues в гитхабе '''
 class Issue_GH_Serializer(serializers.HyperlinkedModelSerializer):
     # изменяем название поля id (так как прилетает 'id' а не 'id_gh')
@@ -56,6 +57,7 @@ class Payload_GH_Serializer(serializers.HyperlinkedModelSerializer):
 
 
 # ======================================================= REDMINE ======================================================
+
 
 ''' projects в редмайне '''
 class Project_RM_Serializer(serializers.HyperlinkedModelSerializer):
@@ -107,6 +109,7 @@ class Payload_RM_Serializer(serializers.HyperlinkedModelSerializer):
 
 # ======================================================== СВЯЗЬ =======================================================
 
+
 ''' связынные issues '''
 class Linked_Issues_Serializer(serializers.HyperlinkedModelSerializer):
     class Meta:
@@ -117,4 +120,4 @@ class Linked_Issues_Serializer(serializers.HyperlinkedModelSerializer):
 class Linked_Comments_Serializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Linked_Comments
-        fields = ('comment_id_rm', 'comment_id_gh', 'linked_issues_id')
+        fields = ('comment_id_rm', 'comment_id_gh', 'linked_issue')
