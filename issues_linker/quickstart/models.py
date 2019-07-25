@@ -352,6 +352,13 @@ class Linked_Issues(models.Model):
         return comment
 
 
+    def get_comment_by_id_gh(self, comment_id_gh):
+        return Linked_Comments.objects.get_by_comment_id_gh(comment_id_gh)
+
+    def get_comment_by_id_rm(self, comment_id_rm):
+        return Linked_Comments.objects.get_by_comment_id_rm(comment_id_rm)
+
+
     db_table = 'linked_issues'
     objects = Linked_Issues_Manager()
 

@@ -117,7 +117,6 @@ def process_comment_payload_from_gh(payload):
         return comment_body
 
 
-    # TODO: исправить привязку комментириев
     def post_comment(issue, linked_issues):
 
         # дополнительная проверка, что issue связаны
@@ -180,6 +179,77 @@ def process_comment_payload_from_gh(payload):
 
         return request_result
 
+    '''def edit_comment(issue, linked_issues):
+
+        # дополнительная проверка, что issue связаны
+        # (на случай, если изменили не связанный issue)
+        if (linked_issues.count() == 0):
+            WRITE_LOG('\n' + '='*35 + ' ' + str(datetime.datetime.today()) + ' ' + '='*35 + '\n' +
+                      'received webhook from GITHUB: issue_comments | ' + 'action: ' + str(issue['action']) + '\n' +
+                      "ERROR: posted comment on GITHUB, but the issue is not linked to REDMINE")
+            return HttpResponse(status=404)
+        linked_issues = linked_issues[0]
+
+        # дополнительная проверка, что комментарии связаны
+        linked_comments = linked_issues.get_comment_by_id_gh(issue['comment_id'])
+        if (linked_comments.count() == 0):
+            WRITE_LOG('\n' + '='*35 + ' ' + str(datetime.datetime.today()) + ' ' + '='*35 + '\n' +
+                      'received webhook from GITHUB: issue_comments | ' + 'action: ' + str(issue['action']) + '\n' +
+                      "ERROR: edited comment on GITHUB, but it is not linked to REDMINE")
+            return HttpResponse(status=404)
+        linked_comments = linked_comments[0]
+
+
+        # ------------------------------------------- ОБРАБАТЫВАЕМ ФРАЗУ БОТА ------------------------------------------
+
+
+        # проверяем, если автор issue - бот
+        if (chk_if_gh_user_is_a_bot(issue['issue_author_id'])):
+
+            bot_phrase, sep, issue_body = issue['body'].partition(':')  # удаляем фразу бота
+            issue_body = issue_body.replace('>', '')                    # убираем цитирование бота (ВОЗМОЖНЫ ОШИБКИ)
+
+        else:
+            issue_body = bot_speech_issue_body(issue)
+
+        comment_body = bot_speech_comment(issue)    # добавляем фразу бота
+
+        # обработка спец. символов
+        issue_title = align_special_symbols(issue['title'])
+        issue_body = align_special_symbols(issue_body)
+        comment_body = align_special_symbols(comment_body)
+
+
+        # ----------------------------------------- ЗАГРУЖАЕМ ДАННЫЕ В РЕДМАЙН -----------------------------------------
+
+
+        issue_templated = issue_redmine_template.render(
+            project_id=project_id_rm,
+            issue_id=linked_issues.issue_id_rm,
+            priority_id=priority_ids_rm[0],
+            subject=issue_title,
+            description=issue_body,
+            notes=comment_body)
+
+        # кодировка Latin-1 на некоторых задачах приводит к ошибке кодировки в питоне
+        issue_templated = issue_templated.encode('utf-8')
+
+        issue_url_rm = url_rm.replace('.json',
+                                      '/' + str(linked_issues.issue_id_rm) + '.json')
+        request_result = requests.put(issue_url_rm,
+                                      data=issue_templated,
+                                      headers=headers)
+
+
+        # ------------------------------------------- ПРИВЯЗКА КОММЕНТАРИЕВ --------------------------------------------
+        # (делаем привязку после получения веб-хука от редмайна)
+
+
+        # ДЕБАГГИНГ
+        link_log_comment_gh(request_result, issue, linked_issues)
+
+        return request_result'''
+
 
     # ========================================= ЗАГРУЗКА КОММЕНТАРИЯ В REDMINE =========================================
 
@@ -193,6 +263,16 @@ def process_comment_payload_from_gh(payload):
             return HttpResponse(error_text, status=200)
 
         request_result = post_comment(issue, linked_issues)
+
+        '''elif (issue['action'] == 'edited'):
+    
+            if (chk_if_gh_user_is_a_bot(issue['sender_id'])):
+    
+                error_text = prevent_cyclic_comment_gh(issue)
+                return HttpResponse(error_text, status=200)
+    
+            request_result = edit_comment(issue, linked_issues)
+            #request_result = post_comment(issue, linked_issues)'''
 
     else:
         error_text = 'ERROR: WRONG ACTION'

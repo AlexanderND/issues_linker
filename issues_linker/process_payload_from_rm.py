@@ -285,7 +285,8 @@ def process_payload_from_rm(payload):
         return request_result
 
 
-    # привязка комментария на редмайне к гитхабу
+    # привязка комментария на редмайне к гитхабу (да, это костыль)
+    # я не хотел делать костыль, но редмайн не посылает внятный ответ на PUT комментария
     def link_comment_to_github(issue, linked_issues):
 
         # дополнительная проверка, что issue связаны
@@ -311,7 +312,6 @@ def process_payload_from_rm(payload):
             # занесение в базу данных информацию о том, что комментарии связаны
             linked_comments = linked_issues.add_comment(issue['comment_id'],
                                                         comment_id_gh)
-
 
 
     # ============================================ ЗАГРУЗКА ISSUE В GITHUB =============================================
