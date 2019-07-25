@@ -19,10 +19,11 @@ from issues_linker.my_functions import chk_if_rm_user_is_a_bot  # проверк
 from issues_linker.my_functions import link_log_rm_post         # лог связи issues (создание)
 from issues_linker.my_functions import link_log_rm_edit         # лог связи issues (изменение)
 from issues_linker.my_functions import link_log_rm_comment      # лог связи issues (комментарий)
-from issues_linker.my_functions import prevent_cyclic_rm        # предотвращение зацикливания
+from issues_linker.my_functions import prevent_cyclic_issue_rm        # предотвращение зацикливания
 
 
 def process_payload_from_rm(payload):
+    payload = payload['payload']    # достаём содержимое payload. payload payload. payload?
 
 
     # =================================================== ПОДГОТОВКА ===================================================
@@ -32,17 +33,13 @@ def process_payload_from_rm(payload):
 
         payload_parsed = {}  # словарь issue (название, описание, ссылка)
 
-        # достаём содержимое payload
-        payload = payload['payload']
-
-        # действие и его автор (перезаписываем на того, кто совершил действие, если "updated")
-        payload_parsed['action'] = payload['action']
-        payload_parsed['user_id'] = payload['issue']['author']['id']
-        payload_parsed['user_login'] = payload['issue']['author']['login']
-        payload_parsed['user_firstname'] = payload['issue']['author']['firstname']
-        payload_parsed['user_lastname'] = payload['issue']['author']['lastname']
-
+        # автор issue
         payload_parsed['issue_author_id'] = payload['issue']['author']['id']
+        payload_parsed['issue_author_login'] = payload['issue']['author']['login']
+        payload_parsed['issue_author_firstname'] = payload['issue']['author']['firstname']
+        payload_parsed['issue_author_lastname'] = payload['issue']['author']['lastname']
+
+        payload_parsed['action'] = payload['action']    # совершённое действие
 
         # при update возможна добавка комментария
         if (payload_parsed['action'] == 'updated'):
@@ -53,11 +50,11 @@ def process_payload_from_rm(payload):
             # id комментария (для связи и логов)
             payload_parsed['comment_id'] = payload['journal']['id']
 
-            # создатель комментария
-            payload_parsed['user_id'] = payload['journal']['author']['id']
-            payload_parsed['user_login'] = payload['journal']['author']['login']
-            payload_parsed['user_firstname'] = payload['journal']['author']['firstname']
-            payload_parsed['user_lastname'] = payload['journal']['author']['lastname']
+            # автор комментария
+            payload_parsed['comment_author_id'] = payload['journal']['author']['id']
+            payload_parsed['comment_author_login'] = payload['journal']['author']['login']
+            payload_parsed['comment_author_firstname'] = payload['journal']['author']['firstname']
+            payload_parsed['comment_author_lastname'] = payload['journal']['author']['lastname']
 
         # заполение полей issue
         payload_parsed['title'] = payload['issue']['subject']
@@ -100,7 +97,9 @@ def process_payload_from_rm(payload):
 
         # добавляем фразу бота
         issue_body = 'I am a bot, bleep-bloop.\n' +\
-                     issue['user_firstname'] + ' ' + issue['user_lastname'] + ' (' + issue['user_login'] +\
+                     issue['issue_author_firstname'] + ' ' +\
+                     issue['issue_author_lastname'] + ' (' +\
+                     issue['issue_author_login'] +\
                      ') Has opened the issue in Redmine'
 
         # добавляем описание задачи
@@ -124,7 +123,9 @@ def process_payload_from_rm(payload):
 
         # добавляем фразу бота
         comment_body = 'I am a bot, bleep-bloop.\n' +\
-                       issue['user_firstname'] + ' ' + issue['user_lastname'] + ' (' + issue['user_login'] +\
+                       issue['comment_author_firstname'] + ' ' +\
+                       issue['comment_author_lastname'] + ' (' +\
+                       issue['comment_author_login'] +\
                        ') Has commented / edited with comment the issue in Redmine: \n\n' +\
                        comment_body
 
@@ -132,9 +133,13 @@ def process_payload_from_rm(payload):
 
     # добавляем фразу бота (комментарием) к действию в редмайне (закрыл, изменил и т.д.)
     def bot_speech_comment_on_action(issue):
+
         comment_body = 'I am a bot, bleep-bloop.\n' +\
-                       issue['user_firstname'] + ' ' + issue['user_lastname'] + ' (' + issue['user_login'] +\
+                       issue['comment_author_firstname'] + ' ' +\
+                       issue['comment_author_lastname'] + ' (' +\
+                       issue['comment_author_login'] +\
                        ') Has edited the issue in Redmine.'
+
         return comment_body
 
 
@@ -204,7 +209,7 @@ def process_payload_from_rm(payload):
                                        data=comment_templated,
                                        headers=headers)
 
-        WRITE_LOG(str(request_result.text))
+        WRITE_LOG('\n'+str(request_result.text)+'\n')
 
         '''
         # ------------------------------------------- ПРИВЯЗКА КОММЕНТАРИЕВ --------------------------------------------
@@ -253,14 +258,7 @@ def process_payload_from_rm(payload):
 
         # проверяем, если автор issue - бот
         if (chk_if_rm_user_is_a_bot(issue['issue_author_id'])):
-            # удаляем фразу бота
-            #bot_phrase, sep, issue_body = issue['body'].partition(':')
-
-            error_text = "ERROR: EDITED BOT-POSTED ISSUE"
-            WRITE_LOG('\n' + '='*35 + ' ' + str(datetime.datetime.today()) + ' ' + '='*35 + '\n' +
-                      'received webhook from REDMINE: issues | ' + 'action: ' + str(issue['action']) + '\n' +
-                      error_text)
-            return HttpResponse(error_text, status=403)
+            bot_phrase, sep, issue_body = issue['body'].partition(':')  # удаляем фразу бота
 
         else:
             issue_body = bot_speech_issue_body(issue)  # добавляем фразу бота
@@ -298,18 +296,18 @@ def process_payload_from_rm(payload):
     linked_issues = Linked_Issues.objects.get_by_issue_id_rm(issue['issue_id'])
     if (issue['action'] == 'opened'):
 
-        if (chk_if_rm_user_is_a_bot(issue['user_id'])):
+        if (chk_if_rm_user_is_a_bot(issue['issue_author_id'])):
 
-            error_text = prevent_cyclic_rm(issue)
+            error_text = prevent_cyclic_issue_rm(issue)
             return HttpResponse(error_text, status=200)
 
         request_result = post_issue(issue)
 
     elif (issue['action'] == 'updated'):
 
-        if (chk_if_rm_user_is_a_bot(issue['user_id'])):
+        if (chk_if_rm_user_is_a_bot(issue['comment_author_id'])):
 
-            error_text = prevent_cyclic_rm(issue)
+            error_text = prevent_cyclic_issue_rm(issue)
             return HttpResponse(error_text, status=200)
 
         # изменение issue + добавление комментария

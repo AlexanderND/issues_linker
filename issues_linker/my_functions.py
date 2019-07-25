@@ -112,51 +112,33 @@ def link_log_rm_post(result, issue, linked_issues):
               '        | issue_id:      ' + str(linked_issues.issue_id_gh) + '\n' +
               '        | repos_id:      ' + repos_id_gh + '\n' +
               '        | issue_number:  ' + str(linked_issues.issue_num_gh) + '\n' +
-              'REDMINE | url:           ' + issue['issue_url'] + '\n' +
-              '        | issue_title:   ' + issue['title'] + '\n' +
+              'REDMINE | author_id:     ' + str(issue['issue_author_id']) + '\n' +
+              '        | author_login:  ' + str(issue['issue_author_login']) + '\n' +
+              '        | issue_url:     ' + issue['issue_url'] + '\n' +
               '        | issue_id:      ' + str(issue['issue_id']) + '\n' +
-              '        | project_id:    ' + str(issue['project_id']) + '\n' +
-              '        | user_id:       ' + str(issue['user_id']) + '\n' +
-              '        | user_login:    ' + str(issue['user_login']))
+              '        | project_id:    ' + str(issue['project_id']))
     return 0
 
-# TODO: комментарий, вместо issue
 # при изменении в редмайне: всегда оставляем комментарий об изменении в гитхабе, затем производим сами изменения
 def link_log_rm_comment(result, issue, linked_issues):
-#def link_log_rm_comment(result, issue, linked_issues, linked_comments):
 
     action_gh = 'POST'
 
-    # изменили без комментария
-    if (issue['comment_body'] == ''):
-        WRITE_LOG('\n' + '=' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 35 + '\n' +
-                  'received webhook from REDMINE: issues (edit) | ' + 'action: ' + str(issue['action']) + '\n' +
-                  action_gh + ' result in GITHUB: ' + str(result.status_code) + ' ' + str(result.reason) + '\n' +
-                  'GITHUB  | url:           ' + url_gh + '\n' +
-                  '        | issue_id:      ' + str(linked_issues.issue_id_gh) + '\n' +
-                  '        | repos_id:      ' + repos_id_gh + '\n' +
-                  '        | issue_number:  ' + str(linked_issues.issue_num_gh) + '\n' +
-                  'REDMINE | url:           ' + issue['issue_url'] + '\n' +
-                  '        | issue_title:   ' + issue['title'] + '\n' +
-                  '        | issue_id:      ' + str(issue['issue_id']) + '\n' +
-                  '        | project_id:    ' + str(issue['project_id']) + '\n' +
-                  '        | user_id:       ' + str(issue['user_id']) + '\n' +
-                  '        | user_login:    ' + str(issue['user_login']))
-    # изменили с комментарием
-    else:
-        WRITE_LOG('\n' + '=' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 35 + '\n' +
-                  'received webhook from REDMINE: issues (edit with comment) | ' + 'action: ' + str(issue['action']) + '\n' +
-                  action_gh + ' result in GITHUB: ' + str(result.status_code) + ' ' + str(result.reason) + '\n' +
-                  'GITHUB  | url:           ' + url_gh + '\n' +
-                  '        | issue_id:      ' + str(linked_issues.issue_id_gh) + '\n' +
-                  '        | repos_id:      ' + repos_id_gh + '\n' +
-                  '        | issue_number:  ' + str(linked_issues.issue_num_gh) + '\n' +
-                  'REDMINE | url:           ' + issue['issue_url'] + '\n' +
-                  '        | issue_title:   ' + issue['title'] + '\n' +
-                  '        | issue_id:      ' + str(issue['issue_id']) + '\n' +
-                  '        | project_id:    ' + str(issue['project_id']) + '\n' +
-                  '        | user_id:       ' + str(issue['user_id']) + '\n' +
-                  '        | user_login:    ' + str(issue['user_login']))
+    WRITE_LOG(action_gh + ' result in GITHUB: ' + str(result.status_code) + ' ' + str(result.reason) + '\n' +
+              'GITHUB  | url_gh:        ' + url_gh + '\n' +
+              '        | issue_id:      ' + str(linked_issues.issue_id_gh) + '\n' +
+              '        | repos_id:      ' + repos_id_gh + '\n' +
+              '        | issue_number:  ' + str(linked_issues.issue_num_gh) + '\n' +
+              'REDMINE | ---------------- issue ----------------' + '\n' +
+              '        | author_id:     ' + str(issue['issue_author_id']) + '\n' +
+              '        | author_login:  ' + str(issue['issue_author_login']) + '\n' +
+              '        | issue_url:     ' + issue['issue_url'] + '\n' +
+              '        | issue_id:      ' + str(issue['issue_id']) + '\n' +
+              '        | project_id:    ' + str(issue['project_id'])  + '\n' +
+              '        | --------------- comment ---------------' + '\n' +
+              '        | author_id:     ' + str(issue['comment_author_id']) + '\n' +
+              '        | author_login:  ' + str(issue['comment_author_login']) + '\n' +
+              '        | comment_id:    ' + str(issue['comment_id']))
     return 0
 
 def link_log_rm_edit(result, issue, linked_issues):
@@ -166,40 +148,57 @@ def link_log_rm_edit(result, issue, linked_issues):
     # изменили без комментария
     if (issue['comment_body'] == ''):
         WRITE_LOG(action_gh + ' result in GITHUB: ' + str(result.status_code) + ' ' + str(result.reason) + '\n' +
-                  'GITHUB  | url:           ' + url_gh + '\n' +
+                  'GITHUB  | url_gh:        ' + url_gh + '\n' +
                   '        | issue_id:      ' + str(linked_issues.issue_id_gh) + '\n' +
                   '        | repos_id:      ' + repos_id_gh + '\n' +
                   '        | issue_number:  ' + str(linked_issues.issue_num_gh) + '\n' +
-                  'REDMINE | url:           ' + issue['issue_url'] + '\n' +
-                  '        | issue_title:   ' + issue['title'] + '\n' +
+                  'REDMINE | author_id:     ' + str(issue['issue_author_id']) + '\n' +
+                  '        | author_login:  ' + str(issue['issue_author_login']) + '\n' +
+                  '        | issue_url:     ' + issue['issue_url'] + '\n' +
                   '        | issue_id:      ' + str(issue['issue_id']) + '\n' +
-                  '        | project_id:    ' + str(issue['project_id']) + '\n' +
-                  '        | user_id:       ' + str(issue['user_id']) + '\n' +
-                  '        | user_login:    ' + str(issue['user_login']))
+                  '        | project_id:    ' + str(issue['project_id']))
     # изменили с комментарием
     else:
         WRITE_LOG(action_gh + ' result in GITHUB: ' + str(result.status_code) + ' ' + str(result.reason) + '\n' +
-                  'GITHUB  | url:           ' + url_gh + '\n' +
+                  'GITHUB  | url_gh:        ' + url_gh + '\n' +
                   '        | issue_id:      ' + str(linked_issues.issue_id_gh) + '\n' +
                   '        | repos_id:      ' + repos_id_gh + '\n' +
                   '        | issue_number:  ' + str(linked_issues.issue_num_gh) + '\n' +
-                  'REDMINE | url:           ' + issue['issue_url'] + '\n' +
-                  '        | issue_title:   ' + issue['title'] + '\n' +
+                  'REDMINE | ---------------- issue ----------------' + '\n' +
+                  '        | author_id:     ' + str(issue['issue_author_id']) + '\n' +
+                  '        | author_login:  ' + str(issue['issue_author_login']) + '\n' +
+                  '        | issue_url:     ' + issue['issue_url'] + '\n' +
                   '        | issue_id:      ' + str(issue['issue_id']) + '\n' +
-                  '        | project_id:    ' + str(issue['project_id']) + '\n' +
-                  '        | user_id:       ' + str(issue['user_id']) + '\n' +
-                  '        | user_login:    ' + str(issue['user_login']))
+                  '        | project_id:    ' + str(issue['project_id'])  + '\n' +
+                  '        | --------------- comment ---------------' + '\n' +
+                  '        | author_id:     ' + str(issue['comment_author_id']) + '\n' +
+                  '        | author_login:  ' + str(issue['comment_author_login']) + '\n' +
+                  '        | comment_id:    ' + str(issue['comment_id']))
     return 0
 
 
-def prevent_cyclic_rm(issue):
+def prevent_cyclic_issue_rm(issue):
     if(issue['action'] == 'opened'):
         action_rm = 'opened'
     else:
         action_rm = 'edited'
 
-    error_text = 'The user, who ' + action_rm + ' the issue: ' + issue['user_login'] +\
-                 ' | user id: ' + str(issue['user_id']) + ' (our bot)\n' +\
+    error_text = 'The user, who opened the issue: ' + issue['issue_author_login'] +\
+                 ' | user id: ' + str(issue['issue_author_id']) + ' (our bot)\n' +\
+                 'Aborting action, in order to prevent cyclic post: GH -> S -> RM -> S -> GH -> ...'
+
+    WRITE_LOG('\n' + '=' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 35 + '\n' +
+              'received webhook from REDMINE: issues | ' + 'action: ' + str(issue['action']) + '\n' +
+              error_text)
+
+def prevent_cyclic_comment_rm(issue):
+    if(issue['action'] == 'opened'):
+        action_rm = 'opened'
+    else:
+        action_rm = 'edited'
+
+    error_text = 'The user, who edited/commented the issue: ' + issue['comment_author_login'] +\
+                 ' | user id: ' + str(issue['comment_author_id']) + ' (our bot)\n' +\
                  'Aborting action, in order to prevent cyclic post: GH -> S -> RM -> S -> GH -> ...'
 
     WRITE_LOG('\n' + '=' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 35 + '\n' +
@@ -207,6 +206,7 @@ def prevent_cyclic_rm(issue):
               error_text)
 
     return error_text
+
 
 # TODO: доделать функцию сопоставления label-а в гитхабе и tracker_ids_rm / status_ids_rm / priority_ids_rm
 # функция сопостовления label-а в гитхабе редмайну
@@ -276,6 +276,7 @@ def chk_if_gh_user_is_a_bot(user_id_gh):
     return False
 
 
+# при изменении в гитхабе: всегда оставляем комментарий об изменении в редмайне, затем производим сами изменения
 def link_log_issue_gh(result, issue, linked_issues):
 
     if (issue['action'] == 'opened'):
@@ -290,19 +291,21 @@ def link_log_issue_gh(result, issue, linked_issues):
     WRITE_LOG('\n' + '=' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 35 + '\n' +
               'received webhook from GITHUB: issues | ' + 'action: ' + issue['action'] + '\n' +
               action_rm + ' result in REDMINE: ' + str(result.status_code) + ' ' + str(result.reason) + '\n' +
-              'GITHUB  | url:           ' + issue['issue_url'] + '\n' +
+              'GITHUB  | sender_id:     ' + str(issue['sender_id']) + '\n' +
+              '        | sender_login:  ' + str(issue['sender_login']) + '\n' +
+              '        | ---------------- issue ----------------' + '\n' 
+              '        | author_id:     ' + str(issue['issue_author_id']) + '\n' +
+              '        | author_login:  ' + str(issue['issue_author_login']) + '\n' +
+              '        | issue_url:     ' + issue['issue_url'] + '\n' +
               '        | issue_title:   ' + issue['title'] + '\n' +
               '        | issue_id:      ' + str(issue['issue_id']) + '\n' +
               '        | repos_id:      ' + str(issue['repos_id']) + '\n' +
               '        | issue_number:  ' + str(issue['issue_number']) + '\n' +
-              '        | user_id:       ' + str(issue['user_id']) + '\n' +
-              '        | user_login:    ' + str(issue['user_login']) + '\n' +
-              'REDMINE | url:           ' + url_rm + '\n' +
+              'REDMINE | url_rm:        ' + url_rm + '\n' +
               '        | issue_id:      ' + str(linked_issues.issue_id_rm) + '\n'
               '        | project_id:    ' + str(project_id_rm))
     return 0
 
-# TODO: комментарий, вместо issue
 def link_log_comment_gh(result, issue, linked_issues):
 #def link_log_comment_gh(result, issue, linked_issues, linked_comments):
 
@@ -311,27 +314,31 @@ def link_log_comment_gh(result, issue, linked_issues):
     WRITE_LOG('\n' + '=' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 35 + '\n' +
               'received webhook from GITHUB: issues_comment | ' + 'action: ' + issue['action'] + '\n' +
               action_rm + ' result in REDMINE: ' + str(result.status_code) + ' ' + str(result.reason) + '\n' +
-              '---------ISSUES---------\n' +
-              'GITHUB  | url:           ' + issue['issue_url'] + '\n' +
+              'GITHUB  | sender_id:     ' + str(issue['sender_id']) + '\n' +
+              '        | sender_login:  ' + str(issue['sender_login']) + '\n' +
+              '        | ---------------- issue ----------------' + '\n' +
+              '        | author_id:     ' + str(issue['issue_author_id']) + '\n' +
+              '        | author_login:  ' + str(issue['issue_author_login']) + '\n' +
+              '        | issue_url:     ' + issue['issue_url'] + '\n' +
               '        | issue_title:   ' + issue['title'] + '\n' +
               '        | issue_id:      ' + str(issue['issue_id']) + '\n' +
               '        | repos_id:      ' + str(issue['repos_id']) + '\n' +
               '        | issue_number:  ' + str(issue['issue_number']) + '\n' +
-              '        | user_id:       ' + str(issue['user_id']) + '\n' +
-              '        | user_login:    ' + str(issue['user_login']) + '\n' +
-              'REDMINE | url:           ' + url_rm + '\n' +
+              '        | --------------- comment ---------------' + '\n' +
+              '        | author_id:     ' + str(issue['comment_author_id']) + '\n' +
+              '        | author_login:  ' + str(issue['comment_author_login']) + '\n' +
+              '        | comment_id:    ' + str(issue['comment_id']) + '\n' +
+              'REDMINE | url_rm:        ' + url_rm + '\n' +
               '        | issue_id:      ' + str(linked_issues.issue_id_rm) + '\n'
               '        | project_id:    ' + str(project_id_rm) + '\n')
-              #'---------COMMENTS---------\n' +
-              #'GITHUB  | comment_id:    ' + str(linked_comments.comment_id_rm) + '\n' +
-              #'REDMINE | comment_id:    ' + str(linked_comments.comment_id_gh))
+
     return 0
 
 
-def prevent_cyclic_gh(issue):
+def prevent_cyclic_issue_gh(issue):
 
-    error_text = 'The user, who ' + issue['action'] + ' the issue: ' + issue['user_login'] + \
-                 ' | user id: ' + str(issue['user_id']) + ' (our bot)\n' + \
+    error_text = 'The user, who ' + issue['action'] + ' the issue: ' + issue['sender_login'] + \
+                 ' | user id: ' + str(issue['sender_id']) + ' (our bot)\n' + \
                  'Aborting action, in order to prevent cyclic deletion: GH -> S -> RM -> S -> GH -> ...'
 
     WRITE_LOG('\n' + '=' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 35 + '\n' +
@@ -342,8 +349,8 @@ def prevent_cyclic_gh(issue):
 
 def prevent_cyclic_comment_gh(issue):
 
-    error_text = 'The user, who ' + issue['action'] + ' the comment: ' + issue['user_login'] + \
-                 ' | user id: ' + str(issue['user_id']) + ' (our bot)\n' + \
+    error_text = 'The user, who ' + issue['action'] + ' the comment: ' + issue['sender_login'] + \
+                 ' | user id: ' + str(issue['sender_id']) + ' (our bot)\n' + \
                  'Aborting action, in order to prevent cyclic deletion: GH -> S -> RM -> S -> GH -> ...'
 
     WRITE_LOG('\n' + '=' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 35 + '\n' +

@@ -24,25 +24,26 @@ from issues_linker.my_functions import prevent_cyclic_comment_gh    # предо
 
 
 def process_comment_payload_from_gh(payload):
+    payload = json.loads(payload['payload'])    # достаём содержимое payload
 
 
     # =================================================== ПОДГОТОВКА ===================================================
 
 
     def parse_payload(payload):
-        payload = json.loads(payload['payload'])    # достаём содержимое payload
 
         payload_parsed = {}  # словарь issue (название, описание, ссылка)
 
         # действие и его автор
         payload_parsed['action'] = payload['action']
-        payload_parsed['user_id'] = payload['sender']['id']  # sender - тот, кто совершил действие
-        payload_parsed['user_login'] = payload['sender']['login']
+        payload_parsed['sender_id'] = payload['sender']['id']  # sender - тот, кто совершил действие
+        payload_parsed['sender_login'] = payload['sender']['login']
 
         # заполение полей issue
         payload_parsed['title'] = payload['issue']['title']
         payload_parsed['body'] = payload['issue']['body']
         payload_parsed['issue_author_id'] = payload['issue']['user']['id']  # автор issue
+        payload_parsed['issue_author_login'] = payload['issue']['user']['login']
 
         # идентификаторы (для связи и логов)
         payload_parsed['issue_id'] = payload['issue']['id']
@@ -55,6 +56,8 @@ def process_comment_payload_from_gh(payload):
         # комментарий
         payload_parsed['comment_body'] = payload['comment']['body']
         payload_parsed['comment_id'] = payload['comment']['id']
+        payload_parsed['comment_author_id'] = payload['comment']['user']['id']
+        payload_parsed['comment_author_login'] = payload['comment']['user']['login']
 
         return payload_parsed
 
@@ -84,11 +87,11 @@ def process_comment_payload_from_gh(payload):
         comment_body = '>' + comment_body
 
         # добавляем фразу бота
-        user_url = '"' + issue['user_login'] + '":' + 'https://github.com/' + issue['user_login']
+        author_url = '"' + issue['comment_author_login'] + '":' + 'https://github.com/' + issue['comment_author_login']
         issue_url = '"Github":' + issue['issue_url']
         comment_body = 'I am a bot, bleep-bloop.\n' +\
-                     user_url + ' Has left a comment on ' + issue_url + ': \n\n' + comment_body
-                     #user_url + ' Has ' + issue['action'] + ' a comment on ' + issue_url + ': \n\n' + issue['comment_body']
+                     author_url + ' Has left a comment on ' + issue_url + ': \n\n' + comment_body
+                     #author_url + ' Has ' + issue['action'] + ' a comment on ' + issue_url + ': \n\n' + issue['comment_body']
 
         return comment_body
 
@@ -175,7 +178,7 @@ def process_comment_payload_from_gh(payload):
     linked_issues = Linked_Issues.objects.get_by_issue_id_gh(issue['issue_id'])
     if (issue['action'] == 'created'):
 
-        if (chk_if_gh_user_is_a_bot(issue['user_id'])):
+        if (chk_if_gh_user_is_a_bot(issue['sender_id'])):
 
             error_text = prevent_cyclic_comment_gh(issue)
             return HttpResponse(error_text, status=200)

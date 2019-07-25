@@ -19,7 +19,7 @@ from issues_linker.my_functions import url_rm                   # ссылка �
 from issues_linker.my_functions import chk_if_gh_user_is_a_bot  # проверка на бота (предотвращение
                                                                 # зацикливания: GH -> S -> RM -> ...)
 from issues_linker.my_functions import link_log_issue_gh        # лог связи issues
-from issues_linker.my_functions import prevent_cyclic_gh        # предотвращение зацикливания
+from issues_linker.my_functions import prevent_cyclic_issue_gh        # предотвращение зацикливания
 
 from issues_linker.my_functions import match_label_ro_rm        # сопостовление label-а в гитхабе редмайну
 
@@ -36,13 +36,14 @@ def process_payload_from_gh(payload):
 
         # действие и его автор
         payload_parsed['action'] = payload['action']
-        payload_parsed['user_id'] = payload['sender']['id']  # sender - тот, кто совершил действие
-        payload_parsed['user_login'] = payload['sender']['login']
+        payload_parsed['sender_id'] = payload['sender']['id']  # sender - тот, кто совершил действие
+        payload_parsed['sender_login'] = payload['sender']['login']
 
         # заполение полей issue
         payload_parsed['title'] = payload['issue']['title']
         payload_parsed['body'] = payload['issue']['body']
-        payload_parsed['issue_author_id'] = payload['issue']['user']['id']  # автор issue
+        payload_parsed['issue_author_id'] = payload['issue']['user']['id']
+        payload_parsed['issue_author_login'] = payload['issue']['user']['login']
 
         # идентификаторы (для связи и логов)
         payload_parsed['issue_id'] = payload['issue']['id']
@@ -85,11 +86,11 @@ def process_payload_from_gh(payload):
     def bot_speech_issue_body(issue):
 
         # добавляем фразу бота
-        user_url_gh = '"' + issue['user_login'] + '":' + 'https://github.com/' + issue['user_login']
+        author_url_gh = '"' + issue['issue_author_login'] + '":' + 'https://github.com/' + issue['issue_author_login']
         issue_url_gh = '"Github":' + issue['issue_url']
         issue_body = 'I am a bot, bleep-bloop.\n' +\
-                     user_url_gh + ' Has opened an issue on ' + issue_url_gh
-                     #user_url_gh + ' Has ' + issue['action'] + ' an issue on ' + issue_url_gh
+                     author_url_gh + ' Has opened an issue on ' + issue_url_gh
+                     #author_url_gh + ' Has ' + issue['action'] + ' an issue on ' + issue_url_gh
 
         # добавляем описание задачи
         if (issue['body'] == ''):
@@ -105,11 +106,11 @@ def process_payload_from_gh(payload):
 
     # добавляем фразу бота (комментарием) к действию в редмайне (закрыл, изменил и т.д.)
     def bot_speech_comment_on_action(issue):
-        user_url = '"' + issue['user_login'] + '":' + 'https://github.com/' + issue['user_login']
+        author_url = '"' + issue['comment_author_login'] + '":' + 'https://github.com/' + issue['comment_author_login']
         issue_url = '"Github":' + issue['issue_url']
         comment_body = 'I am a bot, bleep-bloop.\n' +\
-                     user_url + ' Has ' + issue['action'] + ' the issue on ' + issue_url + '.'
-                     #user_url + ' Has ' + issue['action'] + ' a comment on ' + issue_url + '.'
+                     author_url + ' Has ' + issue['action'] + ' the issue on ' + issue_url + '.'
+                     #author_url + ' Has ' + issue['action'] + ' a comment on ' + issue_url + '.'
 
         return comment_body
 
@@ -260,54 +261,54 @@ def process_payload_from_gh(payload):
     linked_issues = Linked_Issues.objects.get_by_issue_id_gh(issue['issue_id'])
     if (issue['action'] == 'opened'):
 
-        if (chk_if_gh_user_is_a_bot(issue['user_id'])):
+        if (chk_if_gh_user_is_a_bot(issue['sender_id'])):
 
-            error_text = prevent_cyclic_gh(issue)
+            error_text = prevent_cyclic_issue_gh(issue)
             return HttpResponse(error_text, status=200)
 
         request_result = post_issue(issue)
 
     elif (issue['action'] == 'edited'):
 
-        if (chk_if_gh_user_is_a_bot(issue['user_id'])):
+        if (chk_if_gh_user_is_a_bot(issue['sender_id'])):
 
-            error_text = prevent_cyclic_gh(issue)
+            error_text = prevent_cyclic_issue_gh(issue)
             return HttpResponse(error_text, status=200)
 
         request_result = edit_issue(issue, linked_issues, status_ids_rm[0])      # 0 - status "new"
 
     elif (issue['action'] == 'closed'):
 
-        if (chk_if_gh_user_is_a_bot(issue['user_id'])):
+        if (chk_if_gh_user_is_a_bot(issue['sender_id'])):
 
-            error_text = prevent_cyclic_gh(issue)
+            error_text = prevent_cyclic_issue_gh(issue)
             return HttpResponse(error_text, status=200)
 
         request_result = edit_issue(issue, linked_issues, status_ids_rm[5])      # 5 - status "closed"
 
     elif (issue['action'] == 'reopened'):
 
-        if (chk_if_gh_user_is_a_bot(issue['user_id'])):
+        if (chk_if_gh_user_is_a_bot(issue['sender_id'])):
 
-            error_text = prevent_cyclic_gh(issue)
+            error_text = prevent_cyclic_issue_gh(issue)
             return HttpResponse(error_text, status=200)
 
         request_result = edit_issue(issue, linked_issues, status_ids_rm[0])      # 0 - status "new"
 
     elif (issue['action'] == 'deleted'):
 
-        if (chk_if_gh_user_is_a_bot(issue['user_id'])):
+        if (chk_if_gh_user_is_a_bot(issue['sender_id'])):
 
-            error_text = prevent_cyclic_gh(issue)
+            error_text = prevent_cyclic_issue_gh(issue)
             return HttpResponse(error_text, status=200)
 
         request_result = delete_issue(issue, linked_issues)
 
     elif (issue['action'] == 'labeled'):
 
-        if (chk_if_gh_user_is_a_bot(issue['user_id'])):
+        if (chk_if_gh_user_is_a_bot(issue['sender_id'])):
 
-            error_text = prevent_cyclic_gh(issue)
+            error_text = prevent_cyclic_issue_gh(issue)
             return HttpResponse(error_text, status=200)
 
         match_label_ro_rm(issue['label'])
