@@ -210,8 +210,6 @@ def process_payload_from_rm(payload):
                                        data=comment_templated,
                                        headers=headers)
 
-        #WRITE_LOG('\n'+str(request_result.text)+'\n')
-
 
         # ------------------------------------------- ПРИВЯЗКА КОММЕНТАРИЕВ --------------------------------------------
 
@@ -223,10 +221,6 @@ def process_payload_from_rm(payload):
 
         # ДЕБАГГИНГ
         link_log_rm_comment(request_result, issue, linked_issues, linked_comments)
-
-
-        # ДЕБАГГИНГ
-        #link_log_rm_comment(request_result, issue, linked_issues)
 
         return request_result
 
@@ -291,6 +285,35 @@ def process_payload_from_rm(payload):
         return request_result
 
 
+    # привязка комментария на редмайне к гитхабу
+    def link_comment_to_github(issue, linked_issues):
+
+        # дополнительная проверка, что issue связаны
+        # (на случай, если изменили не связанный issue)
+        if (linked_issues.count() == 0):
+            error_text = "ERROR: issue edited in REDMINE, but it's not linked to GITHUB"
+            WRITE_LOG('\n' + '='*35 + ' ' + str(datetime.datetime.today()) + ' ' + '='*35 + '\n' +
+                      'received webhook from REDMINE: issues | ' + 'action: ' + str(issue['action']) + '\n' +
+                      error_text)
+            return HttpResponse(error_text, status=404)
+        linked_issues = linked_issues[0]
+
+        # определяем действие (комментарий или измение)
+        action = issue['comment_body'].split(' ')[6]
+
+        if(action == 'left'):
+
+            # достаём id комментария в гитхабе
+            comment_id_gh_str = issue['comment_body'].split('#issuecomment-')[1]
+            comment_id_gh_str = comment_id_gh_str.split(':')[0]
+            comment_id_gh = int(comment_id_gh_str)
+
+            # занесение в базу данных информацию о том, что комментарии связаны
+            linked_comments = linked_issues.add_comment(issue['comment_id'],
+                                                        comment_id_gh)
+
+
+
     # ============================================ ЗАГРУЗКА ISSUE В GITHUB =============================================
 
 
@@ -307,6 +330,9 @@ def process_payload_from_rm(payload):
     elif (issue['action'] == 'updated'):
 
         if (chk_if_rm_user_is_a_bot(issue['comment_author_id'])):
+
+            # попытка связать комментарий на редмайне с гитхабом
+            link_comment_to_github(issue, linked_issues)
 
             error_text = prevent_cyclic_comment_rm(issue)
             return HttpResponse(error_text, status=200)

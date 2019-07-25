@@ -171,22 +171,8 @@ def process_comment_payload_from_gh(payload):
                                       headers=headers)
 
 
-        '''# ------------------------------------------- ПРИВЯЗКА КОММЕНТАРИЕВ --------------------------------------------
-
-
-        #занесение в базу данных информацию о том, что комментарии связаны
-        #posted_comment = json.loads(request_result.text)
-        WRITE_LOG(str(request_result.text))
-        #WRITE_LOG(str(request_result))
-        posted_comment = request_result.text
-        linked_comments = Linked_Comments.objects.create_linked_comments(
-            #posted_comment['journal']['id'],
-            1,
-            issue['comment_id'],
-            linked_issues)
-
-        # ДЕБАГГИНГ
-        link_log_comment_gh(request_result, issue, linked_issues, linked_comments)'''
+        # ------------------------------------------- ПРИВЯЗКА КОММЕНТАРИЕВ --------------------------------------------
+        # (делаем привязку после получения веб-хука от редмайна)
 
 
         # ДЕБАГГИНГ

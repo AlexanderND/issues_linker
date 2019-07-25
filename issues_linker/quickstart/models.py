@@ -255,6 +255,9 @@ class Linked_Comments_Manager(models.Manager):
 
         return linked_comments
 
+    def add_comment_id_rm(self, comment_id_rm):
+        self.edit(comment_id_rm=comment_id_rm)
+
 
     def get_by_natural_key(self, id):
         return self.get(id=id)
@@ -286,7 +289,9 @@ class Linked_Comments(models.Model):
 # TODO: поле ManyToMany с комментариями (проверить работу)
 '''Класс "Linked_Issues" - связанные issues (id_issue_rm - id_repo_gh, id_issue_gh)'''
 class Linked_Issues_Manager(models.Manager):
+
     use_in_migrations = True
+
 
     def create_linked_issues(self, issue_id_rm, issue_id_gh, repos_id_gh, issue_num_gh):
         linked_issues = self.model(issue_id_rm=issue_id_rm,
@@ -296,17 +301,6 @@ class Linked_Issues_Manager(models.Manager):
         linked_issues.save()  # сохранение linked_issues в базе данных
 
         return linked_issues
-
-
-    '''def add_comment(self, comment_id_rm, comment_id_gh):
-
-        comment = Linked_Comments.objects.create_linked_comments(
-            comment_id_rm,
-            comment_id_gh)
-
-        self.comments.add(comment)
-
-        return comment'''
 
 
     def get_by_natural_key(self, id):
@@ -319,6 +313,7 @@ class Linked_Issues_Manager(models.Manager):
         return self.filter(issue_id_gh=issue_id_gh)
 
 class Linked_Issues(models.Model):
+
     issue_id_rm = models.BigIntegerField(blank=1, null=1)           # id issue в редмайне
     issue_id_gh = models.BigIntegerField(blank=1, null=1)           # id issue в гитхабе
 
@@ -328,11 +323,6 @@ class Linked_Issues(models.Model):
     comments = models.ManyToManyField(Linked_Comments, blank=1)     # комментарии к issue
 
 
-    '''def add_comment(self, comment_id_rm, comment_id_gh):
-
-        comment = self.objects.add_comments(comment_id_rm, comment_id_gh)
-
-        return comment'''
     def add_comment(self, comment_id_rm, comment_id_gh):
 
         comment = Linked_Comments.objects.create_linked_comments(
@@ -340,6 +330,24 @@ class Linked_Issues(models.Model):
             comment_id_gh)
 
         self.comments.add(comment)
+
+        return comment
+
+    # неизвестен id комментария в редмайне
+    def add_comment_gh(self, comment_id_gh):
+
+        comment = Linked_Comments.objects.create_linked_comments(
+            None,
+            comment_id_gh)
+
+        self.comments.add(comment)
+
+        return comment
+
+    def add_comment_rm(self, comment_id_rm, comment_id_gh):
+
+        comment = Linked_Comments.objects.get_by_comment_id_gh(comment_id_gh)
+        comment.objects.add_comment_id_rm(comment_id_rm)    # добавляем id комментария в редмайне
 
         return comment
 
