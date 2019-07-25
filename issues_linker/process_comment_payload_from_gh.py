@@ -169,7 +169,7 @@ def process_comment_payload_from_gh(payload):
         return request_result
 
 
-    # ============================================ ЗАГРУЗКА ISSUE В REDMINE ============================================
+    # ========================================= ЗАГРУЗКА КОММЕНТАРИЯ В REDMINE =========================================
 
 
     linked_issues = Linked_Issues.objects.get_by_issue_id_gh(issue['issue_id'])
