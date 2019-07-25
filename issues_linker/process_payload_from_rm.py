@@ -2,24 +2,25 @@ import requests
 import datetime
 from jinja2 import Template
 import json
-from django.http import HttpResponse                            # ответы серверу (редмайну)
+from django.http import HttpResponse                                # ответы серверу (редмайну)
 
-from issues_linker.quickstart.models import Linked_Issues       # связанные issues
-from issues_linker.quickstart.models import Linked_Comments     # связанные комментарии
+from issues_linker.quickstart.models import Linked_Issues           # связанные issues
+from issues_linker.quickstart.models import Linked_Comments         # связанные комментарии
 
-from issues_linker.my_functions import WRITE_LOG                # ведение логов
-from issues_linker.my_functions import align_special_symbols    # обработка спец. символов (\ -> \\)
-from issues_linker.my_functions import read_file                # загрузка файла (возвращает строку)
+from issues_linker.my_functions import WRITE_LOG                    # ведение логов
+from issues_linker.my_functions import align_special_symbols        # обработка спец. символов (\ -> \\)
+from issues_linker.my_functions import read_file                    # загрузка файла (возвращает строку)
 
-from issues_linker.my_functions import repos_id_gh              # id репозитория в гитхабе
-from issues_linker.my_functions import url_gh                   # ссылка на гитхаб
+from issues_linker.my_functions import repos_id_gh                  # id репозитория в гитхабе
+from issues_linker.my_functions import url_gh                       # ссылка на гитхаб
 
-from issues_linker.my_functions import chk_if_rm_user_is_a_bot  # проверка на бота (предотвращение
-                                                                # зацикливания: RM -> S -> GH -> ...)
-from issues_linker.my_functions import link_log_rm_post         # лог связи issues (создание)
-from issues_linker.my_functions import link_log_rm_edit         # лог связи issues (изменение)
-from issues_linker.my_functions import link_log_rm_comment      # лог связи issues (комментарий)
-from issues_linker.my_functions import prevent_cyclic_issue_rm        # предотвращение зацикливания
+from issues_linker.my_functions import chk_if_rm_user_is_a_bot      # проверка на бота (предотвращение
+                                                                    # зацикливания: RM -> S -> GH -> ...)
+from issues_linker.my_functions import link_log_rm_post             # лог связи issues (создание)
+from issues_linker.my_functions import link_log_rm_edit             # лог связи issues (изменение)
+from issues_linker.my_functions import link_log_rm_comment          # лог связи issues (комментарий)
+from issues_linker.my_functions import prevent_cyclic_issue_rm      # предотвращение зацикливания issue
+from issues_linker.my_functions import prevent_cyclic_comment_rm    # предотвращение зацикливания комментариев
 
 
 def process_payload_from_rm(payload):
@@ -209,7 +210,7 @@ def process_payload_from_rm(payload):
                                        data=comment_templated,
                                        headers=headers)
 
-        WRITE_LOG('\n'+str(request_result.text)+'\n')
+        #WRITE_LOG('\n'+str(request_result.text)+'\n')
 
         '''
         # ------------------------------------------- ПРИВЯЗКА КОММЕНТАРИЕВ --------------------------------------------
@@ -307,7 +308,7 @@ def process_payload_from_rm(payload):
 
         if (chk_if_rm_user_is_a_bot(issue['comment_author_id'])):
 
-            error_text = prevent_cyclic_issue_rm(issue)
+            error_text = prevent_cyclic_comment_rm(issue)
             return HttpResponse(error_text, status=200)
 
         # изменение issue + добавление комментария

@@ -19,7 +19,7 @@ from issues_linker.my_functions import url_rm                   # ссылка �
 from issues_linker.my_functions import chk_if_gh_user_is_a_bot  # проверка на бота (предотвращение
                                                                 # зацикливания: GH -> S -> RM -> ...)
 from issues_linker.my_functions import link_log_issue_gh        # лог связи issues
-from issues_linker.my_functions import prevent_cyclic_issue_gh        # предотвращение зацикливания
+from issues_linker.my_functions import prevent_cyclic_issue_gh  # предотвращение зацикливания
 
 from issues_linker.my_functions import match_label_ro_rm        # сопостовление label-а в гитхабе редмайну
 

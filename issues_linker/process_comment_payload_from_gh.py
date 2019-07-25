@@ -2,24 +2,24 @@ import requests
 import datetime
 from jinja2 import Template
 import json
-from django.http import HttpResponse                            # ответы серверу (гитхабу)
+from django.http import HttpResponse                                # ответы серверу (гитхабу)
 
-from issues_linker.quickstart.models import Linked_Issues       # связанные issues
-from issues_linker.quickstart.models import Linked_Comments     # связанные комментарии
+from issues_linker.quickstart.models import Linked_Issues           # связанные issues
+from issues_linker.quickstart.models import Linked_Comments         # связанные комментарии
 
-from issues_linker.my_functions import WRITE_LOG                # ведение логов
-from issues_linker.my_functions import align_special_symbols    # обработка спец. символов (\ -> \\)
-from issues_linker.my_functions import read_file                # загрузка файла (возвращает строку)
+from issues_linker.my_functions import WRITE_LOG                    # ведение логов
+from issues_linker.my_functions import align_special_symbols        # обработка спец. символов (\ -> \\)
+from issues_linker.my_functions import read_file                    # загрузка файла (возвращает строку)
 
-from issues_linker.my_functions import project_id_rm            # id преккта в редмайне
-from issues_linker.my_functions import tracker_ids_rm           # ids трекеров задачи в редмайне
-from issues_linker.my_functions import status_ids_rm            # ids статусов задачи в редмайне
-from issues_linker.my_functions import priority_ids_rm          # ids приоритетов задачи в редмайне
-from issues_linker.my_functions import url_rm                   # ссылка на сервер редмайна
+from issues_linker.my_functions import project_id_rm                # id преккта в редмайне
+from issues_linker.my_functions import tracker_ids_rm               # ids трекеров задачи в редмайне
+from issues_linker.my_functions import status_ids_rm                # ids статусов задачи в редмайне
+from issues_linker.my_functions import priority_ids_rm              # ids приоритетов задачи в редмайне
+from issues_linker.my_functions import url_rm                       # ссылка на сервер редмайна
 
-from issues_linker.my_functions import chk_if_gh_user_is_a_bot  # проверка на бота (предотвращение
-                                                                # зацикливания: GH -> S -> RM -> ...)
-from issues_linker.my_functions import link_log_comment_gh      # лог связи комментариев
+from issues_linker.my_functions import chk_if_gh_user_is_a_bot      # проверка на бота (предотвращение
+                                                                    # зацикливания: GH -> S -> RM -> ...)
+from issues_linker.my_functions import link_log_comment_gh          # лог связи комментариев
 from issues_linker.my_functions import prevent_cyclic_comment_gh    # предотвращение зацикливания
 
 
