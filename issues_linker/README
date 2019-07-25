@@ -17,6 +17,7 @@ $ bundle exec rails server webrick -e development
 ============================================= PUSH commit to github =============================================
 
 
+Настройка коммитов:
 echo "# test-2" >> README.md
 git init
 git add README.md
@@ -24,7 +25,11 @@ git commit -m "first commit"
 git remote add origin https://github.com/AlexanderND/issues_linker.git
 git push -u origin master
 
+Коммит полностью из консоли:
 git commit -m "second commit"
+git push -u origin master
+
+Коммит (только отправляем на гитхаб)
 git push -u origin master
 
 
