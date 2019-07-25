@@ -79,6 +79,28 @@ def process_comment_payload_from_gh(payload):
     # ============================================= КОМАНДЫ ДЛЯ ЗАГРУЗКИ ===============================================
 
 
+    # добавляем фразу бота к описанию issue, со ссылкой на аккаунт пользователя в гитхабе
+    def bot_speech_issue_body(issue):
+
+        # добавляем фразу бота
+        author_url_gh = '"' + issue['issue_author_login'] + '":' + 'https://github.com/' + issue['issue_author_login']
+        issue_url_gh = '"issue on Github":' + issue['issue_url']
+        issue_body = 'I am a bot, bleep-bloop.\n' +\
+                     author_url_gh + ' Has opened an ' + issue_url_gh
+                     #author_url_gh + ' Has ' + issue['action'] + ' an issue on ' + issue_url_gh
+
+        # добавляем описание задачи
+        if (issue['body'] == ''):
+            issue_body += '.'
+        else:
+            # добавляем цитирование
+            issue_body_ = issue['body'].replace('\n', '\n>')
+            issue_body_ = '>' + issue_body_
+
+            issue_body += ': \n\n' + issue_body_
+
+        return issue_body
+
     # добавляем фразу бота к комментарию, со ссылкой на аккаунт пользователя в гитхабе
     def bot_speech_comment(issue):
 
@@ -113,10 +135,12 @@ def process_comment_payload_from_gh(payload):
 
         # проверяем, если автор issue - бот
         if (chk_if_gh_user_is_a_bot(issue['issue_author_id'])):
-            # удаляем фразу бота
-            bot_phrase, sep, issue_body = issue['body'].partition(':')
+
+            bot_phrase, sep, issue_body = issue['body'].partition(':')  # удаляем фразу бота
+            issue_body = issue_body.replace('>', '')                    # убираем цитирование бота (ВОЗМОЖНЫ ОШИБКИ)
+
         else:
-            issue_body = issue['body']
+            issue_body = bot_speech_issue_body(issue)
 
         comment_body = bot_speech_comment(issue)    # добавляем фразу бота
 

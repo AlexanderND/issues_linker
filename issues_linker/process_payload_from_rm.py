@@ -257,7 +257,9 @@ def process_payload_from_rm(payload):
 
         # проверяем, если автор issue - бот
         if (chk_if_rm_user_is_a_bot(issue['issue_author_id'])):
+
             bot_phrase, sep, issue_body = issue['body'].partition(':')  # удаляем фразу бота
+            issue_body = issue_body.replace('>', '')                    # убираем цитирование бота (ВОЗМОЖНЫ ОШИБКИ)
 
         else:
             issue_body = bot_speech_issue_body(issue)  # добавляем фразу бота
