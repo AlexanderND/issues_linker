@@ -120,15 +120,18 @@ def link_log_rm_post(result, issue, linked_issues):
     return 0
 
 # при изменении в редмайне: всегда оставляем комментарий об изменении в гитхабе, затем производим сами изменения
-def link_log_rm_comment(result, issue, linked_issues):
+def link_log_rm_comment(result, issue, linked_issues, linked_comments):
 
     action_gh = 'POST'
 
     WRITE_LOG(action_gh + ' result in GITHUB: ' + str(result.status_code) + ' ' + str(result.reason) + '\n' +
-              'GITHUB  | url_gh:        ' + url_gh + '\n' +
+              'GITHUB  | ---------------- issue ----------------' + '\n' +
+              '        | url_gh:        ' + url_gh + '\n' +
               '        | issue_id:      ' + str(linked_issues.issue_id_gh) + '\n' +
               '        | repos_id:      ' + repos_id_gh + '\n' +
               '        | issue_number:  ' + str(linked_issues.issue_num_gh) + '\n' +
+              '        | --------------- comment ---------------' + '\n' +
+              '        | comment_id:    ' + str(linked_comments.comment_id_gh) + '\n' +
               'REDMINE | ---------------- issue ----------------' + '\n' +
               '        | author_id:     ' + str(issue['issue_author_id']) + '\n' +
               '        | author_login:  ' + str(issue['issue_author_login']) + '\n' +
@@ -145,8 +148,10 @@ def link_log_rm_edit(result, issue, linked_issues):
 
     action_gh = 'EDIT'
 
+    if (result.status_code == 403):
+        WRITE_LOG(action_gh + ' result in GITHUB: ' + str(result.status_code) + ' ' + str(result.reason))
     # изменили без комментария
-    if (issue['comment_body'] == ''):
+    elif (issue['comment_body'] == ''):
         WRITE_LOG(action_gh + ' result in GITHUB: ' + str(result.status_code) + ' ' + str(result.reason) + '\n' +
                   'GITHUB  | url_gh:        ' + url_gh + '\n' +
                   '        | issue_id:      ' + str(linked_issues.issue_id_gh) + '\n' +

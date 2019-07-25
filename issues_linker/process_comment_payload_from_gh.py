@@ -88,10 +88,9 @@ def process_comment_payload_from_gh(payload):
 
         # добавляем фразу бота
         author_url = '"' + issue['comment_author_login'] + '":' + 'https://github.com/' + issue['comment_author_login']
-        issue_url = '"Github":' + issue['issue_url']
+        comment_url = '"comment on Github":' + issue['issue_url'] + '#issuecomment-' + str(issue['comment_id'])
         comment_body = 'I am a bot, bleep-bloop.\n' +\
-                     author_url + ' Has left a comment on ' + issue_url + ': \n\n' + comment_body
-                     #author_url + ' Has ' + issue['action'] + ' a comment on ' + issue_url + ': \n\n' + issue['comment_body']
+                       author_url + ' Has left a ' + comment_url + ': \n\n' + comment_body
 
         return comment_body
 
@@ -147,8 +146,8 @@ def process_comment_payload_from_gh(payload):
                                       data=issue_templated,
                                       headers=headers)
 
-        '''
-        # ------------------------------------------- ПРИВЯЗКА КОММЕНТАРИЕВ --------------------------------------------
+
+        '''# ------------------------------------------- ПРИВЯЗКА КОММЕНТАРИЕВ --------------------------------------------
 
 
         #занесение в базу данных информацию о том, что комментарии связаны
@@ -163,8 +162,8 @@ def process_comment_payload_from_gh(payload):
             linked_issues)
 
         # ДЕБАГГИНГ
-        link_log_comment_gh(request_result, issue, linked_issues, linked_comments)
-        '''
+        link_log_comment_gh(request_result, issue, linked_issues, linked_comments)'''
+
 
         # ДЕБАГГИНГ
         link_log_comment_gh(request_result, issue, linked_issues)

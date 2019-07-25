@@ -87,9 +87,9 @@ def process_payload_from_gh(payload):
 
         # добавляем фразу бота
         author_url_gh = '"' + issue['issue_author_login'] + '":' + 'https://github.com/' + issue['issue_author_login']
-        issue_url_gh = '"Github":' + issue['issue_url']
+        issue_url_gh = '"issue on Github":' + issue['issue_url']
         issue_body = 'I am a bot, bleep-bloop.\n' +\
-                     author_url_gh + ' Has opened an issue on ' + issue_url_gh
+                     author_url_gh + ' Has opened an ' + issue_url_gh
                      #author_url_gh + ' Has ' + issue['action'] + ' an issue on ' + issue_url_gh
 
         # добавляем описание задачи
@@ -107,9 +107,9 @@ def process_payload_from_gh(payload):
     # добавляем фразу бота (комментарием) к действию в редмайне (закрыл, изменил и т.д.)
     def bot_speech_comment_on_action(issue):
         author_url = '"' + issue['comment_author_login'] + '":' + 'https://github.com/' + issue['comment_author_login']
-        issue_url = '"Github":' + issue['issue_url']
+        issue_url = '"issue on Github":' + issue['issue_url']
         comment_body = 'I am a bot, bleep-bloop.\n' +\
-                     author_url + ' Has ' + issue['action'] + ' the issue on ' + issue_url + '.'
+                     author_url + ' Has ' + issue['action'] + ' the ' + issue_url + '.'
                      #author_url + ' Has ' + issue['action'] + ' a comment on ' + issue_url + '.'
 
         return comment_body

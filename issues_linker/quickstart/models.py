@@ -240,7 +240,7 @@ class Payload_RM(models.Model):
         verbose_name_plural = 'payloads_from_rm'
 
 
-# убрал выше .save(), так как нет задачи сохранять на сервере резервные копии данных
+# убрал выше .save(), так как нет задачи сохранять на сервере резервную копию данных
 # ==================================================== СВЯЗЬ COMMENTS ==================================================
 
 
@@ -248,10 +248,9 @@ class Payload_RM(models.Model):
 class Linked_Comments_Manager(models.Manager):
     use_in_migrations = True
 
-    def create_linked_comments(self, comment_id_rm, comment_id_gh, linked_issues):
+    def create_linked_comments(self, comment_id_rm, comment_id_gh):
         linked_comments = self.model(comment_id_rm=comment_id_rm,
-                                     comment_id_gh=comment_id_gh,
-                                     linked_issues_id=linked_issues.id)
+                                     comment_id_gh=comment_id_gh)
         linked_comments.save()  # сохранение linked_comments в базе данных
 
         return linked_comments
@@ -298,8 +297,16 @@ class Linked_Issues_Manager(models.Manager):
 
         return linked_issues
 
-    def add_comment(self, comment):
+
+    '''def add_comment(self, comment_id_rm, comment_id_gh):
+
+        comment = Linked_Comments.objects.create_linked_comments(
+            comment_id_rm,
+            comment_id_gh)
+
         self.comments.add(comment)
+
+        return comment'''
 
 
     def get_by_natural_key(self, id):
@@ -312,13 +319,29 @@ class Linked_Issues_Manager(models.Manager):
         return self.filter(issue_id_gh=issue_id_gh)
 
 class Linked_Issues(models.Model):
-    issue_id_rm = models.BigIntegerField(blank=1, null=1)       # id issue в редмайне
-    issue_id_gh = models.BigIntegerField(blank=1, null=1)       # id issue в гитхабе
+    issue_id_rm = models.BigIntegerField(blank=1, null=1)           # id issue в редмайне
+    issue_id_gh = models.BigIntegerField(blank=1, null=1)           # id issue в гитхабе
 
-    repos_id_gh = models.BigIntegerField(blank=1, null=1)       # id репозитория в гитхабе
-    issue_num_gh = models.BigIntegerField(blank=1, null=1)      # issue['number'] в гитхабе (номер issue в репозитории)
+    repos_id_gh = models.BigIntegerField(blank=1, null=1)           # id репозитория в гитхабе
+    issue_num_gh = models.BigIntegerField(blank=1, null=1)          # issue['number'] в гитхабе (номер issue в репозитории)
 
     comments = models.ManyToManyField(Linked_Comments, blank=1)     # комментарии к issue
+
+
+    '''def add_comment(self, comment_id_rm, comment_id_gh):
+
+        comment = self.objects.add_comments(comment_id_rm, comment_id_gh)
+
+        return comment'''
+    def add_comment(self, comment_id_rm, comment_id_gh):
+
+        comment = Linked_Comments.objects.create_linked_comments(
+            comment_id_rm,
+            comment_id_gh)
+
+        self.comments.add(comment)
+
+        return comment
 
 
     db_table = 'linked_issues'

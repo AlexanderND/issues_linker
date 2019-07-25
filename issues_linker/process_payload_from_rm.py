@@ -212,23 +212,21 @@ def process_payload_from_rm(payload):
 
         #WRITE_LOG('\n'+str(request_result.text)+'\n')
 
-        '''
+
         # ------------------------------------------- ПРИВЯЗКА КОММЕНТАРИЕВ --------------------------------------------
 
 
         #занесение в базу данных информацию о том, что комментарии связаны
         posted_comment = json.loads(request_result.text)
-        linked_comments = Linked_Comments.objects.create_linked_comments(
-            issue['comment_id'],
-            posted_comment['id'],
-            linked_issues)
+        linked_comments = linked_issues.add_comment(issue['comment_id'],
+                                                    posted_comment['id'])
 
         # ДЕБАГГИНГ
         link_log_rm_comment(request_result, issue, linked_issues, linked_comments)
-        '''
+
 
         # ДЕБАГГИНГ
-        link_log_rm_comment(request_result, issue, linked_issues)
+        #link_log_rm_comment(request_result, issue, linked_issues)
 
         return request_result
 
