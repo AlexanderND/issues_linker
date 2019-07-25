@@ -114,7 +114,8 @@ class Payload_RM_Serializer(serializers.HyperlinkedModelSerializer):
 class Linked_Issues_Serializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Linked_Issues
-        fields = ('issue_id_rm', 'issue_id_gh', 'repos_id_gh', 'issue_num_gh', 'comments')
+        fields = ('issue_id_rm', 'issue_id_gh', 'repos_id_gh', 'issue_num_gh', 'comments',
+                  'tracker_id_rm', 'status_id_rm', 'priority_id_rm')
 
 ''' связынные комментарии в issue'''
 class Linked_Comments_Serializer(serializers.HyperlinkedModelSerializer):

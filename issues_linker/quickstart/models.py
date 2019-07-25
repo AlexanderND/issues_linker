@@ -1,5 +1,8 @@
 from django.db import models
 
+from issues_linker.my_functions import tracker_ids_rm           # ids трекеров задачи в редмайне
+from issues_linker.my_functions import status_ids_rm            # ids статусов задачи в редмайне
+from issues_linker.my_functions import priority_ids_rm          # ids приоритетов задачи в редмайне
 
 # ======================================================= GITHUB =======================================================
 # TODO: добавить поля status и т.п.
@@ -273,8 +276,6 @@ class Linked_Comments(models.Model):
     comment_id_rm = models.BigIntegerField(blank=1, null=1)     # id комментария в редмайне
     comment_id_gh = models.BigIntegerField(blank=1, null=1)     # id комментария в гитхабе
 
-    #linked_issues_id = models.BigIntegerField(blank=1, null=1)  # id связанных issue на сервере
-
     db_table = 'linked_comments'
     objects = Linked_Comments_Manager()
 
@@ -320,6 +321,11 @@ class Linked_Issues(models.Model):
     repos_id_gh = models.BigIntegerField(blank=1, null=1)           # id репозитория в гитхабе
     issue_num_gh = models.BigIntegerField(blank=1, null=1)          # issue['number'] в гитхабе (номер issue в репозитории)
 
+    # (или label-ы в гитхабе)
+    tracker_id_rm = models.IntegerField(blank=1, null=1)
+    status_id_rm = models.IntegerField(blank=1, null=1)
+    priority_id_rm = models.IntegerField(blank=1, null=1)
+
     comments = models.ManyToManyField(Linked_Comments, blank=1)     # комментарии к issue
 
 
@@ -357,6 +363,22 @@ class Linked_Issues(models.Model):
 
     def get_comment_by_id_rm(self, comment_id_rm):
         return Linked_Comments.objects.get_by_comment_id_rm(comment_id_rm)
+
+
+    def set_tracker(self, tracker_id_rm):
+        self.tracker_id_rm = tracker_id_rm
+    def get_tracker(self):
+        return self.tracker_id_rm
+
+    def set_status(self, status_id_rm):
+        self.status_id_rm = status_id_rm
+    def get_status(self):
+        return self.status_id_rm
+
+    def set_priority(self, priority_id_rm):
+        self.priority_id_rm = priority_id_rm
+    def get_priority(self):
+        return self.priority_id_rm
 
 
     db_table = 'linked_issues'

@@ -281,5 +281,10 @@ def process_comment_payload_from_gh(payload):
                   error_text)
         return HttpResponse(error_text, status=422)
 
-    request_result = HttpResponse(request_result.text, status=request_result.status_code)
-    return request_result
+
+    if (type(request_result) is HttpResponse):
+        return request_result
+
+    else:
+        request_result = HttpResponse(request_result.text, status=request_result.status_code)
+        return request_result

@@ -213,37 +213,108 @@ def prevent_cyclic_comment_rm(issue):
     return error_text
 
 
-# TODO: доделать функцию сопоставления label-а в гитхабе и tracker_ids_rm / status_ids_rm / priority_ids_rm
 # функция сопостовления label-а в гитхабе редмайну
-def match_label_ro_rm(label_rm):
+def match_label_to_rm(label_gh):
 
-    label_gh = {}
+    label = {}
 
-    label_gh['type'], label_gh['name'] = str(label_rm).split(': ')
+    label['type'], label['name'] = str(label_gh).split(': ', 1)
 
-    '''if (label_gh['type'] == 'Приоритет'):
-        if (label_gh['name'] == 'Низкий'):
-        elif (label_gh['name'] == 'Нормальный'):
-        elif (label_gh['name'] == 'Высокий'):
+    if (label['type'] == 'Приоритет'):
+        if (label['name'] == 'низкий'):
+            label['id_rm'] = priority_ids_rm[1]
+        elif (label['name'] == 'нормальный'):
+            label['id_rm'] = priority_ids_rm[0]
+        elif (label['name'] == 'высокий'):
+            label['id_rm'] = priority_ids_rm[2]
         else:
-            WRITE_LOG('ERROR: UNKNOWN PRIORITY')
+            WRITE_LOG('ERROR: UNKNOWN PRIORITY: ' + str(label_gh) +
+                      ' (type: ' + str(label['type']) + 'name: ' + str(label['name']) + ')')
+            label['id_rm'] = priority_ids_rm[0]
         
-    elif (label_gh['type'] == 'Статус'):
-        if (label_gh['name'] == 'Низкий'):
-        elif (label_gh['name'] == 'Нормальный'):
-        elif (label_gh['name'] == 'Высокий'):
+    elif (label['type'] == 'Статус'):
+        if (label['name'] == 'новый'):
+            label['id_rm'] = status_ids_rm[0]
+        if (label['name'] == 'в работе'):
+            label['id_rm'] = status_ids_rm[1]
+        if (label['name'] == 'обратная связь'):
+            label['id_rm'] = status_ids_rm[2]
+        if (label['name'] == 'проверка'):
+            label['id_rm'] = status_ids_rm[3]
+        if (label['name'] == 'отказ'):
+            label['id_rm'] = status_ids_rm[4]
+        if (label['name'] == 'закрыт'):
+            label['id_rm'] = status_ids_rm[5]
         else:
-            WRITE_LOG('ERROR: UNKNOWN PRIORITY')
-    elif (label_gh['type'] == 'Трекер'):
-        if (label_gh['name'] == 'Низкий'):
-        elif (label_gh['name'] == 'Нормальный'):
-        elif (label_gh['name'] == 'Высокий'):
-        else:
-            WRITE_LOG('ERROR: UNKNOWN PRIORITY')
-    else:
-        WRITE_LOG('ERROR: UNKNOWN LABEL')'''
+            WRITE_LOG('ERROR: UNKNOWN STATUS: ' + str(label_gh) +
+                      ' (type: ' + str(label['type']) + 'name: ' + str(label['name']) + ')')
+            label['id_rm'] = status_ids_rm[0]
 
-    return label_gh
+    elif (label['type'] == 'Трекер'):
+        if (label['name'] == 'задача'):
+            label['id_rm'] = tracker_ids_rm[0]
+        if (label['name'] == 'ошибка'):
+            label['id_rm'] = tracker_ids_rm[1]
+        else:
+            WRITE_LOG('ERROR: UNKNOWN TRACKER: ' + str(label_gh) +
+                      ' (type: ' + str(label['type']) + 'name: ' + str(label['name']) + ')')
+            label['id_rm'] = tracker_ids_rm[0]
+
+    else:
+        WRITE_LOG('ERROR: UNKNOWN LABEL: ' + str(label_gh))
+        label['id_rm'] = None
+
+    return label
+
+# функция сопостовления label-а в редмайне гитхабу
+def match_label_to_gh(label_rm):
+
+    label = {}
+
+    label['type'], label['name'] = str(label_rm).split(': ')
+
+    if (label['type'] == 'Приоритет'):
+        if (label['name'] == 'низкий'):
+            label['id_rm'] = priority_ids_rm[1]
+        elif (label['name'] == 'нормальный'):
+            label['id_rm'] = priority_ids_rm[0]
+        elif (label['name'] == 'высокий'):
+            label['id_rm'] = priority_ids_rm[2]
+        else:
+            WRITE_LOG('ERROR: UNKNOWN PRIORITY')
+            label['id_rm'] = priority_ids_rm[0]
+
+    elif (label['type'] == 'Статус'):
+        if (label['name'] == 'новый'):
+            label['id_rm'] = status_ids_rm[0]
+        if (label['name'] == 'в работе'):
+            label['id_rm'] = status_ids_rm[1]
+        if (label['name'] == 'обратная связь'):
+            label['id_rm'] = status_ids_rm[2]
+        if (label['name'] == 'проверка'):
+            label['id_rm'] = status_ids_rm[3]
+        if (label['name'] == 'отказ'):
+            label['id_rm'] = status_ids_rm[4]
+        if (label['name'] == 'закрыт'):
+            label['id_rm'] = status_ids_rm[5]
+        else:
+            WRITE_LOG('ERROR: UNKNOWN PRIORITY')
+            label['id_rm'] = status_ids_rm[0]
+
+    elif (label['type'] == 'Трекер'):
+        if (label['name'] == 'задача'):
+            label['id_rm'] = tracker_ids_rm[0]
+        if (label['name'] == 'ошибка'):
+            label['id_rm'] = tracker_ids_rm[1]
+        else:
+            WRITE_LOG('ERROR: UNKNOWN PRIORITY')
+            label['id_rm'] = tracker_ids_rm[0]
+
+    else:
+        WRITE_LOG('ERROR: UNKNOWN LABEL')
+        label['id_rm'] = None
+
+    return label
 
 
 # ======================================================== GITHUB ======================================================
@@ -289,6 +360,8 @@ def link_log_issue_gh(result, issue, linked_issues):
     elif (issue['action'] == 'deleted'):
         action_rm = 'DELETE'
     elif (issue['action'] == 'edited'):
+        action_rm = 'EDIT'
+    elif (issue['action'] == 'labeled'):
         action_rm = 'EDIT'
     else:
         action_rm = issue['action'] + ' (ERROR: invalid action)'
