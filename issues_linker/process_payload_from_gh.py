@@ -278,9 +278,9 @@ def process_payload_from_gh(payload):
         issue_templated = issue_redmine_template.render(
             project_id=project_id_rm,
             issue_id=linked_issues.issue_id_rm,
-            tracker_id=tracker_ids_rm[0],
+            tracker_id=linked_issues.tracker_id_rm,
             status_id=status_id,
-            priority_id=priority_ids_rm[0],
+            priority_id=linked_issues.priority_id_rm,
             subject=title,
             description=issue_body,
             notes=comment_body)

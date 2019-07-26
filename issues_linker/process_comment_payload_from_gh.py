@@ -85,6 +85,8 @@ def process_comment_payload_from_gh(payload):
 
     # issue_body
     # comment_body
+    # comment_edit
+    # comment_edit_else's
     # добавляем фразу бота, со ссылкой на аккаунт пользователя в гитхабе
     def add_bot_phrase(issue, to):
 
@@ -120,6 +122,37 @@ def process_comment_payload_from_gh(payload):
             comment_url = '"comment":' + issue['issue_url'] + '#issuecomment-' + str(issue['comment_id'])
             comment_body = 'I am a bot, bleep-bloop.\n' +\
                            author_url + ' Has left a ' + comment_url + ' in Github: \n\n' + comment_body
+
+            return comment_body
+
+        # добавляем фразу бота к комментарию (изменение своего комментария)
+        elif (to == 'comment_edit'):
+
+            # добавляем цитирование
+            comment_body = issue['comment_body'].replace('\n', '\n>')
+            comment_body = '>' + comment_body
+
+            # добавляем фразу бота
+            author_url = '"' + issue['comment_author_login'] + '":' + 'https://github.com/' + issue['comment_author_login']
+            comment_url = '"comment":' + issue['issue_url'] + '#issuecomment-' + str(issue['comment_id'])
+            comment_body = 'I am a bot, bleep-bloop.\n' +\
+                           author_url + ' Has edited his ' + comment_url + ' in Github: \n\n' + comment_body
+
+            return comment_body
+
+        # добавляем фразу бота к комментарию (изменение чужого комментария)
+        elif (to == "comment_edit_else's"):
+
+            # добавляем цитирование
+            comment_body = issue['comment_body'].replace('\n', '\n>')
+            comment_body = '>' + comment_body
+
+            # добавляем фразу бота
+            author_url = '"' + issue['comment_author_login'] + '":' + 'https://github.com/' + issue['comment_author_login']
+            comment_url = '"comment":' + issue['issue_url'] + '#issuecomment-' + str(issue['comment_id'])
+            comment_body = 'I am a bot, bleep-bloop.\n' +\
+                           author_url + ' Has edited ' + issue['comment_author_login'] + "'s" + comment_url +\
+                           ' in Github: \n\n' + comment_body
 
             return comment_body
 
@@ -164,11 +197,10 @@ def process_comment_payload_from_gh(payload):
 
         # ----------------------------------------- ЗАГРУЖАЕМ ДАННЫЕ В РЕДМАЙН -----------------------------------------
 
-
         issue_templated = issue_redmine_template.render(
             project_id=project_id_rm,
             issue_id=linked_issues.issue_id_rm,
-            priority_id=priority_ids_rm[0],
+            priority_id=linked_issues.priority_id_rm,
             subject=issue_title,
             description=issue_body,
             notes=comment_body)
@@ -215,11 +247,12 @@ def process_comment_payload_from_gh(payload):
             issue_body = add_bot_phrase(issue, 'issue_body')
 
         # если изменил свой комментарий
-        #if (issue['sender_id'] == issue['comment_author_id']):
-
+        if (issue['sender_id'] == issue['comment_author_id']):
+            comment_body = add_bot_phrase(issue, 'comment_edit')            # добавляем фразу бота
         # если изменил не свой комментарий
-
-        comment_body = add_bot_phrase(issue, 'comment_body')    # добавляем фразу бота
+        else:
+            # TODO: возможно, добавить проверку на едит комментария бота?
+            comment_body = add_bot_phrase(issue, "comment_edit_else's ")     # добавляем фразу бота
 
         # обработка спец. символов
         issue_title = align_special_symbols(issue['issue_title'])
@@ -233,7 +266,7 @@ def process_comment_payload_from_gh(payload):
         issue_templated = issue_redmine_template.render(
             project_id=project_id_rm,
             issue_id=linked_issues.issue_id_rm,
-            priority_id=priority_ids_rm[0],
+            priority_id=linked_issues.priority_id_rm,
             subject=issue_title,
             description=issue_body,
             notes=comment_body)
@@ -347,8 +380,8 @@ def process_comment_payload_from_gh(payload):
             error_text = prevent_cyclic_comment_gh(issue)
             return HttpResponse(error_text, status=200)
 
-        #request_result = edit_comment(issue, linked_issues)
-        request_result = post_comment(issue, linked_issues)
+        request_result = edit_comment(issue, linked_issues)
+        #request_result = post_comment(issue, linked_issues)
 
     else:
         error_text = 'ERROR: WRONG ACTION'

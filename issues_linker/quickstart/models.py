@@ -329,10 +329,13 @@ class Linked_Issues(models.Model):
     repos_id_gh = models.BigIntegerField(blank=1, null=1)           # id репозитория в гитхабе
     issue_num_gh = models.BigIntegerField(blank=1, null=1)          # issue['number'] в гитхабе (номер issue в репозитории)
 
-    # (или label-ы в гитхабе)
-    tracker_id_rm = models.IntegerField(blank=1, null=1)
-    status_id_rm = models.IntegerField(blank=1, null=1)
-    priority_id_rm = models.IntegerField(blank=1, null=1)
+    # различные id-шники в редмайне (или label-ы в гитхабе)
+    #tracker_id_rm = models.IntegerField(blank=1, null=1)
+    #status_id_rm = models.IntegerField(blank=1, null=1)
+    #priority_id_rm = models.IntegerField(blank=1, null=1)
+    tracker_id_rm = models.IntegerField(default=tracker_ids_rm[0], blank=1, null=1)
+    status_id_rm = models.IntegerField(default=status_ids_rm[0], blank=1, null=1)
+    priority_id_rm = models.IntegerField(default=priority_ids_rm[0], blank=1, null=1)
 
     comments = models.ManyToManyField(Linked_Comments, blank=1)     # комментарии к issue
 
@@ -375,18 +378,12 @@ class Linked_Issues(models.Model):
 
     def set_tracker(self, tracker_id_rm):
         self.objects.set_tracker(tracker_id_rm)
-    def get_tracker(self):
-        return self.tracker_id_rm
 
     def set_status(self, status_id_rm):
         self.objects.set_status(status_id_rm)
-    def get_status(self):
-        return self.status_id_rm
 
     def set_priority(self, priority_id_rm):
         self.objects.set_priority(priority_id_rm)
-    def get_priority(self):
-        return self.priority_id_rm
 
 
     db_table = 'linked_issues'
