@@ -93,9 +93,9 @@ def process_payload_from_gh(payload):
 
             # добавляем фразу бота
             author_url_gh = '"' + issue['issue_author_login'] + '":' + 'https://github.com/' + issue['issue_author_login']
-            issue_url_gh = '"issue on Github":' + issue['issue_url']
+            issue_url_gh = '"issue":' + issue['issue_url']
             issue_body = 'I am a bot, bleep-bloop.\n' +\
-                         author_url_gh + ' Has opened an ' + issue_url_gh
+                         author_url_gh + ' Has opened an ' + issue_url_gh + ' in Github'
                          #author_url_gh + ' Has ' + issue['action'] + ' an issue on ' + issue_url_gh
 
             # добавляем описание задачи
@@ -115,18 +115,18 @@ def process_payload_from_gh(payload):
         elif (to == 'comment_body_action'):
 
             author_url = '"' + issue['sender_login'] + '":' + 'https://github.com/' + issue['sender_login']
-            issue_url = '"issue on Github":' + issue['issue_url']
+            issue_url = '"issue":' + issue['issue_url']
             comment_body = 'I am a bot, bleep-bloop.\n' +\
-                         author_url + ' Has ' + issue['action'] + ' the ' + issue_url + '.'
+                         author_url + ' Has ' + issue['action'] + ' the ' + issue_url + ' in Github.'
                          #author_url + ' Has ' + issue['action'] + ' a comment on ' + issue_url + '.'
 
             return comment_body
 
         else:
 
-            WRITE_LOG("\nERROR: process_comment_payload_from_gh.add_bot_phrase - unknown parameter 'to': " + to + '.' +
+            WRITE_LOG("\nERROR: process_payload_from_gh.add_bot_phrase - unknown parameter 'to': " + to + '.' +
                       "\nPlease, check your code on possible typos." +
-                      "\nAlternatively, add logic to process '" + to + "' action correctly.")
+                      "\nAlternatively, add logic to process '" + to + "' action correctly.\n")
 
             return None
 
@@ -259,12 +259,12 @@ def process_payload_from_gh(payload):
 
         # проверяем, если автор issue - бот
         if (chk_if_gh_user_is_a_bot(issue['issue_author_id'])):
-            issue_body = del_bot_phrase(issue['issue_body'])    # удаляем фразу бота
+            issue_body = del_bot_phrase(issue['issue_body'])        # удаляем фразу бота
 
         else:
-            issue_body = add_bot_phrase(issue, 'issue_body')    # добавляем фразу бота
+            issue_body = add_bot_phrase(issue, 'issue_body')        # добавляем фразу бота
 
-        comment_body = add_bot_phrase(issue, 'comment_body')    # добавляем фразу бота в комментарий к действию
+        comment_body = add_bot_phrase(issue, 'comment_body_action') # добавляем фразу бота в комментарий к действию
 
         # обработка спец. символов
         title = align_special_symbols(title)
@@ -298,6 +298,7 @@ def process_payload_from_gh(payload):
 
         return request_result
 
+    # TODO: не удалять, а ставить "rejected" в редмайне
     def delete_issue(issue, linked_issues):
 
         # УДАЛЯЕМ ИЗ РЕДМАЙНА
@@ -342,12 +343,12 @@ def process_payload_from_gh(payload):
 
         # проверяем, если автор issue - бот
         if (chk_if_gh_user_is_a_bot(issue['issue_author_id'])):
-            issue_body = del_bot_phrase(issue['issue_body'])    # удаляем фразу бота
+            issue_body = del_bot_phrase(issue['issue_body'])        # удаляем фразу бота
 
         else:
-            issue_body = add_bot_phrase(issue, 'issue_body')    # добавляем фразу бота
+            issue_body = add_bot_phrase(issue, 'issue_body')        # добавляем фразу бота
 
-        comment_body = add_bot_phrase(issue, 'comment_body')    # добавляем фразу бота в комментарий к действию
+        comment_body = add_bot_phrase(issue, 'comment_body_action') # добавляем фразу бота в комментарий к действию
 
         # обработка спец. символов
         title = align_special_symbols(title)

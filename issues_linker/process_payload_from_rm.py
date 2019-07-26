@@ -157,7 +157,7 @@ def process_payload_from_rm(payload):
 
             WRITE_LOG("\nERROR: process_payload_from_rm.add_bot_phrase - unknown parameter 'to': " + to + '.' +
                       "\nPlease, check your code on possible typos." +
-                      "\nAlternatively, add logic to process '" + to + "' action correctly.")
+                      "\nAlternatively, add logic to process '" + to + "' action correctly.\n")
 
             return None
 
@@ -301,13 +301,13 @@ def process_payload_from_rm(payload):
 
 
     # привязка комментария на редмайне к гитхабу (да, это костыль)
-    # я не хотел делать костыль, но редмайн не посылает внятный ответ на PUT комментария (note)
+    # пришлось привязать к id комментария в фразе бота на редмайне (редмайн не посылает внятный ответ на PUT запрос)
     def link_comment_to_github(issue, linked_issues):
 
         # дополнительная проверка, что issue связаны
         # (на случай, если изменили не связанный issue)
         if (linked_issues.count() == 0):
-            error_text = "ERROR: issue edited in REDMINE, but it's not linked to GITHUB"
+            error_text = "ERROR: issue edited inf REDMINE, but it's not linked to GITHUB"
             WRITE_LOG('\n' + '='*35 + ' ' + str(datetime.datetime.today()) + ' ' + '='*35 + '\n' +
                       'received webhook from REDMINE: issues | ' + 'action: ' + str(issue['action']) + '\n' +
                       error_text)
@@ -316,12 +316,11 @@ def process_payload_from_rm(payload):
 
         # определяем действие (комментарий или измение)
         action = issue['comment_body'].split(' ')[6]
-
         if(action == 'left'):
 
             # достаём id комментария в гитхабе
             comment_id_gh_str = issue['comment_body'].split('#issuecomment-')[1]
-            comment_id_gh_str = comment_id_gh_str.split(':')[0]
+            comment_id_gh_str = comment_id_gh_str.split(' ')[0]
             comment_id_gh = int(comment_id_gh_str)
 
             # занесение в базу данных информацию о том, что комментарии связаны

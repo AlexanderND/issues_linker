@@ -91,9 +91,9 @@ def process_comment_payload_from_gh(payload):
         # добавляем фразу бота к описанию issue
         if (to == 'issue_body'):
             author_url_gh = '"' + issue['issue_author_login'] + '":' + 'https://github.com/' + issue['issue_author_login']
-            issue_url_gh = '"issue on Github":' + issue['issue_url']
+            issue_url_gh = '"issue":' + issue['issue_url']
             issue_body = 'I am a bot, bleep-bloop.\n' +\
-                         author_url_gh + ' Has opened an ' + issue_url_gh
+                         author_url_gh + ' Has opened an ' + issue_url_gh + ' in Github'
                          #author_url_gh + ' Has ' + issue['action'] + ' an issue on ' + issue_url_gh
 
             # добавляем описание задачи
@@ -117,9 +117,9 @@ def process_comment_payload_from_gh(payload):
 
             # добавляем фразу бота
             author_url = '"' + issue['comment_author_login'] + '":' + 'https://github.com/' + issue['comment_author_login']
-            comment_url = '"comment on Github":' + issue['issue_url'] + '#issuecomment-' + str(issue['comment_id'])
+            comment_url = '"comment":' + issue['issue_url'] + '#issuecomment-' + str(issue['comment_id'])
             comment_body = 'I am a bot, bleep-bloop.\n' +\
-                           author_url + ' Has left a ' + comment_url + ': \n\n' + comment_body
+                           author_url + ' Has left a ' + comment_url + ' in Github: \n\n' + comment_body
 
             return comment_body
 
@@ -127,7 +127,7 @@ def process_comment_payload_from_gh(payload):
 
             WRITE_LOG("\nERROR: process_comment_payload_from_gh.add_bot_phrase - unknown parameter 'to': " + to + '.' +
                       "\nPlease, check your code on possible typos." +
-                      "\nAlternatively, add logic to process '" + to + "' action correctly.")
+                      "\nAlternatively, add logic to process '" + to + "' action correctly.\n")
 
             return None
 
@@ -139,7 +139,7 @@ def process_comment_payload_from_gh(payload):
         if (linked_issues.count() == 0):
             WRITE_LOG('\n' + '='*35 + ' ' + str(datetime.datetime.today()) + ' ' + '='*35 + '\n' +
                       'received webhook from GITHUB: issue_comments | ' + 'action: ' + str(issue['action']) + '\n' +
-                      "ERROR: posted comment on GITHUB, but the issue is not linked to REDMINE")
+                      "ERROR: posted comment in GITHUB, but the issue is not linked to REDMINE")
             return HttpResponse(status=404)
         linked_issues = linked_issues[0]
 
@@ -192,6 +192,71 @@ def process_comment_payload_from_gh(payload):
 
         return request_result
 
+    def edit_comment(issue, linked_issues):
+
+        # дополнительная проверка, что issue связаны
+        # (на случай, если изменили не связанный issue)
+        if (linked_issues.count() == 0):
+            WRITE_LOG('\n' + '='*35 + ' ' + str(datetime.datetime.today()) + ' ' + '='*35 + '\n' +
+                      'received webhook from GITHUB: issue_comments | ' + 'action: ' + str(issue['action']) + '\n' +
+                      "ERROR: posted comment in GITHUB, but the issue is not linked to REDMINE")
+            return HttpResponse(status=404)
+        linked_issues = linked_issues[0]
+
+
+        # ------------------------------------------- ОБРАБАТЫВАЕМ ФРАЗУ БОТА ------------------------------------------
+
+
+        # проверяем, если автор issue - бот
+        if (chk_if_gh_user_is_a_bot(issue['issue_author_id'])):
+            issue_body = del_bot_phrase(issue['issue_body'])
+
+        else:
+            issue_body = add_bot_phrase(issue, 'issue_body')
+
+        # если изменил свой комментарий
+        #if (issue['sender_id'] == issue['comment_author_id']):
+
+        # если изменил не свой комментарий
+
+        comment_body = add_bot_phrase(issue, 'comment_body')    # добавляем фразу бота
+
+        # обработка спец. символов
+        issue_title = align_special_symbols(issue['issue_title'])
+        issue_body = align_special_symbols(issue_body)
+        comment_body = align_special_symbols(comment_body)
+
+
+        # ----------------------------------------- ЗАГРУЖАЕМ ДАННЫЕ В РЕДМАЙН -----------------------------------------
+
+
+        issue_templated = issue_redmine_template.render(
+            project_id=project_id_rm,
+            issue_id=linked_issues.issue_id_rm,
+            priority_id=priority_ids_rm[0],
+            subject=issue_title,
+            description=issue_body,
+            notes=comment_body)
+
+        # кодировка Latin-1 на некоторых задачах приводит к ошибке кодировки в питоне
+        issue_templated = issue_templated.encode('utf-8')
+
+        issue_url_rm = url_rm.replace('.json',
+                                      '/' + str(linked_issues.issue_id_rm) + '.json')
+        request_result = requests.put(issue_url_rm,
+                                      data=issue_templated,
+                                      headers=headers)
+
+
+        # ------------------------------------------- ПРИВЯЗКА КОММЕНТАРИЕВ --------------------------------------------
+        # (делаем привязку после получения веб-хука от редмайна)
+
+
+        # ДЕБАГГИНГ
+        link_log_comment_gh(request_result, issue, linked_issues)
+
+        return request_result
+
     '''def edit_comment(issue, linked_issues):
 
         # дополнительная проверка, что issue связаны
@@ -199,7 +264,7 @@ def process_comment_payload_from_gh(payload):
         if (linked_issues.count() == 0):
             WRITE_LOG('\n' + '='*35 + ' ' + str(datetime.datetime.today()) + ' ' + '='*35 + '\n' +
                       'received webhook from GITHUB: issue_comments | ' + 'action: ' + str(issue['action']) + '\n' +
-                      "ERROR: posted comment on GITHUB, but the issue is not linked to REDMINE")
+                      "ERROR: posted comment in GITHUB, but the issue is not linked to REDMINE")
             return HttpResponse(status=404)
         linked_issues = linked_issues[0]
 
@@ -208,7 +273,7 @@ def process_comment_payload_from_gh(payload):
         if (linked_comments.count() == 0):
             WRITE_LOG('\n' + '='*35 + ' ' + str(datetime.datetime.today()) + ' ' + '='*35 + '\n' +
                       'received webhook from GITHUB: issue_comments | ' + 'action: ' + str(issue['action']) + '\n' +
-                      "ERROR: edited comment on GITHUB, but it is not linked to REDMINE")
+                      "ERROR: edited comment in GITHUB, but it is not linked to REDMINE")
             return HttpResponse(status=404)
         linked_comments = linked_comments[0]
 
@@ -275,15 +340,15 @@ def process_comment_payload_from_gh(payload):
 
         request_result = post_comment(issue, linked_issues)
 
-        '''elif (issue['action'] == 'edited'):
-    
-            if (chk_if_gh_user_is_a_bot(issue['sender_id'])):
-    
-                error_text = prevent_cyclic_comment_gh(issue)
-                return HttpResponse(error_text, status=200)
-    
-            request_result = edit_comment(issue, linked_issues)
-            #request_result = post_comment(issue, linked_issues)'''
+    elif (issue['action'] == 'edited'):
+
+        if (chk_if_gh_user_is_a_bot(issue['sender_id'])):
+
+            error_text = prevent_cyclic_comment_gh(issue)
+            return HttpResponse(error_text, status=200)
+
+        #request_result = edit_comment(issue, linked_issues)
+        request_result = post_comment(issue, linked_issues)
 
     else:
         error_text = 'ERROR: WRONG ACTION'

@@ -67,6 +67,7 @@ def del_bot_phrase(body):
 # создание корректного ответа серверу
 def allign_request_result(request_result):
 
+    # type() возвращает тип объекта
     if (type(request_result) is HttpResponse):
 
         return request_result
