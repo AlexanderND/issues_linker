@@ -5,7 +5,6 @@ from issues_linker.my_functions import status_ids_rm            # ids стату
 from issues_linker.my_functions import priority_ids_rm          # ids приоритетов задачи в редмайне
 
 # ======================================================= GITHUB =======================================================
-# TODO: добавить поля status и т.п.
 
 
 '''Класс "Issue_GH" - поле "Issue" (title, body, url, number, id) в классе "Payload_GH" - Issue в гитхабе'''
@@ -111,7 +110,6 @@ class Payload_GH(models.Model):
 
 
 # ======================================================= REDMINE ======================================================
-# TODO: добавить поля status и т.п.
 
 
 '''Класс "Project_RM" - для хранения id репозитория в редмайне'''
@@ -287,7 +285,6 @@ class Linked_Comments(models.Model):
 # ===================================================== СВЯЗЬ ISSUES ===================================================
 
 
-# TODO: поле ManyToMany с комментариями (проверить работу)
 '''Класс "Linked_Issues" - связанные issues (id_issue_rm - id_repo_gh, id_issue_gh)'''
 class Linked_Issues_Manager(models.Manager):
 
@@ -312,6 +309,17 @@ class Linked_Issues_Manager(models.Manager):
 
     def get_by_issue_id_gh(self, issue_id_gh):
         return self.filter(issue_id_gh=issue_id_gh)
+
+
+    def set_tracker(self, tracker_id_rm):
+        self.tracker_id_rm = tracker_id_rm
+
+    def set_status(self, status_id_rm):
+        self.status_id_rm = status_id_rm
+
+    def set_priority(self, priority_id_rm):
+        self.priority_id_rm = priority_id_rm
+
 
 class Linked_Issues(models.Model):
 
@@ -366,17 +374,17 @@ class Linked_Issues(models.Model):
 
 
     def set_tracker(self, tracker_id_rm):
-        self.tracker_id_rm = tracker_id_rm
+        self.objects.set_tracker(tracker_id_rm)
     def get_tracker(self):
         return self.tracker_id_rm
 
     def set_status(self, status_id_rm):
-        self.status_id_rm = status_id_rm
+        self.objects.set_status(status_id_rm)
     def get_status(self):
         return self.status_id_rm
 
     def set_priority(self, priority_id_rm):
-        self.priority_id_rm = priority_id_rm
+        self.objects.set_priority(priority_id_rm)
     def get_priority(self):
         return self.priority_id_rm
 

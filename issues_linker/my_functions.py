@@ -1,18 +1,23 @@
 import os
 import datetime
 
+from django.http import HttpResponse    # ответы серверу
+
 
 # ===================================================== СПЕЦ. ФУНКЦИИ ==================================================
 
 
-def WRITE_LOG(str):
+def WRITE_LOG(string):
+
+    string = str(string)
+
     # получение абсолютного пути до файла
     script_dir = os.path.dirname(__file__)  # <-- absolute dir the script is in
     log_file_name = os.path.join(script_dir, 'logs/server_log.txt')
     log = open(log_file_name, 'a')
 
-    print(str)
-    log.write(str + '\n')
+    print(string)
+    log.write(string + '\n')
 
     log.close()
 
@@ -27,7 +32,7 @@ def align_special_symbols(str):
 
     return str
 
-
+# чтение файла
 def read_file(file_path):
     # получение абсолютного пути до файла
     script_dir = os.path.dirname(__file__)  # <-- absolute dir the script is in
@@ -36,6 +41,40 @@ def read_file(file_path):
     file_contents = open(file_path_absolute, 'r').read()    # загрузка данных из файла в строку
 
     return file_contents
+
+# удаление фразы бота из текста
+def del_bot_phrase(body):
+
+    body_parts = body.split(': ')  # разбиваем body на части (часть 0 - фраза бота)
+    WRITE_LOG(str(body_parts))
+
+    # если body пустой - значит, фраза бота закончилась на точку (нет опсания)
+    if (len(body_parts) == 1):
+        body_processed = ''
+
+    else:
+        body_processed = body_parts[1] + ': '
+
+        WRITE_LOG(len(body_parts))
+        for body_part in range(2, len(body_parts) - 1):
+            body_processed += body_parts[body_part] + ': '
+
+        body_processed += body_parts[len(body_parts) - 1]
+        body_processed = body_processed.replace('\n>', '\n')    # убираем цитирование бота (ВОЗМОЖНЫ ОШИБКИ)'''
+
+    return body_processed
+
+# создание корректного ответа серверу
+def allign_request_result(request_result):
+
+    if (type(request_result) is HttpResponse):
+
+        return request_result
+
+    else:
+
+        request_result = HttpResponse(request_result.text, status=request_result.status_code)
+        return request_result
 
 
 # ======================================================== REDMINE =====================================================
@@ -375,7 +414,7 @@ def link_log_issue_gh(result, issue, linked_issues):
               '        | author_id:     ' + str(issue['issue_author_id']) + '\n' +
               '        | author_login:  ' + str(issue['issue_author_login']) + '\n' +
               '        | issue_url:     ' + issue['issue_url'] + '\n' +
-              '        | issue_title:   ' + issue['title'] + '\n' +
+              '        | issue_title:   ' + issue['issue_title'] + '\n' +
               '        | issue_id:      ' + str(issue['issue_id']) + '\n' +
               '        | repos_id:      ' + str(issue['repos_id']) + '\n' +
               '        | issue_number:  ' + str(issue['issue_number']) + '\n' +
@@ -398,7 +437,7 @@ def link_log_comment_gh(result, issue, linked_issues):
               '        | author_id:     ' + str(issue['issue_author_id']) + '\n' +
               '        | author_login:  ' + str(issue['issue_author_login']) + '\n' +
               '        | issue_url:     ' + issue['issue_url'] + '\n' +
-              '        | issue_title:   ' + issue['title'] + '\n' +
+              '        | issue_title:   ' + issue['issue_title'] + '\n' +
               '        | issue_id:      ' + str(issue['issue_id']) + '\n' +
               '        | repos_id:      ' + str(issue['repos_id']) + '\n' +
               '        | issue_number:  ' + str(issue['issue_number']) + '\n' +

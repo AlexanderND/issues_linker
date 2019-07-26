@@ -22,6 +22,10 @@ from issues_linker.my_functions import chk_if_gh_user_is_a_bot      # прове
 from issues_linker.my_functions import link_log_comment_gh          # лог связи комментариев
 from issues_linker.my_functions import prevent_cyclic_comment_gh    # предотвращение зацикливания
 
+from issues_linker.my_functions import del_bot_phrase               # удаление фразы бота
+
+from issues_linker.my_functions import allign_request_result    # создание корректного ответа серверу
+
 
 def process_comment_payload_from_gh(payload):
     payload = json.loads(payload['payload'])    # достаём содержимое payload
@@ -40,8 +44,8 @@ def process_comment_payload_from_gh(payload):
         payload_parsed['sender_login'] = payload['sender']['login']
 
         # заполение полей issue
-        payload_parsed['title'] = payload['issue']['title']
-        payload_parsed['body'] = payload['issue']['body']
+        payload_parsed['issue_title'] = payload['issue']['title']
+        payload_parsed['issue_body'] = payload['issue']['body']
         payload_parsed['issue_author_id'] = payload['issue']['user']['id']  # автор issue
         payload_parsed['issue_author_login'] = payload['issue']['user']['login']
 
@@ -79,42 +83,53 @@ def process_comment_payload_from_gh(payload):
     # ============================================= КОМАНДЫ ДЛЯ ЗАГРУЗКИ ===============================================
 
 
-    # добавляем фразу бота к описанию issue, со ссылкой на аккаунт пользователя в гитхабе
-    def bot_speech_issue_body(issue):
+    # issue_body
+    # comment_body
+    # добавляем фразу бота, со ссылкой на аккаунт пользователя в гитхабе
+    def add_bot_phrase(issue, to):
 
-        # добавляем фразу бота
-        author_url_gh = '"' + issue['issue_author_login'] + '":' + 'https://github.com/' + issue['issue_author_login']
-        issue_url_gh = '"issue on Github":' + issue['issue_url']
-        issue_body = 'I am a bot, bleep-bloop.\n' +\
-                     author_url_gh + ' Has opened an ' + issue_url_gh
-                     #author_url_gh + ' Has ' + issue['action'] + ' an issue on ' + issue_url_gh
+        # добавляем фразу бота к описанию issue
+        if (to == 'issue_body'):
+            author_url_gh = '"' + issue['issue_author_login'] + '":' + 'https://github.com/' + issue['issue_author_login']
+            issue_url_gh = '"issue on Github":' + issue['issue_url']
+            issue_body = 'I am a bot, bleep-bloop.\n' +\
+                         author_url_gh + ' Has opened an ' + issue_url_gh
+                         #author_url_gh + ' Has ' + issue['action'] + ' an issue on ' + issue_url_gh
 
-        # добавляем описание задачи
-        if (issue['body'] == ''):
-            issue_body += '.'
-        else:
+            # добавляем описание задачи
+            if (issue['issue_body'] == ''):
+                issue_body += '.'
+            else:
+                # добавляем цитирование
+                issue_body_ = issue['issue_body'].replace('\n', '\n>')
+                issue_body_ = '>' + issue_body_
+
+                issue_body += ': \n\n' + issue_body_
+
+            return issue_body
+
+        # добавляем фразу бота к комментарию
+        elif (to == 'comment_body'):
+
             # добавляем цитирование
-            issue_body_ = issue['body'].replace('\n', '\n>')
-            issue_body_ = '>' + issue_body_
+            comment_body = issue['comment_body'].replace('\n', '\n>')
+            comment_body = '>' + comment_body
 
-            issue_body += ': \n\n' + issue_body_
+            # добавляем фразу бота
+            author_url = '"' + issue['comment_author_login'] + '":' + 'https://github.com/' + issue['comment_author_login']
+            comment_url = '"comment on Github":' + issue['issue_url'] + '#issuecomment-' + str(issue['comment_id'])
+            comment_body = 'I am a bot, bleep-bloop.\n' +\
+                           author_url + ' Has left a ' + comment_url + ': \n\n' + comment_body
 
-        return issue_body
+            return comment_body
 
-    # добавляем фразу бота к комментарию, со ссылкой на аккаунт пользователя в гитхабе
-    def bot_speech_comment(issue):
+        else:
 
-        # добавляем цитирование
-        comment_body = issue['comment_body'].replace('\n', '\n>')
-        comment_body = '>' + comment_body
+            WRITE_LOG("\nERROR: process_comment_payload_from_gh.add_bot_phrase - unknown parameter 'to': " + to + '.' +
+                      "\nPlease, check your code on possible typos." +
+                      "\nAlternatively, add logic to process '" + to + "' action correctly.")
 
-        # добавляем фразу бота
-        author_url = '"' + issue['comment_author_login'] + '":' + 'https://github.com/' + issue['comment_author_login']
-        comment_url = '"comment on Github":' + issue['issue_url'] + '#issuecomment-' + str(issue['comment_id'])
-        comment_body = 'I am a bot, bleep-bloop.\n' +\
-                       author_url + ' Has left a ' + comment_url + ': \n\n' + comment_body
-
-        return comment_body
+            return None
 
 
     def post_comment(issue, linked_issues):
@@ -134,17 +149,15 @@ def process_comment_payload_from_gh(payload):
 
         # проверяем, если автор issue - бот
         if (chk_if_gh_user_is_a_bot(issue['issue_author_id'])):
-
-            bot_phrase, sep, issue_body = issue['body'].partition(':')  # удаляем фразу бота
-            issue_body = issue_body.replace('>', '')                    # убираем цитирование бота (ВОЗМОЖНЫ ОШИБКИ)
+            issue_body = del_bot_phrase(issue['issue_body'])
 
         else:
-            issue_body = bot_speech_issue_body(issue)
+            issue_body = add_bot_phrase(issue, 'issue_body')
 
-        comment_body = bot_speech_comment(issue)    # добавляем фразу бота
+        comment_body = add_bot_phrase(issue, 'comment_body')    # добавляем фразу бота
 
         # обработка спец. символов
-        issue_title = align_special_symbols(issue['title'])
+        issue_title = align_special_symbols(issue['issue_title'])
         issue_body = align_special_symbols(issue_body)
         comment_body = align_special_symbols(comment_body)
 
@@ -205,17 +218,15 @@ def process_comment_payload_from_gh(payload):
 
         # проверяем, если автор issue - бот
         if (chk_if_gh_user_is_a_bot(issue['issue_author_id'])):
-
-            bot_phrase, sep, issue_body = issue['body'].partition(':')  # удаляем фразу бота
-            issue_body = issue_body.replace('>', '')                    # убираем цитирование бота (ВОЗМОЖНЫ ОШИБКИ)
+            issue_body = del_bot_phrase(issue['issue_body'])
 
         else:
-            issue_body = bot_speech_issue_body(issue)
+            issue_body = add_bot_phrase(issue)
 
         comment_body = bot_speech_comment(issue)    # добавляем фразу бота
 
         # обработка спец. символов
-        issue_title = align_special_symbols(issue['title'])
+        issue_title = align_special_symbols(issue['issue_title'])
         issue_body = align_special_symbols(issue_body)
         comment_body = align_special_symbols(comment_body)
 
@@ -282,9 +293,4 @@ def process_comment_payload_from_gh(payload):
         return HttpResponse(error_text, status=422)
 
 
-    if (type(request_result) is HttpResponse):
-        return request_result
-
-    else:
-        request_result = HttpResponse(request_result.text, status=request_result.status_code)
-        return request_result
+    return allign_request_result(request_result)

@@ -22,6 +22,10 @@ from issues_linker.my_functions import link_log_rm_comment          # лог с�
 from issues_linker.my_functions import prevent_cyclic_issue_rm      # предотвращение зацикливания issue
 from issues_linker.my_functions import prevent_cyclic_comment_rm    # предотвращение зацикливания комментариев
 
+from issues_linker.my_functions import del_bot_phrase               # удаление фразы бота
+
+from issues_linker.my_functions import allign_request_result    # создание корректного ответа серверу
+
 
 def process_payload_from_rm(payload):
     payload = payload['payload']    # достаём содержимое payload. payload payload. payload?
@@ -58,8 +62,8 @@ def process_payload_from_rm(payload):
             payload_parsed['comment_author_lastname'] = payload['journal']['author']['lastname']
 
         # заполение полей issue
-        payload_parsed['title'] = payload['issue']['subject']
-        payload_parsed['body'] = payload['issue']['description']
+        payload_parsed['issue_title'] = payload['issue']['subject']
+        payload_parsed['issue_body'] = payload['issue']['description']
         payload_parsed['status_id'] = payload['issue']['status']['id']
 
         # идентификаторы (для связи и логов)
@@ -93,62 +97,76 @@ def process_payload_from_rm(payload):
     # ============================================= КОМАНДЫ ДЛЯ ЗАГРУЗКИ ===============================================
 
 
-    # добавляем фразу бота к описанию issue
-    def bot_speech_issue_body(issue):
+    # issue_body
+    # comment_body
+    # comment_body_action
+    # добавляем фразу бота
+    def add_bot_phrase(issue, to):
 
-        # добавляем фразу бота
-        issue_body = 'I am a bot, bleep-bloop.\n' +\
-                     issue['issue_author_firstname'] + ' ' +\
-                     issue['issue_author_lastname'] + ' (' +\
-                     issue['issue_author_login'] +\
-                     ') Has opened the issue in Redmine'
+        # добавляем фразу бота к описанию issue
+        if (to == 'issue_body'):
+            # добавляем фразу бота
+            issue_body = 'I am a bot, bleep-bloop.\n' +\
+                         issue['issue_author_firstname'] + ' ' +\
+                         issue['issue_author_lastname'] + ' (' +\
+                         issue['issue_author_login'] +\
+                         ') Has opened the issue in Redmine'
 
-        # добавляем описание задачи
-        if (issue['body'] == ''):
-            issue_body += '.'
-        else:
+            # добавляем описание задачи
+            if (issue['issue_body'] == ''):
+                issue_body += '.'
+            else:
+                # добавляем цитирование
+                issue_body_ = issue['issue_body'].replace('\n', '\n>')
+                issue_body_ = '>' + issue_body_
+
+                issue_body += ': \n\n' + issue_body_
+
+            return issue_body
+
+        # добавляем фразу бота к комментарию
+        elif (to == 'comment_body'):
+
             # добавляем цитирование
-            issue_body_ = issue['body'].replace('\n', '\n>')
-            issue_body_ = '>' + issue_body_
+            comment_body = issue['comment_body'].replace('\n', '\n>')
+            comment_body = '>' + comment_body
 
-            issue_body += ': \n\n' + issue_body_
+            # добавляем фразу бота
+            comment_body = 'I am a bot, bleep-bloop.\n' + \
+                           issue['comment_author_firstname'] + ' ' + \
+                           issue['comment_author_lastname'] + ' (' + \
+                           issue['comment_author_login'] + \
+                           ') Has commented / edited with comment the issue in Redmine: \n\n' + \
+                           comment_body
 
-        return issue_body
+            return comment_body
 
-    # добавляем фразу бота к комментарию
-    def bot_speech_comment(issue):
+        # добавляем фразу бота (комментарием) к действию в редмайне (закрыл, изменил и т.д.)
+        elif (to == 'comment_body_action'):
 
-        # добавляем цитирование
-        comment_body = issue['comment_body'].replace('\n', '\n>')
-        comment_body = '>' + comment_body
+            # добавляем фразу бота
+            comment_body = 'I am a bot, bleep-bloop.\n' + \
+                           issue['comment_author_firstname'] + ' ' + \
+                           issue['comment_author_lastname'] + ' (' + \
+                           issue['comment_author_login'] + \
+                           ') Has edited the issue in Redmine.'
 
-        # добавляем фразу бота
-        comment_body = 'I am a bot, bleep-bloop.\n' +\
-                       issue['comment_author_firstname'] + ' ' +\
-                       issue['comment_author_lastname'] + ' (' +\
-                       issue['comment_author_login'] +\
-                       ') Has commented / edited with comment the issue in Redmine: \n\n' +\
-                       comment_body
+            return comment_body
 
-        return comment_body
+        else:
 
-    # добавляем фразу бота (комментарием) к действию в редмайне (закрыл, изменил и т.д.)
-    def bot_speech_comment_on_action(issue):
+            WRITE_LOG("\nERROR: process_payload_from_rm.add_bot_phrase - unknown parameter 'to': " + to + '.' +
+                      "\nPlease, check your code on possible typos." +
+                      "\nAlternatively, add logic to process '" + to + "' action correctly.")
 
-        comment_body = 'I am a bot, bleep-bloop.\n' +\
-                       issue['comment_author_firstname'] + ' ' +\
-                       issue['comment_author_lastname'] + ' (' +\
-                       issue['comment_author_login'] +\
-                       ') Has edited the issue in Redmine.'
-
-        return comment_body
+            return None
 
 
     def post_issue(issue):
 
-        #title = '[From Redmine] ' + issue['title']
-        title = issue['title']
-        issue_body = bot_speech_issue_body(issue)   # добавляем фразу бота
+        #title = '[From Redmine] ' + issue['issue_title']
+        title = issue['issue_title']
+        issue_body = add_bot_phrase(issue, 'issue_body')     # добавляем фразу бота
 
         # обработка спец. символов
         title = align_special_symbols(title)
@@ -179,7 +197,6 @@ def process_payload_from_rm(payload):
 
         return request_result
 
-    # TODO: исправить привязку комментириев
     def post_comment(issue, linked_issues):
 
 
@@ -188,9 +205,9 @@ def process_payload_from_rm(payload):
 
         # нет комментария
         if (issue['comment_body'] == ''):
-            comment_body = bot_speech_comment_on_action(issue)  # добавляем фразу бота
+            comment_body = add_bot_phrase(issue, 'comment_body_action')          # добавляем фразу бота
         else:
-            comment_body = bot_speech_comment(issue)            # добавляем фразу бота
+            comment_body = add_bot_phrase(issue, 'comment_body')    # добавляем фразу бота
 
         # обработка спец. символов
         comment_body = align_special_symbols(comment_body)
@@ -246,17 +263,15 @@ def process_payload_from_rm(payload):
 
         # ------------------------------------------- ОБРАБАТЫВАЕМ ФРАЗУ БОТА ------------------------------------------
 
-        #title = '[From Redmine (edited)] ' + issue['title']
-        title = issue['title']
+        #title = '[From Redmine (edited)] ' + issue['issue_title']
+        title = issue['issue_title']
 
         # проверяем, если автор issue - бот
         if (chk_if_rm_user_is_a_bot(issue['issue_author_id'])):
-
-            bot_phrase, sep, issue_body = issue['body'].partition(':')  # удаляем фразу бота
-            issue_body = issue_body.replace('>', '')                    # убираем цитирование бота (ВОЗМОЖНЫ ОШИБКИ)
+            issue_body = del_bot_phrase(issue['issue_body'])    # удаляем фразу бота
 
         else:
-            issue_body = bot_speech_issue_body(issue)  # добавляем фразу бота
+            issue_body = add_bot_phrase(issue, 'issue_body')    # добавляем фразу бота
 
         # обработка спец. символов
         title = align_special_symbols(title)
@@ -286,7 +301,7 @@ def process_payload_from_rm(payload):
 
 
     # привязка комментария на редмайне к гитхабу (да, это костыль)
-    # я не хотел делать костыль, но редмайн не посылает внятный ответ на PUT комментария
+    # я не хотел делать костыль, но редмайн не посылает внятный ответ на PUT комментария (note)
     def link_comment_to_github(issue, linked_issues):
 
         # дополнительная проверка, что issue связаны
@@ -348,9 +363,4 @@ def process_payload_from_rm(payload):
         return HttpResponse(error_text, status=422)
 
 
-    if (type(request_result) is HttpResponse):
-        return request_result
-
-    else:
-        request_result = HttpResponse(request_result.text, status=request_result.status_code)
-        return request_result
+    return allign_request_result(request_result)
