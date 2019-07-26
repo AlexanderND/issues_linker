@@ -148,10 +148,11 @@ def process_comment_payload_from_gh(payload):
             comment_body = '>' + comment_body
 
             # добавляем фразу бота
+            sender_url = '"' + issue['sender_login'] + '":' + 'https://github.com/' + issue['sender_login']
             author_url = '"' + issue['comment_author_login'] + '":' + 'https://github.com/' + issue['comment_author_login']
             comment_url = '"comment":' + issue['issue_url'] + '#issuecomment-' + str(issue['comment_id'])
             comment_body = 'I am a bot, bleep-bloop.\n' +\
-                           author_url + ' Has edited ' + issue['comment_author_login'] + "'s" + comment_url +\
+                           sender_url + ' Has edited ' + author_url + " 's " + comment_url +\
                            ' in Github: \n\n' + comment_body
 
             return comment_body
@@ -236,6 +237,16 @@ def process_comment_payload_from_gh(payload):
         linked_issues = linked_issues[0]
 
 
+        # дополнительная проверка, что комментарии связаны
+        linked_comments = linked_issues.get_comment_by_id_gh(issue['comment_id'])
+        if (linked_comments.count() == 0):
+            WRITE_LOG('\n' + '='*35 + ' ' + str(datetime.datetime.today()) + ' ' + '='*35 + '\n' +
+                      'received webhook from GITHUB: issue_comments | ' + 'action: ' + str(issue['action']) + '\n' +
+                      "ERROR: edited comment in GITHUB, but it is not linked to REDMINE")
+            return HttpResponse(status=404)
+        linked_comments = linked_comments[0]
+
+
         # ------------------------------------------- ОБРАБАТЫВАЕМ ФРАЗУ БОТА ------------------------------------------
 
 
@@ -252,7 +263,7 @@ def process_comment_payload_from_gh(payload):
         # если изменил не свой комментарий
         else:
             # TODO: возможно, добавить проверку на едит комментария бота?
-            comment_body = add_bot_phrase(issue, "comment_edit_else's ")     # добавляем фразу бота
+            comment_body = add_bot_phrase(issue, "comment_edit_else's")     # добавляем фразу бота
 
         # обработка спец. символов
         issue_title = align_special_symbols(issue['issue_title'])
