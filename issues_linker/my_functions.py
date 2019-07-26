@@ -16,6 +16,7 @@ def WRITE_LOG(string):
     log_file_name = os.path.join(script_dir, 'logs/server_log.txt')
     log = open(log_file_name, 'a')
 
+    # выводим текст в консоли разными цветами
     '''
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'
@@ -26,12 +27,20 @@ def WRITE_LOG(string):
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
     '''
-
     if (string.find('ERROR') == -1):
-        # выводим в консоли голубым цветом
-        print('\033[96m' + string + '\033[0m')
+
+        if(string.find('Aborting action') == -1):
+
+            # выводим в консоли голубым цветом
+            print('\033[96m' + string + '\033[0m')
+
+        else:
+
+            # выводим в консоли
+            print('\033[93m' + string + '\033[0m')
 
     else:
+
         # выводим в консоли красным цветом
         print('\033[91m' + string + '\033[0m')
 
