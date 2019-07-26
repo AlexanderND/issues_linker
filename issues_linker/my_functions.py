@@ -16,7 +16,25 @@ def WRITE_LOG(string):
     log_file_name = os.path.join(script_dir, 'logs/server_log.txt')
     log = open(log_file_name, 'a')
 
-    print(string)
+    '''
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+    '''
+
+    if (string.find('ERROR') == -1):
+        # выводим в консоли голубым цветом
+        print('\033[96m' + string + '\033[0m')
+
+    else:
+        # выводим в консоли красным цветом
+        print('\033[91m' + string + '\033[0m')
+
     log.write(string + '\n')
 
     log.close()
@@ -260,44 +278,42 @@ def match_label_to_rm(label_gh):
 
     label['type'], label['name'] = str(label_gh).split(': ', 1)
 
-    if (label['type'] == 'Приоритет'):
-        if (label['name'] == 'низкий'):
+    if (label['type'] == 'Priority'):
+        if (label['name'] == 'low'):
             label['id_rm'] = priority_ids_rm[1]
-        elif (label['name'] == 'нормальный'):
+        elif (label['name'] == 'normal'):
             label['id_rm'] = priority_ids_rm[0]
-        elif (label['name'] == 'высокий'):
+        elif (label['name'] == 'urgent'):
             label['id_rm'] = priority_ids_rm[2]
         else:
             WRITE_LOG('ERROR: UNKNOWN PRIORITY: ' + str(label_gh) +
-                      ' (type: ' + str(label['type']) + 'name: ' + str(label['name']) + ')')
+                      ' (type: ' + str(label['type']) + ' | name: ' + str(label['name']) + ')')
             label['id_rm'] = priority_ids_rm[0]
         
-    elif (label['type'] == 'Статус'):
-        if (label['name'] == 'новый'):
+    elif (label['type'] == 'Status'):
+        if (label['name'] == 'new'):
             label['id_rm'] = status_ids_rm[0]
-        if (label['name'] == 'в работе'):
+        if (label['name'] == 'working'):
             label['id_rm'] = status_ids_rm[1]
-        if (label['name'] == 'обратная связь'):
+        if (label['name'] == 'feedback'):
             label['id_rm'] = status_ids_rm[2]
-        if (label['name'] == 'проверка'):
+        if (label['name'] == 'verification'):
             label['id_rm'] = status_ids_rm[3]
-        if (label['name'] == 'отказ'):
+        if (label['name'] == 'rejected'):
             label['id_rm'] = status_ids_rm[4]
-        if (label['name'] == 'закрыт'):
-            label['id_rm'] = status_ids_rm[5]
         else:
             WRITE_LOG('ERROR: UNKNOWN STATUS: ' + str(label_gh) +
-                      ' (type: ' + str(label['type']) + 'name: ' + str(label['name']) + ')')
+                      ' (type: ' + str(label['type']) + ' | name: ' + str(label['name']) + ')')
             label['id_rm'] = status_ids_rm[0]
 
-    elif (label['type'] == 'Трекер'):
-        if (label['name'] == 'задача'):
+    elif (label['type'] == 'Tracker'):
+        if (label['name'] == 'task'):
             label['id_rm'] = tracker_ids_rm[0]
-        if (label['name'] == 'ошибка'):
+        if (label['name'] == 'bug'):
             label['id_rm'] = tracker_ids_rm[1]
         else:
             WRITE_LOG('ERROR: UNKNOWN TRACKER: ' + str(label_gh) +
-                      ' (type: ' + str(label['type']) + 'name: ' + str(label['name']) + ')')
+                      ' (type: ' + str(label['type']) + ' | name: ' + str(label['name']) + ')')
             label['id_rm'] = tracker_ids_rm[0]
 
     else:

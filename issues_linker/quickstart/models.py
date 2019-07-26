@@ -376,16 +376,6 @@ class Linked_Issues(models.Model):
         return Linked_Comments.objects.get_by_comment_id_rm(comment_id_rm)
 
 
-    def set_tracker(self, tracker_id_rm):
-        self.objects.set_tracker(tracker_id_rm)
-
-    def set_status(self, status_id_rm):
-        self.objects.set_status(status_id_rm)
-
-    def set_priority(self, priority_id_rm):
-        self.objects.set_priority(priority_id_rm)
-
-
     db_table = 'linked_issues'
     objects = Linked_Issues_Manager()
 
