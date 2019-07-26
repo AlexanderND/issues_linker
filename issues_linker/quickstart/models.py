@@ -291,11 +291,15 @@ class Linked_Issues_Manager(models.Manager):
     use_in_migrations = True
 
 
-    def create_linked_issues(self, issue_id_rm, issue_id_gh, repos_id_gh, issue_num_gh):
+    def create_linked_issues(self, issue_id_rm, issue_id_gh, repos_id_gh, issue_num_gh,
+                             tracker_id_rm, status_id_rm, priority_id_rm):
         linked_issues = self.model(issue_id_rm=issue_id_rm,
                                    issue_id_gh=issue_id_gh,
                                    repos_id_gh=repos_id_gh,
-                                   issue_num_gh=issue_num_gh)
+                                   issue_num_gh=issue_num_gh,
+                                   tracker_id_rm=tracker_id_rm,
+                                   status_id_rm=status_id_rm,
+                                   priority_id_rm=priority_id_rm)
         linked_issues.save()  # сохранение linked_issues в базе данных
 
         return linked_issues
@@ -330,12 +334,12 @@ class Linked_Issues(models.Model):
     issue_num_gh = models.BigIntegerField(blank=1, null=1)          # issue['number'] в гитхабе (номер issue в репозитории)
 
     # различные id-шники в редмайне (или label-ы в гитхабе)
-    #tracker_id_rm = models.IntegerField(blank=1, null=1)
-    #status_id_rm = models.IntegerField(blank=1, null=1)
-    #priority_id_rm = models.IntegerField(blank=1, null=1)
-    tracker_id_rm = models.IntegerField(default=tracker_ids_rm[0], blank=1, null=1)
-    status_id_rm = models.IntegerField(default=status_ids_rm[0], blank=1, null=1)
-    priority_id_rm = models.IntegerField(default=priority_ids_rm[0], blank=1, null=1)
+    tracker_id_rm = models.IntegerField(blank=1, null=1)
+    status_id_rm = models.IntegerField(blank=1, null=1)
+    priority_id_rm = models.IntegerField(blank=1, null=1)
+    #tracker_id_rm = models.IntegerField(default=tracker_ids_rm[0], blank=1, null=1)
+    #status_id_rm = models.IntegerField(default=status_ids_rm[0], blank=1, null=1)
+    #priority_id_rm = models.IntegerField(default=priority_ids_rm[0], blank=1, null=1)
 
     comments = models.ManyToManyField(Linked_Comments, blank=1)     # комментарии к issue
 

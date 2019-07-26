@@ -1,5 +1,6 @@
 {
   "title":"{{title}}",
   "body":"{{body}}",
-  "state":"{{state}}"
+  "state":"{{state}}",
+  "labels":["{{priority}}","{{status}}","{{tracker}}"]
 }

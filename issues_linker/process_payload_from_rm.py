@@ -24,7 +24,11 @@ from issues_linker.my_functions import prevent_cyclic_comment_rm    # предо
 
 from issues_linker.my_functions import del_bot_phrase               # удаление фразы бота
 
-from issues_linker.my_functions import allign_request_result    # создание корректного ответа серверу
+from issues_linker.my_functions import allign_request_result        # создание корректного ответа серверу
+
+from issues_linker.my_functions import match_tracker_to_gh          # сопоставление label-ов
+from issues_linker.my_functions import match_status_to_gh           # сопоставление label-ов
+from issues_linker.my_functions import match_priority_to_gh         # сопоставление label-ов
 
 
 def process_payload_from_rm(payload):
@@ -64,7 +68,9 @@ def process_payload_from_rm(payload):
         # заполение полей issue
         payload_parsed['issue_title'] = payload['issue']['subject']
         payload_parsed['issue_body'] = payload['issue']['description']
+        payload_parsed['tracker_id'] = payload['issue']['tracker']['id']
         payload_parsed['status_id'] = payload['issue']['status']['id']
+        payload_parsed['priority_id'] = payload['issue']['priority']['id']
 
         # идентификаторы (для связи и логов)
         payload_parsed['issue_id'] = payload['issue']['id']
@@ -100,6 +106,7 @@ def process_payload_from_rm(payload):
     # issue_body
     # comment_body
     # comment_body_action
+    # issue_label
     # добавляем фразу бота
     def add_bot_phrase(issue, to):
 
@@ -172,16 +179,24 @@ def process_payload_from_rm(payload):
         title = align_special_symbols(title)
         issue_body = align_special_symbols(issue_body)
 
+        # добавление label-ов
+        tracker = match_tracker_to_gh(issue['tracker_id'])
+        status = match_status_to_gh(issue['status_id'])
+        priority = match_priority_to_gh(issue['priority_id'])
+
         issue_templated = issue_github_template.render(
             title=title,
-            body=issue_body)
+            body=issue_body,
+            priority=priority,
+            status=status,
+            tracker=tracker)
 
         # кодировка Latin-1 на некоторых задачах приводит к ошибке кодировки в питоне
         issue_templated = issue_templated.encode('utf-8')
 
         request_result = requests.post(url_gh,
-                          data=issue_templated,
-                          headers=headers)
+                                       data=issue_templated,
+                                       headers=headers)
 
         posted_issue = json.loads(request_result.text)
 
@@ -190,7 +205,10 @@ def process_payload_from_rm(payload):
             issue['issue_id'],              # id issue в редмайне
             posted_issue['id'],             # id issue в гитхабе
             repos_id_gh,                    # id репозитория в гитхабе
-            posted_issue['number'])         # номер issue  в репозитории гитхаба
+            posted_issue['number'],         # номер issue  в репозитории гитхаба
+            issue['tracker_id'],            # id трекера в редмайне
+            issue['status_id'],             # id статуса в редмайне
+            issue['priority_id'])           # id приоритета в редмайне
 
         # ДЕБАГГИНГ
         link_log_rm_post(request_result, issue, linked_issues)
@@ -242,10 +260,6 @@ def process_payload_from_rm(payload):
         return request_result
 
     def edit_issue(issue, linked_issues):
-        # открыть / закрыть issue
-        state_gh = "opened"
-        if (issue['status_id'] == 12):  # статус issue в редмайне
-            state_gh = "closed"
 
         # дополнительная проверка, что issue связаны
         # (на случай, если изменили не связанный issue)
@@ -256,6 +270,30 @@ def process_payload_from_rm(payload):
                       error_text)
             return HttpResponse(error_text, status=404)
         linked_issues = linked_issues[0]
+
+        # добавление label-ов
+        state_gh = "opened"  # открыть / закрыть issue
+        if (issue['tracker_id'] != linked_issues.tracker_id_rm):
+            tracker = match_tracker_to_gh(issue['tracker_id'])
+        else:
+            tracker = match_tracker_to_gh(linked_issues.tracker_id_rm)
+
+        if (issue['status_id'] != linked_issues.status_id_rm):
+            status = match_status_to_gh(issue['status_id'])
+
+            if (status == 'Status: closed'):
+                status = match_status_to_gh(linked_issues.status_id_rm)  # не меняем статус (нет label-а closed)
+                state_gh = 'closed'
+
+            elif (status == 'Status: rejected'):
+                state_gh = 'closed'
+        else:
+            status = match_status_to_gh(linked_issues.status_id_rm)
+
+        if (issue['priority_id'] != linked_issues.priority_id_rm):
+            priority = match_priority_to_gh(issue['priority_id'])
+        else:
+            priority = match_priority_to_gh(linked_issues.priority_id_rm)
 
 
         post_comment(issue, linked_issues) # ОТПРАВЛЯЕМ КОММЕНТАРИЙ В ГИТХАБ
@@ -284,7 +322,10 @@ def process_payload_from_rm(payload):
         issue_templated = issue_github_template.render(
             title=title,
             body=issue_body,
-            state=state_gh)
+            state=state_gh,
+            priority=priority,
+            status=status,
+            tracker=tracker)
         # кодировка Latin-1 на некоторых задачах приводит к ошибке кодировки в питоне
         issue_templated = issue_templated.encode('utf-8')
 
