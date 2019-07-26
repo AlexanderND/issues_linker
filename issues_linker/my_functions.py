@@ -136,6 +136,109 @@ status_ids_rm = [7, 8, 9, 10, 11, 12]
 priority_ids_rm = [11, 10, 12]
 
 
+# функция сопостовления label-а в гитхабе редмайну
+def match_label_to_rm(label_gh):
+    label = {}
+
+    label['type'], label['name'] = str(label_gh).split(': ', 1)
+
+    if (label['type'] == 'Priority'):
+        if (label['name'] == 'low'):
+            label['id_rm'] = priority_ids_rm[1]
+        elif (label['name'] == 'normal'):
+            label['id_rm'] = priority_ids_rm[0]
+        elif (label['name'] == 'urgent'):
+            label['id_rm'] = priority_ids_rm[2]
+        else:
+            WRITE_LOG('ERROR: UNKNOWN PRIORITY: ' + str(label_gh) +
+                      ' (type: ' + str(label['type']) + ' | name: ' + str(label['name']) + ')')
+            label['id_rm'] = priority_ids_rm[0]
+
+    elif (label['type'] == 'Status'):
+        if (label['name'] == 'new'):
+            label['id_rm'] = status_ids_rm[0]
+        elif (label['name'] == 'working'):
+            label['id_rm'] = status_ids_rm[1]
+        elif (label['name'] == 'feedback'):
+            label['id_rm'] = status_ids_rm[2]
+        elif (label['name'] == 'verification'):
+            label['id_rm'] = status_ids_rm[3]
+        elif (label['name'] == 'rejected'):
+            label['id_rm'] = status_ids_rm[4]
+        else:
+            WRITE_LOG('ERROR: UNKNOWN STATUS: ' + str(label_gh) +
+                      ' (type: ' + str(label['type']) + ' | name: ' + str(label['name']) + ')')
+            label['id_rm'] = status_ids_rm[0]
+
+    elif (label['type'] == 'Tracker'):
+        if (label['name'] == 'task'):
+            label['id_rm'] = tracker_ids_rm[0]
+        elif (label['name'] == 'bug'):
+            label['id_rm'] = tracker_ids_rm[1]
+        else:
+            WRITE_LOG('ERROR: UNKNOWN TRACKER: ' + str(label_gh) +
+                      ' (type: ' + str(label['type']) + ' | name: ' + str(label['name']) + ')')
+            label['id_rm'] = tracker_ids_rm[0]
+
+    else:
+        WRITE_LOG('ERROR: UNKNOWN GITHUB LABEL: ' + str(label_gh))
+        label['id_rm'] = None
+
+    return label
+
+
+# функция сопостовления статуса в редмайне label-у гитхаба
+def match_tracker_to_gh(tracker_id_rm):
+    if (tracker_id_rm == tracker_ids_rm[0]):
+        label_gh = 'Tracker: task'
+    elif (tracker_id_rm == tracker_ids_rm[1]):
+        label_gh = 'Tracker: bug'
+
+    else:
+        WRITE_LOG('ERROR: UNKNOWN REDMINE TRACKER: ' + str(tracker_id_rm))
+        label_gh = None
+
+    return label_gh
+
+# функция сопостовления статуса в редмайне label-у гитхаба
+def match_status_to_gh(status_id_rm):
+
+    if (status_id_rm == status_ids_rm[0]):
+        label_gh = 'Status: new'
+    elif (status_id_rm == status_ids_rm[1]):
+        label_gh = 'Status: working'
+    elif (status_id_rm == status_ids_rm[2]):
+        label_gh = 'Status: feedback'
+    elif (status_id_rm == status_ids_rm[3]):
+        label_gh = 'Status: verification'
+    elif (status_id_rm == status_ids_rm[4]):
+        label_gh = 'Status: rejected'
+    elif (status_id_rm == status_ids_rm[5]):
+        label_gh = 'Status: closed'
+
+    else:
+        WRITE_LOG('ERROR: UNKNOWN REDMINE STATUS: ' + str(status_id_rm))
+        label_gh = None
+
+    return label_gh
+
+# функция сопостовления статуса в редмайне label-у гитхаба
+def match_priority_to_gh(priority_id_rm):
+
+    if (priority_id_rm == priority_ids_rm[0]):
+        label_gh = 'Priority: normal'
+    elif (priority_id_rm == priority_ids_rm[1]):
+        label_gh = 'Priority: low'
+    elif (priority_id_rm == priority_ids_rm[2]):
+        label_gh = 'Priority: urgent'
+
+    else:
+        WRITE_LOG('ERROR: UNKNOWN REDMINE PRIORITY: ' + str(priority_id_rm))
+        label_gh = None
+
+    return label_gh
+
+
 url_rm = "http://localhost:3000/issues.json"    # локальный сервер редмайна (тестовый сервер)
 
 # -------------------------------------------- КОНСТАНТЫ (реальный сервер) ---------------------------------------
@@ -282,110 +385,6 @@ def prevent_cyclic_comment_rm(issue):
               error_text)
 
     return error_text
-
-
-# функция сопостовления label-а в гитхабе редмайну
-def match_label_to_rm(label_gh):
-
-    label = {}
-
-    label['type'], label['name'] = str(label_gh).split(': ', 1)
-
-    if (label['type'] == 'Priority'):
-        if (label['name'] == 'low'):
-            label['id_rm'] = priority_ids_rm[1]
-        elif (label['name'] == 'normal'):
-            label['id_rm'] = priority_ids_rm[0]
-        elif (label['name'] == 'urgent'):
-            label['id_rm'] = priority_ids_rm[2]
-        else:
-            WRITE_LOG('ERROR: UNKNOWN PRIORITY: ' + str(label_gh) +
-                      ' (type: ' + str(label['type']) + ' | name: ' + str(label['name']) + ')')
-            label['id_rm'] = priority_ids_rm[0]
-        
-    elif (label['type'] == 'Status'):
-        if (label['name'] == 'new'):
-            label['id_rm'] = status_ids_rm[0]
-        if (label['name'] == 'working'):
-            label['id_rm'] = status_ids_rm[1]
-        if (label['name'] == 'feedback'):
-            label['id_rm'] = status_ids_rm[2]
-        if (label['name'] == 'verification'):
-            label['id_rm'] = status_ids_rm[3]
-        if (label['name'] == 'rejected'):
-            label['id_rm'] = status_ids_rm[4]
-        else:
-            WRITE_LOG('ERROR: UNKNOWN STATUS: ' + str(label_gh) +
-                      ' (type: ' + str(label['type']) + ' | name: ' + str(label['name']) + ')')
-            label['id_rm'] = status_ids_rm[0]
-
-    elif (label['type'] == 'Tracker'):
-        if (label['name'] == 'task'):
-            label['id_rm'] = tracker_ids_rm[0]
-        if (label['name'] == 'bug'):
-            label['id_rm'] = tracker_ids_rm[1]
-        else:
-            WRITE_LOG('ERROR: UNKNOWN TRACKER: ' + str(label_gh) +
-                      ' (type: ' + str(label['type']) + ' | name: ' + str(label['name']) + ')')
-            label['id_rm'] = tracker_ids_rm[0]
-
-    else:
-        WRITE_LOG('ERROR: UNKNOWN GITHUB LABEL: ' + str(label_gh))
-        label['id_rm'] = None
-
-    return label
-
-# функция сопостовления статуса в редмайне label-у гитхаба
-def match_tracker_to_gh(tracker_id_rm):
-
-    if (tracker_id_rm == tracker_ids_rm[0]):
-        label_gh = 'Tracker: task'
-    elif (tracker_id_rm == tracker_ids_rm[1]):
-        label_gh = 'Tracker: bug'
-
-    else:
-        WRITE_LOG('ERROR: UNKNOWN REDMINE TRACKER: ' + str(tracker_id_rm))
-        label_gh = None
-
-    return label_gh
-
-# функция сопостовления статуса в редмайне label-у гитхаба
-def match_status_to_gh(status_id_rm):
-
-    if (status_id_rm == status_ids_rm[0]):
-        label_gh = 'Status: new'
-    elif (status_id_rm == status_ids_rm[1]):
-        label_gh = 'Status: working'
-    elif (status_id_rm == status_ids_rm[2]):
-        label_gh = 'Status: feedback'
-    elif (status_id_rm == status_ids_rm[3]):
-        label_gh = 'Status: verification'
-    elif (status_id_rm == status_ids_rm[4]):
-        label_gh = 'Status: rejected'
-    elif (status_id_rm == status_ids_rm[5]):
-        label_gh = 'Status: closed'
-
-    else:
-        WRITE_LOG('ERROR: UNKNOWN REDMINE STATUS: ' + str(status_id_rm))
-        label_gh = None
-
-    return label_gh
-
-# функция сопостовления статуса в редмайне label-у гитхаба
-def match_priority_to_gh(priority_id_rm):
-
-    if (priority_id_rm == priority_ids_rm[0]):
-        label_gh = 'Priority: normal'
-    elif (priority_id_rm == priority_ids_rm[1]):
-        label_gh = 'Priority: low'
-    elif (priority_id_rm == priority_ids_rm[2]):
-        label_gh = 'Priority: urgent'
-
-    else:
-        WRITE_LOG('ERROR: UNKNOWN REDMINE PRIORITY: ' + str(priority_id_rm))
-        label_gh = None
-
-    return label_gh
 
 
 # ======================================================== GITHUB ======================================================

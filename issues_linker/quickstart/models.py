@@ -324,7 +324,6 @@ class Linked_Issues_Manager(models.Manager):
     def set_priority(self, priority_id_rm):
         self.priority_id_rm = priority_id_rm
 
-
 class Linked_Issues(models.Model):
 
     issue_id_rm = models.BigIntegerField(blank=1, null=1)           # id issue в редмайне
@@ -337,9 +336,6 @@ class Linked_Issues(models.Model):
     tracker_id_rm = models.IntegerField(blank=1, null=1)
     status_id_rm = models.IntegerField(blank=1, null=1)
     priority_id_rm = models.IntegerField(blank=1, null=1)
-    #tracker_id_rm = models.IntegerField(default=tracker_ids_rm[0], blank=1, null=1)
-    #status_id_rm = models.IntegerField(default=status_ids_rm[0], blank=1, null=1)
-    #priority_id_rm = models.IntegerField(default=priority_ids_rm[0], blank=1, null=1)
 
     comments = models.ManyToManyField(Linked_Comments, blank=1)     # комментарии к issue
 

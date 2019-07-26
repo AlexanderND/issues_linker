@@ -122,6 +122,16 @@ def process_payload_from_gh(payload):
 
             return comment_body
 
+        elif (to == 'comment_body_action'):
+
+            author_url = '"' + issue['sender_login'] + '":' + 'https://github.com/' + issue['sender_login']
+            issue_url = '"issue":' + issue['issue_url']
+            comment_body = 'I am a bot, bleep-bloop.\n' +\
+                         author_url + ' Has ' + issue['action'] + ' the ' + issue_url + ' in Github.'
+                         #author_url + ' Has ' + issue['action'] + ' a comment on ' + issue_url + '.'
+
+            return comment_body
+
         else:
 
             WRITE_LOG("\nERROR: process_payload_from_gh.add_bot_phrase - unknown parameter 'to': " + to + '.' +
@@ -130,6 +140,73 @@ def process_payload_from_gh(payload):
 
             return None
 
+    '''def edit_issue_gh(issue, linked_issues):
+
+        # добавление label-ов
+        state_gh = "opened"  # открыть / закрыть issue
+        if (issue['tracker_id'] != linked_issues.tracker_id_rm):
+            tracker = match_tracker_to_gh(issue['tracker_id'])
+        else:
+            tracker = match_tracker_to_gh(linked_issues.tracker_id_rm)
+
+        if (issue['status_id'] != linked_issues.status_id_rm):
+            status = match_status_to_gh(issue['status_id'])
+
+            if (status == 'Status: closed'):
+                status = match_status_to_gh(linked_issues.status_id_rm)  # не меняем статус (нет label-а closed)
+                state_gh = 'closed'
+
+            elif (status == 'Status: rejected'):
+                state_gh = 'closed'
+        else:
+            status = match_status_to_gh(linked_issues.status_id_rm)
+
+        if (issue['priority_id'] != linked_issues.priority_id_rm):
+            priority = match_priority_to_gh(issue['priority_id'])
+        else:
+            priority = match_priority_to_gh(linked_issues.priority_id_rm)
+
+
+        # ------------------------------------------- ОБРАБАТЫВАЕМ ФРАЗУ БОТА ------------------------------------------
+
+        #title = '[From Redmine (edited)] ' + issue['issue_title']
+        title = issue['issue_title']
+
+        # проверяем, если автор issue - бот
+        if (chk_if_rm_user_is_a_bot(issue['issue_author_id'])):
+            issue_body = del_bot_phrase(issue['issue_body'])    # удаляем фразу бота
+
+        else:
+            issue_body = add_bot_phrase(issue, 'issue_body')    # добавляем фразу бота
+
+        # обработка спец. символов
+        title = align_special_symbols(title)
+        issue_body = align_special_symbols(issue_body)
+
+
+        # ----------------------------------------- ЗАГРУЖАЕМ ДАННЫЕ В ГИТХАБ ------------------------------------------
+
+
+        issue_templated = issue_github_template.render(
+            title=title,
+            body=issue_body,
+            state=state_gh,
+            priority=priority,
+            status=status,
+            tracker=tracker)
+        # кодировка Latin-1 на некоторых задачах приводит к ошибке кодировки в питоне
+        issue_templated = issue_templated.encode('utf-8')
+
+        # добавление issue_id к ссылке
+        issue_url_gh = url_gh + '/' + str(linked_issues.issue_num_gh)
+        request_result = requests.patch(issue_url_gh,
+                                   data=issue_templated,
+                                   headers=headers)
+
+        # ДЕБАГГИНГ
+        link_log_rm_edit(request_result, issue, linked_issues)
+
+        return request_result'''
 
     def post_issue(issue):
 
@@ -150,43 +227,28 @@ def process_payload_from_gh(payload):
 
 
         # Настраиваем label-ы
-        labels_rm = {}
-        labels_rm['Приоритет'] = None
-        labels_rm['Статус'] = None
-        labels_rm['Трекер'] = None
+        tracker_id_rm = None
+        status_id_rm = status_ids_rm[0]
+        priority_id_rm = priority_ids_rm[0]
         for label in issue['labels']:
-            label_rm = match_label_to_rm(label['name'])
+            tracker_rm = match_label_to_rm(label['name'])
 
-            if (label_rm != None):
-                if (label_rm['type'] == 'Приоритет'):
-                    if (labels_rm['Приоритет'] == None):
-                        labels_rm['Приоритет'] = label_rm['id_rm']
-
-                elif (label_rm['type'] == 'Статус'):
-                    if (labels_rm['Статус'] == None):
-                        labels_rm['Статус'] = label_rm['id_rm']
-
-                elif (label_rm['type'] == 'Трекер'):
-                    if (labels_rm['Трекер'] == None):
-                        labels_rm['Трекер'] = label_rm['id_rm']
+            if (tracker_rm != None):
+                if (tracker_rm['type'] == 'Tracker'):
+                    if (tracker_id_rm == None):
+                        tracker_id_rm = tracker_rm['id_rm']
 
         # TODO: отправлять label-ы в гитхаб + удалять лишние
-        # проверяем, все ли label-ы были установлены
-        if (labels_rm['Приоритет'] == None):
-            labels_rm['Приоритет'] = priority_ids_rm[0]
-
-        if (labels_rm['Статус'] == None):
-            labels_rm['Статус'] = status_ids_rm[0]
-
-        if (labels_rm['Трекер'] == None):
-            labels_rm['Трекер'] = tracker_ids_rm[0]
+        # проверяем, был ли установлен трекер
+        if (tracker_id_rm == None):
+            tracker_id_rm = tracker_ids_rm[0]
 
 
         issue_templated = issue_redmine_template.render(
             project_id=project_id_rm,
-            tracker_id=labels_rm['Трекер'],
-            status_id=labels_rm['Статус'],
-            priority_id=labels_rm['Приоритет'],
+            tracker_id=tracker_id_rm,
+            status_id=status_id_rm,
+            priority_id=priority_id_rm,
             subject=title,
             description=issue_body)
 
@@ -200,20 +262,25 @@ def process_payload_from_gh(payload):
 
         # ---------------------------------------------- СВЯЗЫВАЕМ ISSUES ----------------------------------------------
 
-
+        WRITE_LOG('\n'+str(tracker_id_rm)+'\n')
         # занесение в базу данных информацию о том, что данные issues связаны
         posted_issue = json.loads(request_result.text)
         linked_issues = Linked_Issues.objects.create_linked_issues(
             posted_issue['issue']['id'],    # id issue в редмайне
             issue['issue_id'],              # id issue в гитхабе
             issue['repos_id'],              # id репозитория в гитхабе
-            issue['issue_number'])          # номер issue  в репозитории гитхаба
+            issue['issue_number'],          # номер issue  в репозитории гитхаба
+            tracker_id_rm,                  # id трекера в редмайне
+            status_id_rm,                   # id статуса в редмайне
+            priority_id_rm)                 # id приоритета в редмайне
 
         # добавляем label-ы в linked_issues
-        WRITE_LOG('\n'+str(labels_rm['Приоритет'])+'\n'+str(labels_rm['Статус'])+'\n'+str(labels_rm['Трекер'])+'\n')
-        linked_issues.set_priority(labels_rm['Приоритет'])
-        linked_issues.set_status(labels_rm['Статус'])
-        linked_issues.set_tracker(labels_rm['Трекер'])
+        #linked_issues.set_priority(labels_rm['Приоритет'])
+        #linked_issues.set_status(labels_rm['Статус'])
+        #linked_issues.set_tracker(labels_rm['Трекер'])
+        linked_issues.tracker_id_rm = tracker_id_rm
+        linked_issues.status_id_rm = status_id_rm
+        linked_issues.priority_id_rm = priority_id_rm
 
         # ДЕБАГГИНГ
         link_log_issue_gh(request_result, issue, linked_issues)
@@ -322,7 +389,9 @@ def process_payload_from_gh(payload):
 
         return request_result
 
-    def label_issue(issue, linked_issues, label):
+    def label_issue(issue, linked_issues):
+
+        label = match_label_to_rm(issue['label'])
 
         # дополнительная проверка, что issue связаны
         # (на случай, если изменили не связанный issue)
@@ -333,6 +402,33 @@ def process_payload_from_gh(payload):
             return HttpResponse(error_text, status=404)
 
         linked_issues = linked_issues[0]
+
+
+        # если неправильный label в гитхабе -> значения по умлчанию
+        tracker_id = linked_issues.tracker_id_rm
+        if (label != None):
+            if (label['type'] == 'Priority'):
+
+                error_text = "ERROR: tried to LABEL issue's PRIORITY from GITHUB"
+                WRITE_LOG('\n' + '-' * 20 + ' ' + str(
+                    datetime.datetime.today()) + ' | EDIT issue in REDMINE ' + '-' * 19 + '\n' +
+                          error_text)
+
+                return HttpResponse(error_text, status=200)
+
+            elif (label['type'] == 'Status'):
+
+                error_text = "ERROR: tried to LABEL issue's STATUS, from GITHUB"
+                WRITE_LOG('\n' + '-' * 20 + ' ' + str(
+                    datetime.datetime.today()) + ' | EDIT issue in REDMINE ' + '-' * 19 + '\n' +
+                          error_text)
+
+                return HttpResponse(error_text, status=200)
+
+            elif (label['type'] == 'Tracker'):
+
+                tracker_id = label['id_rm']
+                linked_issues.tracker_id_rm = tracker_id
 
 
         # ------------------------------------------- ОБРАБАТЫВАЕМ ФРАЗУ БОТА ------------------------------------------
@@ -359,48 +455,12 @@ def process_payload_from_gh(payload):
         # ----------------------------------------- ЗАГРУЖАЕМ ДАННЫЕ В РЕДМАЙН -----------------------------------------
 
 
-        # если неправильный label в гитхабе -> значения по умлчанию
-        tracker_id = linked_issues.get_tracker()
-        status_id = linked_issues.get_status()
-        priority_id = linked_issues.get_priority()
-        if (label != None):
-            if (label['type'] == 'Приоритет'):
-                if (priority_id != None):
-                    error_text = "ERROR: tried to LABEL issue's PRIORITY, but it's already labeled"
-                    WRITE_LOG('\n' + '-'*20 + ' ' + str(datetime.datetime.today()) + ' | EDIT issue in REDMINE ' + '-'*19 + '\n' +
-                              error_text)
-                    return HttpResponse(error_text, status=404)
-
-                priority_id = label['id_rm']
-                linked_issues.set_priority(priority_id)
-
-            elif (label['type'] == 'Статус'):
-                if (priority_id != None):
-                    error_text = "ERROR: tried to LABEL issue's STATUS, but it's already labeled"
-                    WRITE_LOG('\n' + '-'*20 + ' ' + str(datetime.datetime.today()) + ' | EDIT issue in REDMINE ' + '-'*19 + '\n' +
-                              error_text)
-                    return HttpResponse(error_text, status=404)
-
-                status_id = label['id_rm']
-                linked_issues.set_status(status_id)
-
-            elif (label['type'] == 'Трекер'):
-                if (priority_id != None):
-                    error_text = "ERROR: tried to LABEL issue's TRACKER, but it's already labeled"
-                    WRITE_LOG('\n' + '-'*20 + ' ' + str(datetime.datetime.today()) + ' | EDIT issue in REDMINE ' + '-'*19 + '\n' +
-                              error_text)
-                    return HttpResponse(error_text, status=404)
-
-                tracker_id = label['id_rm']
-                linked_issues.set_tracker(tracker_id)
-
-
         issue_templated = issue_redmine_template.render(
             project_id=project_id_rm,
             issue_id=linked_issues.issue_id_rm,
             tracker_id=tracker_id,
-            status_id=status_id,
-            priority_id=priority_id,
+            status_id=linked_issues.status_id_rm,
+            priority_id=linked_issues.priority_id_rm,
             subject=title,
             description=issue_body,
             notes=comment_body)
@@ -474,9 +534,7 @@ def process_payload_from_gh(payload):
             error_text = prevent_cyclic_issue_gh(issue)
             return HttpResponse(error_text, status=200)
 
-        label_rm = match_label_to_rm(issue['label'])
-
-        request_result = label_issue(issue, linked_issues, label_rm)
+        request_result = label_issue(issue, linked_issues)
 
     else:
         error_text = 'ERROR: WRONG ACTION'
