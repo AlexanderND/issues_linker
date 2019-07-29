@@ -65,6 +65,8 @@ def process_payload_from_gh(payload):
 
         payload_parsed['labels'] = payload['issue']['labels']
 
+        #if ((payload_parsed['action'] == 'labeled') | (payload_parsed['action'] == 'unlabeled')):
+        #    payload_parsed['label'] = payload['issue']['label']
 
         return payload_parsed
 
@@ -384,7 +386,8 @@ def process_payload_from_gh(payload):
         linked_issues = linked_issues[0]
 
         tracker_id_rm = None
-        for label in issue['labels']:
+        labels = issue['labels']
+        for label in labels:
 
             label_gh = match_label_to_rm(label['name'])
 
@@ -402,12 +405,17 @@ def process_payload_from_gh(payload):
         if (tracker_id_rm == None):
             tracker_id_rm = linked_issues.tracker_id_rm
 
-            error_text = "ERROR: incorrect labels in GITHUB"
-            WRITE_LOG(
-                '\n' + '-' * 20 + ' ' + str(datetime.datetime.today()) + ' | LABEL issue in REDMINE ' + '-' * 19 + '\n' +
-                error_text)
+        # проверяем, корректные ли label-ы
+        elif (tracker_id_rm == linked_issues.tracker_id_rm):
 
-            return HttpResponse(error_text, status=403)
+            error_text = "ERROR: incorrect labels in GITHUB"
+            WRITE_LOG('\n' + '-'*20 + ' ' + str(datetime.datetime.today()) + ' | EDIT issue in REDMINE ' + '-'*19 + '\n' +
+                      error_text)
+
+            tracker = match_tracker_to_gh(tracker_id_rm)
+            correct_gh_labels(issue, tracker, linked_issues)  # корректируем label-ы в гитхабе
+
+            return HttpResponse(error_text, status=422)
 
         update_linked_issues(linked_issues,
                              tracker_id_rm,
