@@ -27,6 +27,12 @@ from issues_linker.my_functions import del_bot_phrase           # удалени
 
 from issues_linker.my_functions import allign_request_result    # создание корректного ответа серверу
 
+from issues_linker.my_functions import match_tracker_to_gh      # сопоставление label-ов
+from issues_linker.my_functions import match_status_to_gh       # сопоставление label-ов
+from issues_linker.my_functions import match_priority_to_gh     # сопоставление label-ов
+from issues_linker.my_functions import link_log_rm_edit         # лог связи issues (изменение)
+from issues_linker.my_functions import repos_id_gh              # id репозитория в гитхабе
+from issues_linker.my_functions import url_gh                   # ссылка на гитхаб
 
 def process_payload_from_gh(payload):
 
@@ -76,8 +82,22 @@ def process_payload_from_gh(payload):
     issue_redmine_template = Template(issue_redmine_template)  # шаблон для каждого issue
 
     # заголовки авторизации и приложения, при отправке запросов на редмайн
-    headers = {'X-Redmine-API-Key': api_key_redmime,
-               'Content-Type': 'application/json'}
+    headers_rm = {'X-Redmine-API-Key': api_key_redmime,
+                  'Content-Type': 'application/json'}
+
+
+    # авторизация в гитхабе по токену
+    api_key_github = read_file('api_keys/api_key_github.txt')   # загрузка ключа для github api
+    api_key_github = api_key_github.replace('\n', '')  # избавляемся от \n в конце строки
+
+    # загрузка issue template из файла
+    issue_github_template = read_file('parsed_data_templates/issue_github_template.json')
+    issue_github_template = Template(issue_github_template)  # шаблон для каждого issue
+
+    # заголовки авторизации и приложения, при отправке запросов на гитхаб
+    headers_gh = {'Authorization': 'token ' + api_key_github,
+                  'Content-Type': 'application/json'}
+
 
 
     # ============================================= КОМАНДЫ ДЛЯ ЗАГРУЗКИ ===============================================
@@ -95,7 +115,7 @@ def process_payload_from_gh(payload):
             author_url_gh = '"' + issue['issue_author_login'] + '":' + 'https://github.com/' + issue['issue_author_login']
             issue_url_gh = '"issue":' + issue['issue_url']
             issue_body = 'I am a bot, bleep-bloop.\n' +\
-                         author_url_gh + ' Has opened an ' + issue_url_gh + ' in Github'
+                         author_url_gh + ' Has opened the ' + issue_url_gh + ' in Github'
                          #author_url_gh + ' Has ' + issue['action'] + ' an issue on ' + issue_url_gh
 
             # добавляем описание задачи
@@ -140,57 +160,21 @@ def process_payload_from_gh(payload):
 
             return None
 
-    '''def edit_issue_gh(issue, linked_issues):
+
+    def correct_gh_labels(issue, tracker, linked_issues):
 
         # добавление label-ов
-        state_gh = "opened"  # открыть / закрыть issue
-        if (issue['tracker_id'] != linked_issues.tracker_id_rm):
-            tracker = match_tracker_to_gh(issue['tracker_id'])
-        else:
-            tracker = match_tracker_to_gh(linked_issues.tracker_id_rm)
-
-        if (issue['status_id'] != linked_issues.status_id_rm):
-            status = match_status_to_gh(issue['status_id'])
-
-            if (status == 'Status: closed'):
-                status = match_status_to_gh(linked_issues.status_id_rm)  # не меняем статус (нет label-а closed)
-                state_gh = 'closed'
-
-            elif (status == 'Status: rejected'):
-                state_gh = 'closed'
-        else:
-            status = match_status_to_gh(linked_issues.status_id_rm)
-
-        if (issue['priority_id'] != linked_issues.priority_id_rm):
-            priority = match_priority_to_gh(issue['priority_id'])
-        else:
-            priority = match_priority_to_gh(linked_issues.priority_id_rm)
-
-
-        # ------------------------------------------- ОБРАБАТЫВАЕМ ФРАЗУ БОТА ------------------------------------------
-
-        #title = '[From Redmine (edited)] ' + issue['issue_title']
-        title = issue['issue_title']
-
-        # проверяем, если автор issue - бот
-        if (chk_if_rm_user_is_a_bot(issue['issue_author_id'])):
-            issue_body = del_bot_phrase(issue['issue_body'])    # удаляем фразу бота
-
-        else:
-            issue_body = add_bot_phrase(issue, 'issue_body')    # добавляем фразу бота
-
-        # обработка спец. символов
-        title = align_special_symbols(title)
-        issue_body = align_special_symbols(issue_body)
+        tracker = tracker
+        status = match_status_to_gh(linked_issues.status_id_rm)
+        priority = match_priority_to_gh(linked_issues.priority_id_rm)
 
 
         # ----------------------------------------- ЗАГРУЖАЕМ ДАННЫЕ В ГИТХАБ ------------------------------------------
 
 
         issue_templated = issue_github_template.render(
-            title=title,
-            body=issue_body,
-            state=state_gh,
+            title = issue['issue_title'],
+            body = issue['issue_body'],
             priority=priority,
             status=status,
             tracker=tracker)
@@ -201,12 +185,9 @@ def process_payload_from_gh(payload):
         issue_url_gh = url_gh + '/' + str(linked_issues.issue_num_gh)
         request_result = requests.patch(issue_url_gh,
                                    data=issue_templated,
-                                   headers=headers)
+                                   headers=headers_gh)
 
-        # ДЕБАГГИНГ
-        link_log_rm_edit(request_result, issue, linked_issues)
-
-        return request_result'''
+        return request_result
 
     def post_issue(issue):
 
@@ -257,7 +238,7 @@ def process_payload_from_gh(payload):
 
         request_result = requests.post(url_rm,
                                        data=issue_templated,
-                                       headers=headers)
+                                       headers=headers_rm)
 
 
         # ---------------------------------------------- СВЯЗЫВАЕМ ISSUES ----------------------------------------------
@@ -275,33 +256,17 @@ def process_payload_from_gh(payload):
             priority_id_rm)                 # id приоритета в редмайне
 
         # добавляем label-ы в linked_issues
-        #linked_issues.set_priority(labels_rm['Приоритет'])
-        #linked_issues.set_status(labels_rm['Статус'])
-        #linked_issues.set_tracker(labels_rm['Трекер'])
         linked_issues.tracker_id_rm = tracker_id_rm
         linked_issues.status_id_rm = status_id_rm
         linked_issues.priority_id_rm = priority_id_rm
 
+        # корректируем label-ы в гитхабе
+        tracker = match_tracker_to_gh(linked_issues.tracker_id_rm)
+        correct_gh_labels(issue, tracker, linked_issues)
+
+
         # ДЕБАГГИНГ
         link_log_issue_gh(request_result, issue, linked_issues)
-
-        '''
-        # Настраиваем label-ы
-        for label in issue['labels']:
-            label_rm = match_label_to_rm(label['name'])
-            label_issue(issue, linked_issues, label_rm)
-        
-        # TODO: отправлять label-ы в гитхаб
-        # проверяем, все ли label-ы были установлены
-        if (linked_issues.get_tracker() == None):
-            linked_issues.set_tracker(tracker_ids_rm[0])
-            
-        if (linked_issues.get_status() == None):
-            linked_issues.set_status(status_ids_rm[0])
-
-        if (linked_issues.get_priority() == None):
-            linked_issues.set_priority(priority_ids_rm[0])
-            '''
 
         return request_result
 
@@ -359,7 +324,7 @@ def process_payload_from_gh(payload):
                                       '/' + str(linked_issues.issue_id_rm) + '.json')
         request_result = requests.put(issue_url_rm,
                                       data=issue_templated,
-                                      headers=headers)
+                                      headers=headers_rm)
         # ДЕБАГГИНГ
         link_log_issue_gh(request_result, issue, linked_issues)
 
@@ -383,7 +348,7 @@ def process_payload_from_gh(payload):
                                       '/' + str(linked_issues.issue_id_rm) + '.json')
 
         request_result = requests.delete(issue_url_rm,
-                                         headers=headers)
+                                         headers=headers_rm)
         # ДЕБАГГИНГ
         link_log_issue_gh(request_result, issue, linked_issues)
 
@@ -409,21 +374,29 @@ def process_payload_from_gh(payload):
         if (label != None):
             if (label['type'] == 'Priority'):
 
+                # корректируем label-ы в гитхабе
+                tracker = match_tracker_to_gh(tracker_id)
+                correct_gh_labels(issue, tracker, linked_issues)
+
                 error_text = "ERROR: tried to LABEL issue's PRIORITY from GITHUB"
                 WRITE_LOG('\n' + '-' * 20 + ' ' + str(
                     datetime.datetime.today()) + ' | EDIT issue in REDMINE ' + '-' * 19 + '\n' +
                           error_text)
 
-                return HttpResponse(error_text, status=200)
+                return HttpResponse(error_text, status=403)
 
             elif (label['type'] == 'Status'):
 
-                error_text = "ERROR: tried to LABEL issue's STATUS, from GITHUB"
+                # корректируем label-ы в гитхабе
+                tracker = match_tracker_to_gh(tracker_id)
+                correct_gh_labels(issue, tracker, linked_issues)
+
+                error_text = "ERROR: tried to LABEL issue's STATUS from GITHUB"
                 WRITE_LOG('\n' + '-' * 20 + ' ' + str(
                     datetime.datetime.today()) + ' | EDIT issue in REDMINE ' + '-' * 19 + '\n' +
                           error_text)
 
-                return HttpResponse(error_text, status=200)
+                return HttpResponse(error_text, status=403)
 
             elif (label['type'] == 'Tracker'):
 
@@ -472,11 +445,15 @@ def process_payload_from_gh(payload):
                                       '/' + str(linked_issues.issue_id_rm) + '.json')
         request_result = requests.put(issue_url_rm,
                                       data=issue_templated,
-                                      headers=headers)
+                                      headers=headers_rm)
         # ДЕБАГГИНГ
         link_log_issue_gh(request_result, issue, linked_issues)
 
+        # корректируем label-ы в гитхабе
+        correct_gh_labels(issue, issue['label'], linked_issues)
+
         return request_result
+
 
     # ============================================ ЗАГРУЗКА ISSUE В REDMINE ============================================
 

@@ -260,9 +260,9 @@ def process_comment_payload_from_gh(payload):
         # если изменил свой комментарий
         if (issue['sender_id'] == issue['comment_author_id']):
             comment_body = add_bot_phrase(issue, 'comment_edit')            # добавляем фразу бота
+
         # если изменил не свой комментарий
         else:
-            # TODO: возможно, добавить проверку на едит комментария бота?
             comment_body = add_bot_phrase(issue, "comment_edit_else's")     # добавляем фразу бота
 
         # обработка спец. символов

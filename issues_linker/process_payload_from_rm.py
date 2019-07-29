@@ -83,7 +83,7 @@ def process_payload_from_rm(payload):
 
     issue = parse_payload(payload)
 
-    # авторизация в redmine по токену
+    # авторизация в гитхабе по токену
     api_key_github = read_file('api_keys/api_key_github.txt')   # загрузка ключа для github api
     api_key_github = api_key_github.replace('\n', '')  # избавляемся от \n в конце строки
 
@@ -95,7 +95,7 @@ def process_payload_from_rm(payload):
     comment_github_template = read_file('parsed_data_templates/comment_github_template.json')
     comment_github_template = Template(comment_github_template)  # шаблон для каждого issue
 
-    # заголовки авторизации и приложения, при отправке запросов на редмайн
+    # заголовки авторизации и приложения, при отправке запросов на гитхаб
     headers = {'Authorization': 'token ' + api_key_github,
                'Content-Type': 'application/json'}
 
