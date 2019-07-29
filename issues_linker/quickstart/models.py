@@ -383,13 +383,13 @@ class Linked_Projects_Manager(models.Manager):
     def get_by_project_id_rm(self, project_id_rm):
         return self.filter(project_id_rm=project_id_rm)
 
-    def get_by_repo_id_gh(self, repo_id_gh):
-        return self.filter(repo_id_gh=repo_id_gh)
+    def get_by_repos_id_gh(self, repos_id_gh):
+        return self.filter(repos_id_gh=repos_id_gh)
 
 class Linked_Projects(models.Model):
 
     project_id_rm = models.BigIntegerField(blank=1, null=1)         # id проекта в редмайне
-    repo_id_gh = models.BigIntegerField(blank=1, null=1)            # id репозитория в гитхабе
+    repos_id_gh = models.BigIntegerField(blank=1, null=1)           # id репозитория в гитхабе
 
     issues = models.ManyToManyField(Linked_Issues, blank=1)         # задачи в проекте
 

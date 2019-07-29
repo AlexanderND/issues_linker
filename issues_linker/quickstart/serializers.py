@@ -114,7 +114,7 @@ class Payload_RM_Serializer(serializers.HyperlinkedModelSerializer):
 class Linked_Projects_Serializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Linked_Projects
-        fields = ('project_id_rm', 'repo_id_gh', 'issues')
+        fields = ('project_id_rm', 'repos_id_gh', 'issues')
 
 ''' связынные issues в проекте '''
 class Linked_Issues_Serializer(serializers.HyperlinkedModelSerializer):
