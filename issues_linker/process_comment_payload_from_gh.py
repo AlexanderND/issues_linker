@@ -17,14 +17,14 @@ from issues_linker.my_functions import status_ids_rm                # ids ста
 from issues_linker.my_functions import priority_ids_rm              # ids приоритетов задачи в редмайне
 from issues_linker.my_functions import url_rm                       # ссылка на сервер редмайна
 
-from issues_linker.my_functions import chk_if_gh_user_is_a_bot      # проверка на бота (предотвращение
+from issues_linker.my_functions import chk_if_gh_user_is_our_bot    # проверка на бота (предотвращение
                                                                     # зацикливания: GH -> S -> RM -> ...)
-from issues_linker.my_functions import link_log_comment_gh          # лог связи комментариев
+from issues_linker.my_functions import log_comment_gh               # лог связи комментариев
 from issues_linker.my_functions import prevent_cyclic_comment_gh    # предотвращение зацикливания
 
 from issues_linker.my_functions import del_bot_phrase               # удаление фразы бота
 
-from issues_linker.my_functions import allign_request_result    # создание корректного ответа серверу
+from issues_linker.my_functions import allign_request_result        # создание корректного ответа серверу
 
 
 def process_comment_payload_from_gh(payload):
@@ -182,7 +182,7 @@ def process_comment_payload_from_gh(payload):
 
 
         # проверяем, если автор issue - бот
-        if (chk_if_gh_user_is_a_bot(issue['issue_author_id'])):
+        if (chk_if_gh_user_is_our_bot(issue['issue_author_id'])):
             issue_body = del_bot_phrase(issue['issue_body'])
 
         else:
@@ -221,7 +221,7 @@ def process_comment_payload_from_gh(payload):
 
 
         # ДЕБАГГИНГ
-        link_log_comment_gh(request_result, issue, linked_issues)
+        log_comment_gh(request_result, issue, linked_issues)
 
         return request_result
 
@@ -251,7 +251,7 @@ def process_comment_payload_from_gh(payload):
 
 
         # проверяем, если автор issue - бот
-        if (chk_if_gh_user_is_a_bot(issue['issue_author_id'])):
+        if (chk_if_gh_user_is_our_bot(issue['issue_author_id'])):
             issue_body = del_bot_phrase(issue['issue_body'])
 
         else:
@@ -297,7 +297,7 @@ def process_comment_payload_from_gh(payload):
 
 
         # ДЕБАГГИНГ
-        link_log_comment_gh(request_result, issue, linked_issues)
+        log_comment_gh(request_result, issue, linked_issues)
 
         return request_result
 
@@ -326,7 +326,7 @@ def process_comment_payload_from_gh(payload):
 
 
         # проверяем, если автор issue - бот
-        if (chk_if_gh_user_is_a_bot(issue['issue_author_id'])):
+        if (chk_if_gh_user_is_our_bot(issue['issue_author_id'])):
             issue_body = del_bot_phrase(issue['issue_body'])
 
         else:
@@ -366,7 +366,7 @@ def process_comment_payload_from_gh(payload):
 
 
         # ДЕБАГГИНГ
-        link_log_comment_gh(request_result, issue, linked_issues)
+        log_comment_gh(request_result, issue, linked_issues)
 
         return request_result'''
 
@@ -377,7 +377,7 @@ def process_comment_payload_from_gh(payload):
     linked_issues = Linked_Issues.objects.get_by_issue_id_gh(issue['issue_id'])
     if (issue['action'] == 'created'):
 
-        if (chk_if_gh_user_is_a_bot(issue['sender_id'])):
+        if (chk_if_gh_user_is_our_bot(issue['sender_id'])):
 
             error_text = prevent_cyclic_comment_gh(issue)
             return HttpResponse(error_text, status=200)
@@ -386,7 +386,7 @@ def process_comment_payload_from_gh(payload):
 
     elif (issue['action'] == 'edited'):
 
-        if (chk_if_gh_user_is_a_bot(issue['sender_id'])):
+        if (chk_if_gh_user_is_our_bot(issue['sender_id'])):
 
             error_text = prevent_cyclic_comment_gh(issue)
             return HttpResponse(error_text, status=200)

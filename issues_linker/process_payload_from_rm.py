@@ -14,11 +14,11 @@ from issues_linker.my_functions import read_file                    # загру
 from issues_linker.my_functions import repos_id_gh                  # id репозитория в гитхабе
 from issues_linker.my_functions import url_gh                       # ссылка на гитхаб
 
-from issues_linker.my_functions import chk_if_rm_user_is_a_bot      # проверка на бота (предотвращение
+from issues_linker.my_functions import chk_if_rm_user_is_our_bot    # проверка на бота (предотвращение
                                                                     # зацикливания: RM -> S -> GH -> ...)
-from issues_linker.my_functions import link_log_rm_post             # лог связи issues (создание)
-from issues_linker.my_functions import link_log_rm_edit             # лог связи issues (изменение)
-from issues_linker.my_functions import link_log_rm_comment          # лог связи issues (комментарий)
+from issues_linker.my_functions import log_issue_post_rm            # лог связи issues (создание)
+from issues_linker.my_functions import log_issue_edit_rm            # лог связи issues (изменение)
+from issues_linker.my_functions import log_comment_rm               # лог связи issues (комментарий)
 from issues_linker.my_functions import prevent_cyclic_issue_rm      # предотвращение зацикливания issue
 from issues_linker.my_functions import prevent_cyclic_comment_rm    # предотвращение зацикливания комментариев
 
@@ -211,7 +211,7 @@ def process_payload_from_rm(payload):
             issue['priority_id'])           # id приоритета в редмайне
 
         # ДЕБАГГИНГ
-        link_log_rm_post(request_result, issue, linked_issues)
+        log_issue_post_rm(request_result, issue, linked_issues)
 
         return request_result
 
@@ -255,7 +255,7 @@ def process_payload_from_rm(payload):
                                                     posted_comment['id'])
 
         # ДЕБАГГИНГ
-        link_log_rm_comment(request_result, issue, linked_issues, linked_comments)
+        log_comment_rm(request_result, issue, linked_issues, linked_comments)
 
         return request_result
 
@@ -305,7 +305,7 @@ def process_payload_from_rm(payload):
         title = issue['issue_title']
 
         # проверяем, если автор issue - бот
-        if (chk_if_rm_user_is_a_bot(issue['issue_author_id'])):
+        if (chk_if_rm_user_is_our_bot(issue['issue_author_id'])):
             issue_body = del_bot_phrase(issue['issue_body'])    # удаляем фразу бота
 
         else:
@@ -336,7 +336,7 @@ def process_payload_from_rm(payload):
                                    headers=headers)
 
         # ДЕБАГГИНГ
-        link_log_rm_edit(request_result, issue, linked_issues)
+        log_issue_edit_rm(request_result, issue, linked_issues)
 
         return request_result
 
@@ -375,7 +375,7 @@ def process_payload_from_rm(payload):
     linked_issues = Linked_Issues.objects.get_by_issue_id_rm(issue['issue_id'])
     if (issue['action'] == 'opened'):
 
-        if (chk_if_rm_user_is_a_bot(issue['issue_author_id'])):
+        if (chk_if_rm_user_is_our_bot(issue['issue_author_id'])):
 
             error_text = prevent_cyclic_issue_rm(issue)
             return HttpResponse(error_text, status=200)
@@ -384,7 +384,7 @@ def process_payload_from_rm(payload):
 
     elif (issue['action'] == 'updated'):
 
-        if (chk_if_rm_user_is_a_bot(issue['comment_author_id'])):
+        if (chk_if_rm_user_is_our_bot(issue['comment_author_id'])):
 
             # попытка связать комментарий на редмайне с гитхабом
             link_comment_to_github(issue, linked_issues)

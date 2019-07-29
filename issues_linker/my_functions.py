@@ -7,7 +7,7 @@ from django.http import HttpResponse    # ответы серверу
 # ===================================================== СПЕЦ. ФУНКЦИИ ==================================================
 
 
-def WRITE_LOG(string):
+def WRITE_LOG_COLOUR(string, colour):
 
     string = str(string)
 
@@ -16,35 +16,36 @@ def WRITE_LOG(string):
     log_file_name = os.path.join(script_dir, 'logs/server_log.txt')
     log = open(log_file_name, 'a')
 
-    # выводим текст в консоли разными цветами
-    '''
-    HEADER = '\033[95m'
-    OKBLUE = '\033[94m'
-    OKGREEN = '\033[92m'
-    WARNING = '\033[93m'
-    FAIL = '\033[91m'
-    ENDC = '\033[0m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
-    '''
-    if (string.find('ERROR') == -1):
-        '''if(string.find('Aborting action') == -1):
-            # выводим в консоли голубым цветом
-            print('\033[96m' + string + '\033[0m')
-
-        else:
-            # выводим в консоли
-            print('\033[93m' + string + '\033[0m')'''
-        # выводим в консоли голубым цветом
-        print('\033[96m' + string + '\033[0m')
-
-    else:
-        # выводим в консоли красным цветом
-        print('\033[91m' + string + '\033[0m')
-
+    print(colour + string + '\033[0m')
     log.write(string + '\n')
 
     log.close()
+
+'''
+Различные цвета (форматы) текста в консоли
+HEADER = '\033[95m'
+OKBLUE = '\033[94m'
+OKGREEN = '\033[92m'
+WARNING = '\033[93m'
+FAIL = '\033[91m'
+ENDC = '\033[0m'
+BOLD = '\033[1m'
+UNDERLINE = '\033[4m'
+'''
+def WRITE_LOG(string):
+
+    if (string.find('ERROR') == -1):
+        # выводим в консоли голубым цветом
+        WRITE_LOG_COLOUR(string, '\033[96m')
+
+    else:
+        # выводим в консоли красным цветом
+        WRITE_LOG_COLOUR(string, '\033[91m')
+
+def WRITE_LOG_ERR(string):
+
+    # выводим в консоли красным цветом
+    WRITE_LOG_COLOUR(string, '\033[91m')
 
 
 # обработка спец. символов (\ -> \\)
@@ -77,15 +78,15 @@ def del_bot_phrase(body):
     if (len(body_parts) == 1):
         body_processed = ''
 
+    # если body не пустой - удаляем фразу бота
     else:
         body_processed = body_parts[1] + ': '
 
-        WRITE_LOG(len(body_parts))
         for body_part in range(2, len(body_parts) - 1):
             body_processed += body_parts[body_part] + ': '
 
         body_processed += body_parts[len(body_parts) - 1]
-        body_processed = body_processed.replace('\n>', '\n')    # убираем цитирование бота (ВОЗМОЖНЫ ОШИБКИ)'''
+        body_processed = body_processed.replace('\n>', '\n')    # убираем цитирование бота
 
     return body_processed
 
@@ -94,11 +95,9 @@ def allign_request_result(request_result):
 
     # type() возвращает тип объекта
     if (type(request_result) is HttpResponse):
-
         return request_result
 
     else:
-
         request_result = HttpResponse(request_result.text, status=request_result.status_code)
         return request_result
 
@@ -242,59 +241,67 @@ def match_priority_to_gh(priority_id_rm):
 url_rm = "http://localhost:3000/issues.json"    # локальный сервер редмайна (тестовый сервер)
 
 # -------------------------------------------- КОНСТАНТЫ (реальный сервер) ---------------------------------------
-'''
+"""
 BOT_ID_RM = 6           # id бота в редмайне (предотвращение зацикливания)
 
 project_id_rm = 455     # 455 - тестовый проект
 
-# 0 (3) - Задача
-# 1 (1) - Ошибка
+'''
+0 (3) - Задача                          | Tracker: task
+1 (1) - Ошибка                          | Tracker: bug
+'''
 tracker_ids_rm = [ 3, 1 ]
 
-# 0 (1) - Новый
-# 1 (2) - Выполнение: в работе
-# 2 (4) - Выполнение: обратная связь
-# 3 (7) - Выполнение: проверка
-# 4 (6) - Отказ
-# 5 (5) - Закрыт
+'''
+0 (1) - Новый                           | Status: new
+1 (2) - Выполнение: в работе            | Status: working
+2 (4) - Выполнение: обратная связь      | Status: feedback
+3 (7) - Выполнение: проверка            | Status: verification
+4 (6) - Отказ                           | Status: rejected
+5 (5) - Закрыт                          | Status: closed
+'''
 status_ids_rm = [ 1, 2, 4, 7, 6, 5 ]
 
-# 0 (4) - Нормальный
-# 1 (3) - Низкий
-# 2 (5) - Высокий
+'''
+0 (4) - Нормальный                      | Priority: normal
+1 (3) - Низкий                          | Priority: low
+2 (5) - Высокий                         | Priority: urgent
+'''
 priority_ids_rm = [ 4, 3, 5 ]
 
 url_rm = "https://redmine.redsolution.ru/issues.json"
-'''
-
+"""
 # ----------------------------------------------------- ФУНКЦИИ --------------------------------------------------
 
-def chk_if_rm_user_is_a_bot(user_id_rm):
+def chk_if_rm_user_is_our_bot(user_id_rm):
     if (user_id_rm == BOT_ID_RM):
         return True
-    return False
+    else:
+        return False
 
 
-def link_log_rm_post(result, issue, linked_issues):
+def log_issue_post_rm(result, issue, linked_issues):
 
     action_gh = 'POST'
 
     WRITE_LOG('\n' + '=' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 35 + '\n' +
               'received webhook from REDMINE: issues | ' + 'action: ' + str(issue['action']) + '\n' +
               action_gh + ' result in GITHUB: ' + str(result.status_code) + ' ' + str(result.reason) + '\n' +
-              'GITHUB  | url:           ' + url_gh + '\n' +
+              'GITHUB  | ---------------- issue ----------------' + '\n' +
+              '        | url:           ' + url_gh + '\n' +
               '        | issue_id:      ' + str(linked_issues.issue_id_gh) + '\n' +
               '        | repos_id:      ' + repos_id_gh + '\n' +
               '        | issue_number:  ' + str(linked_issues.issue_num_gh) + '\n' +
-              'REDMINE | author_id:     ' + str(issue['issue_author_id']) + '\n' +
+              '        |\n' +
+              'REDMINE | ---------------- issue ----------------' + '\n' +
+              '        | author_id:     ' + str(issue['issue_author_id']) + '\n' +
               '        | author_login:  ' + str(issue['issue_author_login']) + '\n' +
               '        | issue_url:     ' + issue['issue_url'] + '\n' +
               '        | issue_id:      ' + str(issue['issue_id']) + '\n' +
               '        | project_id:    ' + str(issue['project_id']))
-    return 0
 
 # при изменении в редмайне: всегда оставляем комментарий об изменении в гитхабе, затем производим сами изменения
-def link_log_rm_comment(result, issue, linked_issues, linked_comments):
+def log_comment_rm(result, issue, linked_issues, linked_comments):
 
     action_gh = 'POST'
 
@@ -306,6 +313,7 @@ def link_log_rm_comment(result, issue, linked_issues, linked_comments):
               '        | issue_number:  ' + str(linked_issues.issue_num_gh) + '\n' +
               '        | --------------- comment ---------------' + '\n' +
               '        | comment_id:    ' + str(linked_comments.comment_id_gh) + '\n' +
+              '        |\n' +
               'REDMINE | ---------------- issue ----------------' + '\n' +
               '        | author_id:     ' + str(issue['issue_author_id']) + '\n' +
               '        | author_login:  ' + str(issue['issue_author_login']) + '\n' +
@@ -316,22 +324,22 @@ def link_log_rm_comment(result, issue, linked_issues, linked_comments):
               '        | author_id:     ' + str(issue['comment_author_id']) + '\n' +
               '        | author_login:  ' + str(issue['comment_author_login']) + '\n' +
               '        | comment_id:    ' + str(issue['comment_id']))
-    return 0
 
-def link_log_rm_edit(result, issue, linked_issues):
+def log_issue_edit_rm(result, issue, linked_issues):
 
     action_gh = 'EDIT'
 
-    if (result.status_code == 403):
-        WRITE_LOG(action_gh + ' result in GITHUB: ' + str(result.status_code) + ' ' + str(result.reason))
     # изменили без комментария
-    elif (issue['comment_body'] == ''):
+    if (issue['comment_body'] == ''):
         WRITE_LOG(action_gh + ' result in GITHUB: ' + str(result.status_code) + ' ' + str(result.reason) + '\n' +
-                  'GITHUB  | url_gh:        ' + url_gh + '\n' +
+                  'GITHUB  | ---------------- issue ----------------' + '\n' +
+                  '        | url_gh:        ' + url_gh + '\n' +
                   '        | issue_id:      ' + str(linked_issues.issue_id_gh) + '\n' +
                   '        | repos_id:      ' + repos_id_gh + '\n' +
                   '        | issue_number:  ' + str(linked_issues.issue_num_gh) + '\n' +
-                  'REDMINE | author_id:     ' + str(issue['issue_author_id']) + '\n' +
+                  '        |\n' +
+                  'REDMINE | ---------------- issue ----------------' + '\n' +
+                  '        | author_id:     ' + str(issue['issue_author_id']) + '\n' +
                   '        | author_login:  ' + str(issue['issue_author_login']) + '\n' +
                   '        | issue_url:     ' + issue['issue_url'] + '\n' +
                   '        | issue_id:      ' + str(issue['issue_id']) + '\n' +
@@ -339,10 +347,12 @@ def link_log_rm_edit(result, issue, linked_issues):
     # изменили с комментарием
     else:
         WRITE_LOG(action_gh + ' result in GITHUB: ' + str(result.status_code) + ' ' + str(result.reason) + '\n' +
-                  'GITHUB  | url_gh:        ' + url_gh + '\n' +
+                  'GITHUB  | ---------------- issue ----------------' + '\n' +
+                  '        | url_gh:        ' + url_gh + '\n' +
                   '        | issue_id:      ' + str(linked_issues.issue_id_gh) + '\n' +
                   '        | repos_id:      ' + repos_id_gh + '\n' +
                   '        | issue_number:  ' + str(linked_issues.issue_num_gh) + '\n' +
+                  '        |\n' +
                   'REDMINE | ---------------- issue ----------------' + '\n' +
                   '        | author_id:     ' + str(issue['issue_author_id']) + '\n' +
                   '        | author_login:  ' + str(issue['issue_author_login']) + '\n' +
@@ -357,28 +367,20 @@ def link_log_rm_edit(result, issue, linked_issues):
 
 
 def prevent_cyclic_issue_rm(issue):
-    if(issue['action'] == 'opened'):
-        action_rm = 'opened'
-    else:
-        action_rm = 'edited'
 
     error_text = 'The user, who opened the issue: ' + issue['issue_author_login'] +\
                  ' | user id: ' + str(issue['issue_author_id']) + ' (our bot)\n' +\
-                 'Aborting action, in order to prevent cyclic post: GH -> S -> RM -> S -> GH -> ...'
+                 'Aborting action, in order to prevent cyclic: GH -> S -> RM -> S -> GH -> ...'
 
     WRITE_LOG('\n' + '=' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 35 + '\n' +
               'received webhook from REDMINE: issues | ' + 'action: ' + str(issue['action']) + '\n' +
               error_text)
 
 def prevent_cyclic_comment_rm(issue):
-    if(issue['action'] == 'opened'):
-        action_rm = 'opened'
-    else:
-        action_rm = 'edited'
 
     error_text = 'The user, who edited/commented the issue: ' + issue['comment_author_login'] +\
                  ' | user id: ' + str(issue['comment_author_id']) + ' (our bot)\n' +\
-                 'Aborting action, in order to prevent cyclic post: GH -> S -> RM -> S -> GH -> ...'
+                 'Aborting action, in order to prevent cyclic: GH -> S -> RM -> S -> GH -> ...'
 
     WRITE_LOG('\n' + '=' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 35 + '\n' +
               'received webhook from REDMINE: issues | ' + 'action: ' + str(issue['action']) + '\n' +
@@ -397,33 +399,17 @@ BOT_ID_GH = 53174303        # id бота в гитхабе (предотвра�
 repos_id_gh = '194635238'   # id репозитория в гитхабе
 url_gh = "https://api.github.com/repositories/" + repos_id_gh + "/issues"
 
-# 4 - Задача
-# 5 - Ошибка
-tracker_id_gh = 4
-
-# 7  - Новый
-# 8  - Выполнение: в работе
-# 9  - Выполнение: обратная связь
-# 10 - Выполнение: проверка
-# 11 - Отказ
-# 12 - Закрыт
-status_id_gh = 7
-
-# 10 - Низкий
-# 11 - Нормальный
-# 12 - Высокий
-priority_id_gh = 11
-
 # ----------------------------------------------------- ФУНКЦИИ --------------------------------------------------
 
-def chk_if_gh_user_is_a_bot(user_id_gh):
+def chk_if_gh_user_is_our_bot(user_id_gh):
     if (user_id_gh == BOT_ID_GH):
         return True
-    return False
+    else:
+        return False
 
 
 # при изменении в гитхабе: всегда оставляем комментарий об изменении в редмайне, затем производим сами изменения
-def link_log_issue_gh(result, issue, linked_issues):
+def log_issue_gh(result, issue, linked_issues):
 
     if (issue['action'] == 'opened'):
         action_rm = 'POST'
@@ -449,13 +435,14 @@ def link_log_issue_gh(result, issue, linked_issues):
               '        | issue_id:      ' + str(issue['issue_id']) + '\n' +
               '        | repos_id:      ' + str(issue['repos_id']) + '\n' +
               '        | issue_number:  ' + str(issue['issue_number']) + '\n' +
-              'REDMINE | url_rm:        ' + url_rm + '\n' +
+              '        |\n' +
+              'REDMINE | ---------------- issue ----------------' + '\n' +
+              '        | url_rm:        ' + url_rm + '\n' +
               '        | issue_id:      ' + str(linked_issues.issue_id_rm) + '\n'
               '        | project_id:    ' + str(project_id_rm))
-    return 0
 
-def link_log_comment_gh(result, issue, linked_issues):
-#def link_log_comment_gh(result, issue, linked_issues, linked_comments):
+def log_comment_gh(result, issue, linked_issues):
+#def log_comment_gh(result, issue, linked_issues, linked_comments):
 
     action_rm = 'EDIT'
 
@@ -476,18 +463,18 @@ def link_log_comment_gh(result, issue, linked_issues):
               '        | author_id:     ' + str(issue['comment_author_id']) + '\n' +
               '        | author_login:  ' + str(issue['comment_author_login']) + '\n' +
               '        | comment_id:    ' + str(issue['comment_id']) + '\n' +
-              'REDMINE | url_rm:        ' + url_rm + '\n' +
+              '        |\n' +
+              'REDMINE | ---------------- issue ----------------' + '\n' +
+              '        | url_rm:        ' + url_rm + '\n' +
               '        | issue_id:      ' + str(linked_issues.issue_id_rm) + '\n'
               '        | project_id:    ' + str(project_id_rm) + '\n')
-
-    return 0
 
 
 def prevent_cyclic_issue_gh(issue):
 
     error_text = 'The user, who ' + issue['action'] + ' the issue: ' + issue['sender_login'] + \
                  ' | user id: ' + str(issue['sender_id']) + ' (our bot)\n' + \
-                 'Aborting action, in order to prevent cyclic deletion: GH -> S -> RM -> S -> GH -> ...'
+                 'Aborting action, in order to prevent cyclic: GH -> S -> RM -> S -> GH -> ...'
 
     WRITE_LOG('\n' + '=' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 35 + '\n' +
               'received webhook from GITHUB: issues | ' + 'action: ' + str(issue['action']) + '\n' +
@@ -499,7 +486,7 @@ def prevent_cyclic_comment_gh(issue):
 
     error_text = 'The user, who ' + issue['action'] + ' the comment: ' + issue['sender_login'] + \
                  ' | user id: ' + str(issue['sender_id']) + ' (our bot)\n' + \
-                 'Aborting action, in order to prevent cyclic deletion: GH -> S -> RM -> S -> GH -> ...'
+                 'Aborting action, in order to prevent cyclic: GH -> S -> RM -> S -> GH -> ...'
 
     WRITE_LOG('\n' + '=' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 35 + '\n' +
               'received webhook from GITHUB: issue_comment | ' + 'action: ' + str(issue['action']) + '\n' +

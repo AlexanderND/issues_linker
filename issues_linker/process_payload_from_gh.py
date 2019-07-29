@@ -2,37 +2,37 @@ import requests
 import datetime
 from jinja2 import Template
 import json
-from django.http import HttpResponse                            # ответы серверу (гитхабу)
+from django.http import HttpResponse                                # ответы серверу (гитхабу)
 
-from issues_linker.quickstart.models import Linked_Issues       # связанные issues
+from issues_linker.quickstart.models import Linked_Issues           # связанные issues
 
-from issues_linker.my_functions import WRITE_LOG                # ведение логов
-from issues_linker.my_functions import align_special_symbols    # обработка спец. символов (\ -> \\)
-from issues_linker.my_functions import read_file                # загрузка файла (возвращает строку)
+from issues_linker.my_functions import WRITE_LOG                    # ведение логов
+from issues_linker.my_functions import align_special_symbols        # обработка спец. символов (\ -> \\)
+from issues_linker.my_functions import read_file                    # загрузка файла (возвращает строку)
 
-from issues_linker.my_functions import project_id_rm            # id преккта в редмайне
-from issues_linker.my_functions import tracker_ids_rm           # ids трекеров задачи в редмайне
-from issues_linker.my_functions import status_ids_rm            # ids статусов задачи в редмайне
-from issues_linker.my_functions import priority_ids_rm          # ids приоритетов задачи в редмайне
-from issues_linker.my_functions import url_rm                   # ссылка на сервер редмайна
+from issues_linker.my_functions import project_id_rm                # id преккта в редмайне
+from issues_linker.my_functions import tracker_ids_rm               # ids трекеров задачи в редмайне
+from issues_linker.my_functions import status_ids_rm                # ids статусов задачи в редмайне
+from issues_linker.my_functions import priority_ids_rm              # ids приоритетов задачи в редмайне
+from issues_linker.my_functions import url_rm                       # ссылка на сервер редмайна
 
-from issues_linker.my_functions import chk_if_gh_user_is_a_bot  # проверка на бота (предотвращение
-                                                                # зацикливания: GH -> S -> RM -> ...)
-from issues_linker.my_functions import link_log_issue_gh        # лог связи issues
-from issues_linker.my_functions import prevent_cyclic_issue_gh  # предотвращение зацикливания
+from issues_linker.my_functions import chk_if_gh_user_is_our_bot    # проверка на бота (предотвращение
+                                                                    # зацикливания: GH -> S -> RM -> ...)
+from issues_linker.my_functions import log_issue_gh                 # лог связи issues
+from issues_linker.my_functions import prevent_cyclic_issue_gh      # предотвращение зацикливания
 
-from issues_linker.my_functions import match_label_to_rm        # сопостовление label-а в гитхабе редмайну
+from issues_linker.my_functions import match_label_to_rm            # сопостовление label-а в гитхабе редмайну
 
-from issues_linker.my_functions import del_bot_phrase           # удаление фразы бота
+from issues_linker.my_functions import del_bot_phrase               # удаление фразы бота
 
-from issues_linker.my_functions import allign_request_result    # создание корректного ответа серверу
+from issues_linker.my_functions import allign_request_result        # создание корректного ответа серверу
 
-from issues_linker.my_functions import match_tracker_to_gh      # сопоставление label-ов
-from issues_linker.my_functions import match_status_to_gh       # сопоставление label-ов
-from issues_linker.my_functions import match_priority_to_gh     # сопоставление label-ов
-from issues_linker.my_functions import link_log_rm_edit         # лог связи issues (изменение)
-from issues_linker.my_functions import repos_id_gh              # id репозитория в гитхабе
-from issues_linker.my_functions import url_gh                   # ссылка на гитхаб
+from issues_linker.my_functions import match_tracker_to_gh          # сопоставление label-ов
+from issues_linker.my_functions import match_status_to_gh           # сопоставление label-ов
+from issues_linker.my_functions import match_priority_to_gh         # сопоставление label-ов
+from issues_linker.my_functions import log_issue_edit_rm            # лог связи issues (изменение)
+from issues_linker.my_functions import repos_id_gh                  # id репозитория в гитхабе
+from issues_linker.my_functions import url_gh                       # ссылка на гитхаб
 
 def process_payload_from_gh(payload):
 
@@ -266,7 +266,7 @@ def process_payload_from_gh(payload):
 
 
         # ДЕБАГГИНГ
-        link_log_issue_gh(request_result, issue, linked_issues)
+        log_issue_gh(request_result, issue, linked_issues)
 
         return request_result
 
@@ -290,7 +290,7 @@ def process_payload_from_gh(payload):
         title = issue['issue_title']
 
         # проверяем, если автор issue - бот
-        if (chk_if_gh_user_is_a_bot(issue['issue_author_id'])):
+        if (chk_if_gh_user_is_our_bot(issue['issue_author_id'])):
             issue_body = del_bot_phrase(issue['issue_body'])        # удаляем фразу бота
 
         else:
@@ -326,7 +326,7 @@ def process_payload_from_gh(payload):
                                       data=issue_templated,
                                       headers=headers_rm)
         # ДЕБАГГИНГ
-        link_log_issue_gh(request_result, issue, linked_issues)
+        log_issue_gh(request_result, issue, linked_issues)
 
         return request_result
 
@@ -350,7 +350,7 @@ def process_payload_from_gh(payload):
         request_result = requests.delete(issue_url_rm,
                                          headers=headers_rm)
         # ДЕБАГГИНГ
-        link_log_issue_gh(request_result, issue, linked_issues)
+        log_issue_gh(request_result, issue, linked_issues)
 
         return request_result
 
@@ -411,7 +411,7 @@ def process_payload_from_gh(payload):
         title = issue['issue_title']
 
         # проверяем, если автор issue - бот
-        if (chk_if_gh_user_is_a_bot(issue['issue_author_id'])):
+        if (chk_if_gh_user_is_our_bot(issue['issue_author_id'])):
             issue_body = del_bot_phrase(issue['issue_body'])        # удаляем фразу бота
 
         else:
@@ -447,7 +447,7 @@ def process_payload_from_gh(payload):
                                       data=issue_templated,
                                       headers=headers_rm)
         # ДЕБАГГИНГ
-        link_log_issue_gh(request_result, issue, linked_issues)
+        log_issue_gh(request_result, issue, linked_issues)
 
         # корректируем label-ы в гитхабе
         correct_gh_labels(issue, issue['label'], linked_issues)
@@ -461,7 +461,7 @@ def process_payload_from_gh(payload):
     linked_issues = Linked_Issues.objects.get_by_issue_id_gh(issue['issue_id'])
     if (issue['action'] == 'opened'):
 
-        if (chk_if_gh_user_is_a_bot(issue['sender_id'])):
+        if (chk_if_gh_user_is_our_bot(issue['sender_id'])):
 
             error_text = prevent_cyclic_issue_gh(issue)
             return HttpResponse(error_text, status=200)
@@ -470,7 +470,7 @@ def process_payload_from_gh(payload):
 
     elif (issue['action'] == 'edited'):
 
-        if (chk_if_gh_user_is_a_bot(issue['sender_id'])):
+        if (chk_if_gh_user_is_our_bot(issue['sender_id'])):
 
             error_text = prevent_cyclic_issue_gh(issue)
             return HttpResponse(error_text, status=200)
@@ -479,7 +479,7 @@ def process_payload_from_gh(payload):
 
     elif (issue['action'] == 'closed'):
 
-        if (chk_if_gh_user_is_a_bot(issue['sender_id'])):
+        if (chk_if_gh_user_is_our_bot(issue['sender_id'])):
 
             error_text = prevent_cyclic_issue_gh(issue)
             return HttpResponse(error_text, status=200)
@@ -488,7 +488,7 @@ def process_payload_from_gh(payload):
 
     elif (issue['action'] == 'reopened'):
 
-        if (chk_if_gh_user_is_a_bot(issue['sender_id'])):
+        if (chk_if_gh_user_is_our_bot(issue['sender_id'])):
 
             error_text = prevent_cyclic_issue_gh(issue)
             return HttpResponse(error_text, status=200)
@@ -497,7 +497,7 @@ def process_payload_from_gh(payload):
 
     elif (issue['action'] == 'deleted'):
 
-        if (chk_if_gh_user_is_a_bot(issue['sender_id'])):
+        if (chk_if_gh_user_is_our_bot(issue['sender_id'])):
 
             error_text = prevent_cyclic_issue_gh(issue)
             return HttpResponse(error_text, status=200)
@@ -506,7 +506,7 @@ def process_payload_from_gh(payload):
 
     elif (issue['action'] == 'labeled'):
 
-        if (chk_if_gh_user_is_a_bot(issue['sender_id'])):
+        if (chk_if_gh_user_is_our_bot(issue['sender_id'])):
 
             error_text = prevent_cyclic_issue_gh(issue)
             return HttpResponse(error_text, status=200)
