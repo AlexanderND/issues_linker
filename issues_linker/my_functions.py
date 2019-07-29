@@ -5,11 +5,9 @@ from django.http import HttpResponse    # ответы серверу
 
 
 # ===================================================== СПЕЦ. ФУНКЦИИ ==================================================
-
+# TODO: заменить проверку action в write_log-ах на string.upper() (вывод строки капсом)
 
 def WRITE_LOG_COLOUR(string, colour):
-
-    string = str(string)
 
     # получение абсолютного пути до файла
     script_dir = os.path.dirname(__file__)  # <-- absolute dir the script is in
@@ -33,6 +31,8 @@ BOLD = '\033[1m'
 UNDERLINE = '\033[4m'
 '''
 def WRITE_LOG(string):
+
+    string = str(string)
 
     if (string.find('ERROR') == -1):
         # выводим в консоли голубым цветом
@@ -137,54 +137,102 @@ priority_ids_rm = [11, 10, 12]
 
 # функция сопостовления label-а в гитхабе редмайну
 def match_label_to_rm(label_gh):
+
     label = {}
 
-    label['type'], label['name'] = str(label_gh).split(': ', 1)
+    if (label_gh == 'Priority: low'):
+        label['type'] = 'Priority'
+        label['id_rm'] = priority_ids_rm[1]
 
-    if (label['type'] == 'Priority'):
-        if (label['name'] == 'low'):
-            label['id_rm'] = priority_ids_rm[1]
-        elif (label['name'] == 'normal'):
-            label['id_rm'] = priority_ids_rm[0]
-        elif (label['name'] == 'urgent'):
-            label['id_rm'] = priority_ids_rm[2]
-        else:
-            WRITE_LOG('ERROR: UNKNOWN PRIORITY: ' + str(label_gh) +
-                      ' (type: ' + str(label['type']) + ' | name: ' + str(label['name']) + ')')
-            label['id_rm'] = priority_ids_rm[0]
+    elif (label_gh == 'Priority: normal'):
+        label['type'] = 'Priority'
+        label['id_rm'] = priority_ids_rm[0]
 
-    elif (label['type'] == 'Status'):
-        if (label['name'] == 'new'):
-            label['id_rm'] = status_ids_rm[0]
-        elif (label['name'] == 'working'):
-            label['id_rm'] = status_ids_rm[1]
-        elif (label['name'] == 'feedback'):
-            label['id_rm'] = status_ids_rm[2]
-        elif (label['name'] == 'verification'):
-            label['id_rm'] = status_ids_rm[3]
-        elif (label['name'] == 'rejected'):
-            label['id_rm'] = status_ids_rm[4]
-        else:
-            WRITE_LOG('ERROR: UNKNOWN STATUS: ' + str(label_gh) +
-                      ' (type: ' + str(label['type']) + ' | name: ' + str(label['name']) + ')')
-            label['id_rm'] = status_ids_rm[0]
+    elif (label_gh == 'Priority: urgent'):
+        label['type'] = 'Priority'
+        label['id_rm'] = priority_ids_rm[2]
 
-    elif (label['type'] == 'Tracker'):
-        if (label['name'] == 'task'):
-            label['id_rm'] = tracker_ids_rm[0]
-        elif (label['name'] == 'bug'):
-            label['id_rm'] = tracker_ids_rm[1]
-        else:
-            WRITE_LOG('ERROR: UNKNOWN TRACKER: ' + str(label_gh) +
-                      ' (type: ' + str(label['type']) + ' | name: ' + str(label['name']) + ')')
-            label['id_rm'] = tracker_ids_rm[0]
+    elif (label_gh == 'Status: new'):
+        label['type'] = 'Status'
+        label['id_rm'] = status_ids_rm[0]
+
+    elif (label_gh == 'Status: working'):
+        label['type'] = 'Status'
+        label['id_rm'] = status_ids_rm[1]
+
+    elif (label_gh == 'Status: feedback'):
+        label['type'] = 'Status'
+        label['id_rm'] = status_ids_rm[2]
+
+    elif (label_gh == 'Status: verification'):
+        label['type'] = 'Status'
+        label['id_rm'] = status_ids_rm[3]
+
+    elif (label_gh == 'Status: rejected'):
+        label['type'] = 'Status'
+        label['id_rm'] = status_ids_rm[4]
+
+    elif (label_gh == 'Tracker: task'):
+        label['type'] = 'Tracker'
+        label['id_rm'] = tracker_ids_rm[0]
+
+    elif (label_gh == 'Tracker: bug'):
+        label['type'] = 'Tracker'
+        label['id_rm'] = tracker_ids_rm[1]
 
     else:
         WRITE_LOG('ERROR: UNKNOWN GITHUB LABEL: ' + str(label_gh))
-        label['id_rm'] = None
+        label_id_rm = None
+
+    '''
+    label_gh = {}
+
+    label_gh['type'], label_gh['name'] = str(label_gh).split(': ', 1)
+
+    if (label_gh['type'] == 'Priority'):
+        if (label_gh['name'] == 'low'):
+            label_gh['id_rm'] = priority_ids_rm[1]
+        elif (label_gh['name'] == 'normal'):
+            label_gh['id_rm'] = priority_ids_rm[0]
+        elif (label_gh['name'] == 'urgent'):
+            label_gh['id_rm'] = priority_ids_rm[2]
+        else:
+            WRITE_LOG('ERROR: UNKNOWN PRIORITY: ' + str(label_gh) +
+                      ' (type: ' + str(label_gh['type']) + ' | name: ' + str(label_gh['name']) + ')')
+            label_gh['id_rm'] = priority_ids_rm[0]
+
+    elif (label_gh['type'] == 'Status'):
+        if (label_gh['name'] == 'new'):
+            label_gh['id_rm'] = status_ids_rm[0]
+        elif (label_gh['name'] == 'working'):
+            label_gh['id_rm'] = status_ids_rm[1]
+        elif (label_gh['name'] == 'feedback'):
+            label_gh['id_rm'] = status_ids_rm[2]
+        elif (label_gh['name'] == 'verification'):
+            label_gh['id_rm'] = status_ids_rm[3]
+        elif (label_gh['name'] == 'rejected'):
+            label_gh['id_rm'] = status_ids_rm[4]
+        else:
+            WRITE_LOG('ERROR: UNKNOWN STATUS: ' + str(label_gh) +
+                      ' (type: ' + str(label_gh['type']) + ' | name: ' + str(label_gh['name']) + ')')
+            label_gh['id_rm'] = status_ids_rm[0]
+
+    elif (label_gh['type'] == 'Tracker'):
+        if (label_gh['name'] == 'task'):
+            label_gh['id_rm'] = tracker_ids_rm[0]
+        elif (label_gh['name'] == 'bug'):
+            label_gh['id_rm'] = tracker_ids_rm[1]
+        else:
+            WRITE_LOG('ERROR: UNKNOWN TRACKER: ' + str(label_gh) +
+                      ' (type: ' + str(label_gh['type']) + ' | name: ' + str(label_gh['name']) + ')')
+            label_gh['id_rm'] = tracker_ids_rm[0]
+
+    else:
+        WRITE_LOG('ERROR: UNKNOWN GITHUB LABEL: ' + str(label_gh))
+        label_gh['id_rm'] = None
+    '''
 
     return label
-
 
 # функция сопостовления статуса в редмайне label-у гитхаба
 def match_tracker_to_gh(tracker_id_rm):

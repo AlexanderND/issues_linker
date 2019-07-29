@@ -376,6 +376,10 @@ class Linked_Issues(models.Model):
         return Linked_Comments.objects.get_by_comment_id_rm(comment_id_rm)
 
 
+    def set_tracker_id_rm(self, tracker_id):
+        self.tracker_id_rm = tracker_id
+
+
     db_table = 'linked_issues'
     objects = Linked_Issues_Manager()
 

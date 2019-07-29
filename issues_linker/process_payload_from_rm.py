@@ -169,6 +169,15 @@ def process_payload_from_rm(payload):
             return None
 
 
+    def update_linked_issues(linked_issues, issue):
+
+        linked_issues.tracker_id_rm = issue['tracker_id']
+        linked_issues.status_id_rm = issue['status_id']
+        linked_issues.priority_id_rm = issue['priority_id']
+
+        linked_issues.save()
+
+
     def post_issue(issue):
 
         #title = '[From Redmine] ' + issue['issue_title']
@@ -334,6 +343,10 @@ def process_payload_from_rm(payload):
         request_result = requests.patch(issue_url_gh,
                                    data=issue_templated,
                                    headers=headers)
+
+        # сохранение данных на сервере
+        update_linked_issues(linked_issues,
+                             issue)
 
         # ДЕБАГГИНГ
         log_issue_edit_rm(request_result, issue, linked_issues)

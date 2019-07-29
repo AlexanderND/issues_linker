@@ -65,9 +65,6 @@ def process_payload_from_gh(payload):
 
         payload_parsed['labels'] = payload['issue']['labels']
 
-        if (payload_parsed['action'] == 'labeled'):
-            payload_parsed['label'] = payload['label']['name']
-
 
         return payload_parsed
 
@@ -161,15 +158,23 @@ def process_payload_from_gh(payload):
             return None
 
 
+    def update_linked_issues(linked_issues, tracker_id, status_id, priority_id):
+
+        linked_issues.tracker_id_rm = tracker_id
+        linked_issues.status_id_rm = status_id
+        linked_issues.priority_id_rm = priority_id
+
+        linked_issues.save()
+
+
     def correct_gh_labels(issue, tracker, linked_issues):
 
         # добавление label-ов
-        tracker = tracker
-        status = match_status_to_gh(linked_issues.status_id_rm)
         priority = match_priority_to_gh(linked_issues.priority_id_rm)
+        status = match_status_to_gh(linked_issues.status_id_rm)
 
 
-        # ----------------------------------------- ЗАГРУЖАЕМ ДАННЫЕ В ГИТХАБ ------------------------------------------
+        # ----------------------------------------- ЗАГРУЗКА ДАННЫХ В ГИТХАБ -------------------------------------------
 
 
         issue_templated = issue_github_template.render(
@@ -192,7 +197,34 @@ def process_payload_from_gh(payload):
     def post_issue(issue):
 
 
-        # ------------------------------------------- ОБРАБАТЫВАЕМ ФРАЗУ БОТА ------------------------------------------
+        # -------------------------------------------- НАСТРОЙКА LABEL-ОВ ----------------------------------------------
+
+
+        tracker_id_rm = None
+        status_id_rm = status_ids_rm[0]
+        priority_id_rm = priority_ids_rm[0]
+
+        WRITE_LOG(str(issue['labels']))
+
+        for label in issue['labels']:
+
+            tracker_rm = match_label_to_rm(label['name'])
+
+            if (tracker_rm['type'] == 'Tracker'):
+
+                if (tracker_id_rm == None):
+                    tracker_id_rm = tracker_rm['id_rm']
+
+                # если пользователь выбрал более одного трекера -> значение по умолчанию
+                else:
+                    tracker_id_rm = tracker_ids_rm[0]
+
+        # проверяем, был ли установлен трекер
+        if (tracker_id_rm == None):
+            tracker_id_rm = tracker_ids_rm[0]
+
+
+        # -------------------------------------------- ОБРАБОТКА ФРАЗЫ БОТА --------------------------------------------
 
 
         #title = '[From Github] ' + issue['issue_title']
@@ -204,25 +236,7 @@ def process_payload_from_gh(payload):
         issue_body = align_special_symbols(issue_body)
 
 
-        # ----------------------------------------- ЗАГРУЖАЕМ ДАННЫЕ В РЕДМАЙН -----------------------------------------
-
-
-        # Настраиваем label-ы
-        tracker_id_rm = None
-        status_id_rm = status_ids_rm[0]
-        priority_id_rm = priority_ids_rm[0]
-        for label in issue['labels']:
-            tracker_rm = match_label_to_rm(label['name'])
-
-            if (tracker_rm != None):
-                if (tracker_rm['type'] == 'Tracker'):
-                    if (tracker_id_rm == None):
-                        tracker_id_rm = tracker_rm['id_rm']
-
-        # TODO: отправлять label-ы в гитхаб + удалять лишние
-        # проверяем, был ли установлен трекер
-        if (tracker_id_rm == None):
-            tracker_id_rm = tracker_ids_rm[0]
+        # ------------------------------------------ ЗАГРУЗКА ДАННЫХ В РЕДМАЙН -----------------------------------------
 
 
         issue_templated = issue_redmine_template.render(
@@ -241,9 +255,9 @@ def process_payload_from_gh(payload):
                                        headers=headers_rm)
 
 
-        # ---------------------------------------------- СВЯЗЫВАЕМ ISSUES ----------------------------------------------
+        # ----------------------------------------------- ПРИВЯЗКА ISSUES ----------------------------------------------
 
-        WRITE_LOG('\n'+str(tracker_id_rm)+'\n')
+
         # занесение в базу данных информацию о том, что данные issues связаны
         posted_issue = json.loads(request_result.text)
         linked_issues = Linked_Issues.objects.create_linked_issues(
@@ -283,7 +297,7 @@ def process_payload_from_gh(payload):
         linked_issues = linked_issues[0]
 
 
-        # ------------------------------------------- ОБРАБАТЫВАЕМ ФРАЗУ БОТА ------------------------------------------
+        # -------------------------------------------- ОБРАБОТКА ФРАЗЫ БОТА --------------------------------------------
 
 
         #title = '[From Github] ' + issue['issue_title']
@@ -304,7 +318,7 @@ def process_payload_from_gh(payload):
         comment_body = align_special_symbols(comment_body)
 
 
-        # ----------------------------------------- ЗАГРУЖАЕМ ДАННЫЕ В РЕДМАЙН -----------------------------------------
+        # ------------------------------------------ ЗАГРУЗКА ДАННЫХ В РЕДМАЙН -----------------------------------------
 
 
         issue_templated = issue_redmine_template.render(
@@ -354,57 +368,56 @@ def process_payload_from_gh(payload):
 
         return request_result
 
+    # TODO: бот не совсем корректно реагирует, если изменить трекер и что-либо ещё
     def label_issue(issue, linked_issues):
-
-        label = match_label_to_rm(issue['label'])
 
         # дополнительная проверка, что issue связаны
         # (на случай, если изменили не связанный issue)
         if (linked_issues.count() == 0):
+
             error_text = "ERROR: issue edited in GITHUB, but it's not linked to REDMINE"
             WRITE_LOG('\n' + '-'*20 + ' ' + str(datetime.datetime.today()) + ' | EDIT issue in REDMINE ' + '-'*19 + '\n' +
                       error_text)
+
             return HttpResponse(error_text, status=404)
 
         linked_issues = linked_issues[0]
 
+        tracker_id_rm = None
+        for label in issue['labels']:
 
-        # если неправильный label в гитхабе -> значения по умлчанию
-        tracker_id = linked_issues.tracker_id_rm
-        if (label != None):
-            if (label['type'] == 'Priority'):
+            label_gh = match_label_to_rm(label['name'])
 
-                # корректируем label-ы в гитхабе
-                tracker = match_tracker_to_gh(tracker_id)
-                correct_gh_labels(issue, tracker, linked_issues)
+            if (label_gh['type'] == 'Tracker'):
 
-                error_text = "ERROR: tried to LABEL issue's PRIORITY from GITHUB"
-                WRITE_LOG('\n' + '-' * 20 + ' ' + str(
-                    datetime.datetime.today()) + ' | EDIT issue in REDMINE ' + '-' * 19 + '\n' +
-                          error_text)
+                if (tracker_id_rm == None):
+                    tracker_id_rm = label_gh['id_rm']
 
-                return HttpResponse(error_text, status=403)
+                # пользователь выбрал новый трекер, но не удалил старый -> выбираем новый
+                else:
+                    if (tracker_id_rm == linked_issues.tracker_id_rm):
+                        tracker_id_rm = label_gh['id_rm']
 
-            elif (label['type'] == 'Status'):
+        # проверяем, был ли установлен трекер
+        if (tracker_id_rm == None):
+            tracker_id_rm = linked_issues.tracker_id_rm
 
-                # корректируем label-ы в гитхабе
-                tracker = match_tracker_to_gh(tracker_id)
-                correct_gh_labels(issue, tracker, linked_issues)
+            error_text = "ERROR: incorrect labels in GITHUB"
+            WRITE_LOG(
+                '\n' + '-' * 20 + ' ' + str(datetime.datetime.today()) + ' | LABEL issue in REDMINE ' + '-' * 19 + '\n' +
+                error_text)
 
-                error_text = "ERROR: tried to LABEL issue's STATUS from GITHUB"
-                WRITE_LOG('\n' + '-' * 20 + ' ' + str(
-                    datetime.datetime.today()) + ' | EDIT issue in REDMINE ' + '-' * 19 + '\n' +
-                          error_text)
+            return HttpResponse(error_text, status=403)
 
-                return HttpResponse(error_text, status=403)
-
-            elif (label['type'] == 'Tracker'):
-
-                tracker_id = label['id_rm']
-                linked_issues.tracker_id_rm = tracker_id
+        update_linked_issues(linked_issues,
+                             tracker_id_rm,
+                             linked_issues.status_id_rm,
+                             linked_issues.priority_id_rm)
+        tracker = match_tracker_to_gh(tracker_id_rm)
+        correct_gh_labels(issue, tracker, linked_issues)    # корректируем label-ы в гитхабе
 
 
-        # ------------------------------------------- ОБРАБАТЫВАЕМ ФРАЗУ БОТА ------------------------------------------
+        # -------------------------------------------- ОБРАБОТКА ФРАЗЫ БОТА --------------------------------------------
 
 
         #title = '[From Github] ' + issue['issue_title']
@@ -425,13 +438,13 @@ def process_payload_from_gh(payload):
         comment_body = align_special_symbols(comment_body)
 
 
-        # ----------------------------------------- ЗАГРУЖАЕМ ДАННЫЕ В РЕДМАЙН -----------------------------------------
+        # ------------------------------------------ ЗАГРУЗКА ДАННЫХ В РЕДМАЙН -----------------------------------------
 
 
         issue_templated = issue_redmine_template.render(
             project_id=project_id_rm,
             issue_id=linked_issues.issue_id_rm,
-            tracker_id=tracker_id,
+            tracker_id=tracker_id_rm,
             status_id=linked_issues.status_id_rm,
             priority_id=linked_issues.priority_id_rm,
             subject=title,
@@ -448,9 +461,6 @@ def process_payload_from_gh(payload):
                                       headers=headers_rm)
         # ДЕБАГГИНГ
         log_issue_gh(request_result, issue, linked_issues)
-
-        # корректируем label-ы в гитхабе
-        correct_gh_labels(issue, issue['label'], linked_issues)
 
         return request_result
 
@@ -504,7 +514,8 @@ def process_payload_from_gh(payload):
 
         request_result = delete_issue(issue, linked_issues)
 
-    elif (issue['action'] == 'labeled'):
+    # Совершенно безразлично, 'labeled' или 'unlabeled'
+    elif ((issue['action'] == 'labeled') | (issue['action'] == 'unlabeled')):
 
         if (chk_if_gh_user_is_our_bot(issue['sender_id'])):
 
@@ -512,6 +523,7 @@ def process_payload_from_gh(payload):
             return HttpResponse(error_text, status=200)
 
         request_result = label_issue(issue, linked_issues)
+        #request_result = edit_issue(issue, linked_issues)
 
     else:
         error_text = 'ERROR: WRONG ACTION'
