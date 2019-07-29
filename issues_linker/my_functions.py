@@ -450,7 +450,7 @@ url_gh = "https://api.github.com/repositories/" + repos_id_gh + "/issues"
 # ----------------------------------------------------- ФУНКЦИИ --------------------------------------------------
 
 def make_gh_repos_url(repos_id_gh):
-    return "https://api.github.com/repositories/" + repos_id_gh + "/issues"
+    return "https://api.github.com/repositories/" + str(repos_id_gh) + "/issues"
 
 def chk_if_gh_user_is_our_bot(user_id_gh):
     if (user_id_gh == BOT_ID_GH):

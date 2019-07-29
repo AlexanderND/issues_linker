@@ -4,6 +4,7 @@ from jinja2 import Template
 import json
 from django.http import HttpResponse                                # ответы серверу (редмайну)
 
+from issues_linker.quickstart.models import Linked_Projects         # связанные проекты
 from issues_linker.quickstart.models import Linked_Issues           # связанные issues
 from issues_linker.quickstart.models import Linked_Comments         # связанные комментарии
 
@@ -11,8 +12,8 @@ from issues_linker.my_functions import WRITE_LOG                    # веден
 from issues_linker.my_functions import align_special_symbols        # обработка спец. символов (\ -> \\)
 from issues_linker.my_functions import read_file                    # загрузка файла (возвращает строку)
 
-from issues_linker.my_functions import repos_id_gh                  # id репозитория в гитхабе
-from issues_linker.my_functions import url_gh                       # ссылка на гитхаб
+#from issues_linker.my_functions import repos_id_gh                  # id репозитория в гитхабе
+from issues_linker.my_functions import make_gh_repos_url            # ссылка на гитхаб
 
 from issues_linker.my_functions import chk_if_rm_user_is_our_bot    # проверка на бота (предотвращение
                                                                     # зацикливания: RM -> S -> GH -> ...)
@@ -178,15 +179,39 @@ def process_payload_from_rm(payload):
         linked_issues.save()
 
 
-    def post_issue(issue):
+    def post_issue(linked_projects, issue):
+
+
+        # ----------------------------------------------- ПОДГОТОВКА -----------------------------------------------
+
+        '''
+        # дополнительная проверка, что проекты связаны
+        if (linked_projects.count() == 0):
+            error_text = "ERROR: issue posted in REDMINE, but the project is not linked to GITHUB"
+            WRITE_LOG('\n' + '=' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 35 + '\n' +
+                      'received webhook from REDMINE: issues | ' + 'action: ' + str(issue['action']) + '\n' +
+                      error_text)
+            return HttpResponse(error_text, status=404)'''
+        linked_projects = linked_projects[0]
+
+        repos_id_gh = linked_projects.repos_id_gh
+        url_gh = make_gh_repos_url(repos_id_gh)
+
+
+        # ------------------------------------------ ОБРАБОТКА ФРАЗЫ БОТА -----------------------------------------
+
 
         #title = '[From Redmine] ' + issue['issue_title']
         title = issue['issue_title']
-        issue_body = add_bot_phrase(issue, 'issue_body')     # добавляем фразу бота
+        issue_body = add_bot_phrase(issue, 'issue_body')    # добавляем фразу бота
 
         # обработка спец. символов
         title = align_special_symbols(title)
         issue_body = align_special_symbols(issue_body)
+
+
+        # --------------------------------------- ЗАГРУЗКА ДАННЫХ В ГИТХАБ ----------------------------------------
+
 
         # добавление label-ов
         tracker = match_tracker_to_gh(issue['tracker_id'])
@@ -207,6 +232,10 @@ def process_payload_from_rm(payload):
                                        data=issue_templated,
                                        headers=headers)
 
+
+        # ------------------------------------------ СОХРАНЕНИЕ ДАННЫХ --------------------------------------------
+
+
         posted_issue = json.loads(request_result.text)
 
         # занесение в базу данных информацию о том, что данные issues связаны
@@ -218,29 +247,31 @@ def process_payload_from_rm(payload):
             issue['tracker_id'],            # id трекера в редмайне
             issue['status_id'],             # id статуса в редмайне
             issue['priority_id'])           # id приоритета в редмайне
+        linked_projects.add_linked_issues(linked_issues)
+
 
         # ДЕБАГГИНГ
         log_issue_post_rm(request_result, issue, linked_issues)
 
         return request_result
 
-    def post_comment(issue, linked_issues):
+    def post_comment(linked_issues, issue, url_gh):
 
 
-        # ------------------------------------------- ОБРАБАТЫВАЕМ ФРАЗУ БОТА ------------------------------------------
+        # ------------------------------------------ ОБРАБОТКА ФРАЗЫ БОТА -----------------------------------------
 
 
         # нет комментария
         if (issue['comment_body'] == ''):
-            comment_body = add_bot_phrase(issue, 'comment_body_action')          # добавляем фразу бота
+            comment_body = add_bot_phrase(issue, 'comment_body_action')     # добавляем фразу бота
         else:
-            comment_body = add_bot_phrase(issue, 'comment_body')    # добавляем фразу бота
+            comment_body = add_bot_phrase(issue, 'comment_body')            # добавляем фразу бота
 
         # обработка спец. символов
         comment_body = align_special_symbols(comment_body)
 
 
-        # ----------------------------------------- ЗАГРУЖАЕМ ДАННЫЕ В ГИТХАБ ------------------------------------------
+        # --------------------------------------- ЗАГРУЗКА ДАННЫХ В ГИТХАБ ----------------------------------------
 
 
         comment_templated = comment_github_template.render(body=comment_body)
@@ -255,10 +286,10 @@ def process_payload_from_rm(payload):
                                        headers=headers)
 
 
-        # ------------------------------------------- ПРИВЯЗКА КОММЕНТАРИЕВ --------------------------------------------
+        # ------------------------------------------ СОХРАНЕНИЕ ДАННЫХ --------------------------------------------
 
 
-        #занесение в базу данных информацию о том, что комментарии связаны
+        #занесение в базу данных информации о том, что комментарии связаны
         posted_comment = json.loads(request_result.text)
         linked_comments = linked_issues.add_comment(issue['comment_id'],
                                                     posted_comment['id'])
@@ -268,16 +299,36 @@ def process_payload_from_rm(payload):
 
         return request_result
 
-    def edit_issue(issue, linked_issues):
+    def edit_issue(linked_projects, issue):
+
+
+        # ----------------------------------------------- ПОДГОТОВКА -----------------------------------------------
+
+        '''
+        # дополнительная проверка, что проекты связаны
+        if (linked_projects.count() == 0):
+            error_text = "ERROR: issue posted in REDMINE, but the project is not linked to GITHUB"
+            WRITE_LOG('\n' + '=' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 35 + '\n' +
+                      'received webhook from REDMINE: issues | ' + 'action: ' + str(issue['action']) + '\n' +
+                      error_text)
+            return HttpResponse(error_text, status=404)'''
+        linked_projects = linked_projects[0]
+
+        repos_id_gh = linked_projects.repos_id_gh
+        url_gh = make_gh_repos_url(repos_id_gh)
+
+        linked_issues = linked_projects.get_issue_by_id_rm(issue['issue_id'])
 
         # дополнительная проверка, что issue связаны
-        # (на случай, если изменили не связанный issue)
         if (linked_issues.count() == 0):
+
             error_text = "ERROR: issue edited in REDMINE, but it's not linked to GITHUB"
             WRITE_LOG('\n' + '='*35 + ' ' + str(datetime.datetime.today()) + ' ' + '='*35 + '\n' +
                       'received webhook from REDMINE: issues | ' + 'action: ' + str(issue['action']) + '\n' +
                       error_text)
+
             return HttpResponse(error_text, status=404)
+
         linked_issues = linked_issues[0]
 
         # добавление label-ов
@@ -304,11 +355,11 @@ def process_payload_from_rm(payload):
         else:
             priority = match_priority_to_gh(linked_issues.priority_id_rm)
 
+        post_comment(linked_issues, issue, url_gh)     # ОТПРАВЛЯЕМ КОММЕНТАРИЙ В ГИТХАБ
 
-        post_comment(issue, linked_issues) # ОТПРАВЛЯЕМ КОММЕНТАРИЙ В ГИТХАБ
 
+        # ----------------------------------------- ОБРАБОТКА ФРАЗЫ БОТА -------------------------------------------
 
-        # ------------------------------------------- ОБРАБАТЫВАЕМ ФРАЗУ БОТА ------------------------------------------
 
         #title = '[From Redmine (edited)] ' + issue['issue_title']
         title = issue['issue_title']
@@ -325,7 +376,7 @@ def process_payload_from_rm(payload):
         issue_body = align_special_symbols(issue_body)
 
 
-        # ----------------------------------------- ЗАГРУЖАЕМ ДАННЫЕ В ГИТХАБ ------------------------------------------
+        # ---------------------------------------- ЗАГРУЗКА ДАННЫХ В ГИТХАБ ----------------------------------------
 
 
         issue_templated = issue_github_template.render(
@@ -344,6 +395,10 @@ def process_payload_from_rm(payload):
                                    data=issue_templated,
                                    headers=headers)
 
+
+        # ------------------------------------------ СОХРАНЕНИЕ ДАННЫХ --------------------------------------------
+
+
         # сохранение данных на сервере
         update_linked_issues(linked_issues,
                              issue)
@@ -356,16 +411,36 @@ def process_payload_from_rm(payload):
 
     # привязка комментария на редмайне к гитхабу (да, это костыль)
     # пришлось привязать к id комментария в фразе бота на редмайне (редмайн не посылает внятный ответ на PUT запрос)
-    def link_comment_to_github(issue, linked_issues):
+    def link_comment_to_github(linked_projects, issue):
+
+
+        # ----------------------------------------------- ПОДГОТОВКА -----------------------------------------------
+
+        '''
+        # дополнительная проверка, что проекты связаны
+        if (linked_projects.count() == 0):
+            error_text = "ERROR: issue posted in REDMINE, but the project is not linked to GITHUB"
+            WRITE_LOG('\n' + '=' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 35 + '\n' +
+                      'received webhook from REDMINE: issues | ' + 'action: ' + str(issue['action']) + '\n' +
+                      error_text)
+            return HttpResponse(error_text, status=404)'''
+        linked_projects = linked_projects[0]
+
+        repos_id_gh = linked_projects.repos_id_gh
+
+        linked_issues = linked_projects.get_issue_by_id_rm(issue['issue_id'])
 
         # дополнительная проверка, что issue связаны
         # (на случай, если изменили не связанный issue)
         if (linked_issues.count() == 0):
+
             error_text = "ERROR: issue edited inf REDMINE, but it's not linked to GITHUB"
             WRITE_LOG('\n' + '='*35 + ' ' + str(datetime.datetime.today()) + ' ' + '='*35 + '\n' +
                       'received webhook from REDMINE: issues | ' + 'action: ' + str(issue['action']) + '\n' +
                       error_text)
+
             return HttpResponse(error_text, status=404)
+
         linked_issues = linked_issues[0]
 
         # определяем действие (комментарий или измение)
@@ -384,8 +459,7 @@ def process_payload_from_rm(payload):
 
     # ============================================ ЗАГРУЗКА ISSUE В GITHUB =============================================
 
-
-    linked_issues = Linked_Issues.objects.get_by_issue_id_rm(issue['issue_id'])
+    linked_projects = Linked_Projects.objects.get_by_project_id_rm(issue['project_id'])
     if (issue['action'] == 'opened'):
 
         if (chk_if_rm_user_is_our_bot(issue['issue_author_id'])):
@@ -393,20 +467,20 @@ def process_payload_from_rm(payload):
             error_text = prevent_cyclic_issue_rm(issue)
             return HttpResponse(error_text, status=200)
 
-        request_result = post_issue(issue)
+        request_result = post_issue(linked_projects, issue)
 
     elif (issue['action'] == 'updated'):
 
         if (chk_if_rm_user_is_our_bot(issue['comment_author_id'])):
 
             # попытка связать комментарий на редмайне с гитхабом
-            link_comment_to_github(issue, linked_issues)
+            link_comment_to_github(linked_projects, issue)
 
             error_text = prevent_cyclic_comment_rm(issue)
             return HttpResponse(error_text, status=200)
 
         # изменение issue + добавление комментария
-        request_result = edit_issue(issue, linked_issues)
+        request_result = edit_issue(linked_projects, issue)
 
     else:
         error_text = 'ERROR: WRONG ACTION'

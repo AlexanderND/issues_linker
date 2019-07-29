@@ -394,21 +394,11 @@ class Linked_Projects(models.Model):
     issues = models.ManyToManyField(Linked_Issues, blank=1)         # задачи в проекте
 
 
-    def add_issue(self, issue_id_rm, issue_id_gh, repos_id_gh, issue_num_gh,
-                  tracker_id_rm, status_id_rm, priority_id_rm):
+    def add_linked_issues(self, linked_issues):
 
-        issue = Linked_Issues.objects.create_linked_issues(
-            issue_id_rm,
-            issue_id_gh,
-            repos_id_gh,
-            issue_num_gh,
-            tracker_id_rm,
-            status_id_rm,
-            priority_id_rm)
+        self.issues.add(linked_issues)
 
-        self.issues.add(issue)
-
-        return issue
+        return linked_issues
 
 
     def get_issue_by_id_gh(self, issue_id_gh):

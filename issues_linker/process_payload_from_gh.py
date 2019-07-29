@@ -4,6 +4,7 @@ from jinja2 import Template
 import json
 from django.http import HttpResponse                                # ответы серверу (гитхабу)
 
+from issues_linker.quickstart.models import Linked_Projects         # связанные проекты
 from issues_linker.quickstart.models import Linked_Issues           # связанные issues
 
 from issues_linker.my_functions import WRITE_LOG                    # ведение логов
