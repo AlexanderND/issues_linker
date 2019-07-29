@@ -285,7 +285,7 @@ class Linked_Comments(models.Model):
 # ===================================================== СВЯЗЬ ISSUES ===================================================
 
 
-'''Класс "Linked_Issues" - связанные issues (id_issue_rm - id_repo_gh, id_issue_gh)'''
+'''Класс "Linked_Issues" - связанные issues (issue_id_rm - repo_id_gh, issue_id_gh)'''
 class Linked_Issues_Manager(models.Manager):
 
     use_in_migrations = True
@@ -314,16 +314,6 @@ class Linked_Issues_Manager(models.Manager):
     def get_by_issue_id_gh(self, issue_id_gh):
         return self.filter(issue_id_gh=issue_id_gh)
 
-
-    def set_tracker(self, tracker_id_rm):
-        self.tracker_id_rm = tracker_id_rm
-
-    def set_status(self, status_id_rm):
-        self.status_id_rm = status_id_rm
-
-    def set_priority(self, priority_id_rm):
-        self.priority_id_rm = priority_id_rm
-
 class Linked_Issues(models.Model):
 
     issue_id_rm = models.BigIntegerField(blank=1, null=1)           # id issue в редмайне
@@ -350,24 +340,6 @@ class Linked_Issues(models.Model):
 
         return comment
 
-    # неизвестен id комментария в редмайне
-    def add_comment_gh(self, comment_id_gh):
-
-        comment = Linked_Comments.objects.create_linked_comments(
-            None,
-            comment_id_gh)
-
-        self.comments.add(comment)
-
-        return comment
-
-    def add_comment_rm(self, comment_id_rm, comment_id_gh):
-
-        comment = Linked_Comments.objects.get_by_comment_id_gh(comment_id_gh)
-        comment.objects.add_comment_id_rm(comment_id_rm)    # добавляем id комментария в редмайне
-
-        return comment
-
 
     def get_comment_by_id_gh(self, comment_id_gh):
         return Linked_Comments.objects.get_by_comment_id_gh(comment_id_gh)
@@ -386,3 +358,69 @@ class Linked_Issues(models.Model):
     class Meta:
         verbose_name = 'linked_issues'
         verbose_name_plural = 'linked_issues'
+
+
+# ==================================================== СВЯЗЬ PROJECTS ==================================================
+
+
+'''Класс "Linked_Projects" - связанные projects (project_id_rm - repo_id_gh)'''
+class Linked_Projects_Manager(models.Manager):
+
+    use_in_migrations = True
+
+
+    def linked_projects(self, project_id_rm, repo_id_gh):
+        linked_projects = self.model(project_id_rm=project_id_rm,
+                                     repo_id_gh=repo_id_gh)
+        linked_projects.save()  # сохранение linked_projects в базе данных
+
+        return linked_projects
+
+
+    def get_by_natural_key(self, id):
+        return self.get(id=id)
+
+    def get_by_project_id_rm(self, project_id_rm):
+        return self.filter(project_id_rm=project_id_rm)
+
+    def get_by_repo_id_gh(self, repo_id_gh):
+        return self.filter(repo_id_gh=repo_id_gh)
+
+class Linked_Projects(models.Model):
+
+    project_id_rm = models.BigIntegerField(blank=1, null=1)         # id проекта в редмайне
+    repo_id_gh = models.BigIntegerField(blank=1, null=1)            # id репозитория в гитхабе
+
+    issues = models.ManyToManyField(Linked_Issues, blank=1)         # задачи в проекте
+
+
+    def add_issue(self, issue_id_rm, issue_id_gh, repos_id_gh, issue_num_gh,
+                  tracker_id_rm, status_id_rm, priority_id_rm):
+
+        issue = Linked_Issues.objects.create_linked_issues(
+            issue_id_rm,
+            issue_id_gh,
+            repos_id_gh,
+            issue_num_gh,
+            tracker_id_rm,
+            status_id_rm,
+            priority_id_rm)
+
+        self.issues.add(issue)
+
+        return issue
+
+
+    def get_issue_by_id_gh(self, issue_id_gh):
+        return Linked_Issues.objects.get_by_issue_id_gh(issue_id_gh)
+
+    def get_issue_by_id_rm(self, issue_id_rm):
+        return Linked_Issues.objects.get_by_issue_id_rm(issue_id_rm)
+
+
+    db_table = 'linked_projects'
+    objects = Linked_Projects_Manager()
+
+    class Meta:
+        verbose_name = 'linked_projects'
+        verbose_name_plural = 'linked_projects'

@@ -20,7 +20,7 @@ from rest_framework import routers
 from issues_linker.quickstart.views import Payload_From_GH_ViewSet, Comment_Payload_From_GH_ViewSet, Payload_From_RM_ViewSet
 
 # мои модели (связь)
-from issues_linker.quickstart.views import Linked_Issues_ViewSet, Linked_Comments_ViewSet
+from issues_linker.quickstart.views import Linked_Projects_ViewSet, Linked_Issues_ViewSet, Linked_Comments_ViewSet
 
 router = routers.DefaultRouter()
 
@@ -33,6 +33,7 @@ router.register(r'comment_payloads_from_github', Comment_Payload_From_GH_ViewSet
 router.register(r'payloads_from_redmine', Payload_From_RM_ViewSet)
 
 # СВЯЗЬ
+router.register(r'linked_projects', Linked_Projects_ViewSet)
 router.register(r'linked_issues', Linked_Issues_ViewSet)
 router.register(r'linked_comments', Linked_Comments_ViewSet)
 

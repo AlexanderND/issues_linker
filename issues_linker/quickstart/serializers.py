@@ -5,7 +5,7 @@ from rest_framework import serializers
 from issues_linker.quickstart.models import Repository_GH, Project_RM, Issue_GH, Issue_RM, Payload_GH, Payload_RM_Field, Payload_RM
 
 # мои модели (связь)
-from issues_linker.quickstart.models import Linked_Issues, Linked_Comments
+from issues_linker.quickstart.models import Linked_Projects, Linked_Issues, Linked_Comments
 
 '''# testing
 class UserSerializer(serializers.HyperlinkedModelSerializer):
@@ -110,7 +110,13 @@ class Payload_RM_Serializer(serializers.HyperlinkedModelSerializer):
 # ======================================================== СВЯЗЬ =======================================================
 
 
-''' связынные issues '''
+''' связынные проекты '''
+class Linked_Projects_Serializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = Linked_Projects
+        fields = ('project_id_rm', 'repo_id_gh', 'issues')
+
+''' связынные issues в проекте '''
 class Linked_Issues_Serializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Linked_Issues

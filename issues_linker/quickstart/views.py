@@ -6,8 +6,8 @@ from issues_linker.quickstart.serializers import Payload_GH_Serializer, Payload_
 from issues_linker.quickstart.models import Payload_GH, Payload_RM
 
 # мои модели (связь)
-from issues_linker.quickstart.models import Linked_Issues, Linked_Comments
-from issues_linker.quickstart.serializers import Linked_Issues_Serializer,Linked_Comments_Serializer
+from issues_linker.quickstart.models import Linked_Projects, Linked_Issues, Linked_Comments
+from issues_linker.quickstart.serializers import Linked_Projects_Serializer, Linked_Issues_Serializer, Linked_Comments_Serializer
 
 from issues_linker.process_payload_from_gh import process_payload_from_gh    # загрузка issue в Redmine
 from issues_linker.process_payload_from_rm import process_payload_from_rm    # загрузка issue в Github
@@ -101,7 +101,16 @@ class Payload_From_RM_ViewSet(viewsets.ModelViewSet):
 # ======================================================== СВЯЗЬ =======================================================
 
 
-''' связынные issues '''
+''' связынные проекты '''
+class Linked_Projects_ViewSet(viewsets.ModelViewSet):
+    """
+    Linked_Projects_ViewSet.
+    Здесь хранится информация о том, какие проекты связаны между собой.
+    """
+    queryset = Linked_Projects.objects.all()
+    serializer_class = Linked_Projects_Serializer
+
+''' связынные issues в проекте '''
 class Linked_Issues_ViewSet(viewsets.ModelViewSet):
     """
     Linked_Issues_ViewSet.
