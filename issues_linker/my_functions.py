@@ -102,39 +102,6 @@ def allign_request_result(request_result):
         return request_result
 
 
-# ======================================================== REDMINE =====================================================
-
-
-# ------------------------------------------- КОНСТАНТЫ (локальный сервер) ---------------------------------------
-
-BOT_ID_RM = 6           # id бота в редмайне (предотвращение зацикливания)
-
-project_id_rm = 2       # 2 - проект на локальном сервере редмайна (тестовый сервер)
-
-'''
-0 (4)  - Задача                         | Tracker: task
-1 (5)  - Ошибка                         | Tracker: bug
-'''
-tracker_ids_rm = [4, 5]
-
-'''
-0 (7)  - Новый                          | Status: new
-1 (8)  - Выполнение: в работе           | Status: working
-2 (9)  - Выполнение: обратная связь     | Status: feedback
-3 (10) - Выполнение: проверка           | Status: verification
-4 (11) - Отказ                          | Status: rejected
-5 (12) - Закрыт                         | Status: closed
-'''
-status_ids_rm = [7, 8, 9, 10, 11, 12]
-
-'''
-0 (11) - Нормальный                     | Priority: normal
-1 (10) - Низкий                         | Priority: low
-2 (12) - Высокий                        | Priority: urgent
-'''
-priority_ids_rm = [11, 10, 12]
-
-
 # функция сопостовления label-а в гитхабе редмайну
 def match_label_to_rm(label_gh):
 
@@ -286,6 +253,38 @@ def match_priority_to_gh(priority_id_rm):
     return label_gh
 
 
+# ======================================================== REDMINE =====================================================
+
+
+# ------------------------------------------- КОНСТАНТЫ (локальный сервер) ---------------------------------------
+
+BOT_ID_RM = 6           # id бота в редмайне (предотвращение зацикливания)
+
+project_id_rm = 2       # 2 - проект на локальном сервере редмайна (тестовый сервер)
+
+'''
+0 (4)  - Задача                         | Tracker: task
+1 (5)  - Ошибка                         | Tracker: bug
+'''
+tracker_ids_rm = [4, 5]
+
+'''
+0 (7)  - Новый                          | Status: new
+1 (8)  - Выполнение: в работе           | Status: working
+2 (9)  - Выполнение: обратная связь     | Status: feedback
+3 (10) - Выполнение: проверка           | Status: verification
+4 (11) - Отказ                          | Status: rejected
+5 (12) - Закрыт                         | Status: closed
+'''
+status_ids_rm = [7, 8, 9, 10, 11, 12]
+
+'''
+0 (11) - Нормальный                     | Priority: normal
+1 (10) - Низкий                         | Priority: low
+2 (12) - Высокий                        | Priority: urgent
+'''
+priority_ids_rm = [11, 10, 12]
+
 url_rm = "http://localhost:3000/issues.json"    # локальный сервер редмайна (тестовый сервер)
 
 # -------------------------------------------- КОНСТАНТЫ (реальный сервер) ---------------------------------------
@@ -331,6 +330,8 @@ def chk_if_rm_user_is_our_bot(user_id_rm):
 def log_issue_post_rm(result, issue, linked_issues):
 
     action_gh = 'POST'
+    repos_id_gh = linked_issues.repos_id_gh
+    url_gh = make_gh_repos_url(repos_id_gh)
 
     WRITE_LOG('\n' + '=' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 35 + '\n' +
               'received webhook from REDMINE: issues | ' + 'action: ' + str(issue['action']) + '\n' +
@@ -352,12 +353,14 @@ def log_issue_post_rm(result, issue, linked_issues):
 def log_comment_rm(result, issue, linked_issues, linked_comments):
 
     action_gh = 'POST'
+    repos_id_gh = linked_issues.repos_id_gh
+    url_gh = make_gh_repos_url(repos_id_gh)
 
     WRITE_LOG(action_gh + ' result in GITHUB: ' + str(result.status_code) + ' ' + str(result.reason) + '\n' +
               'GITHUB  | ---------------- issue ----------------' + '\n' +
               '        | url_gh:        ' + url_gh + '\n' +
               '        | issue_id:      ' + str(linked_issues.issue_id_gh) + '\n' +
-              '        | repos_id:      ' + repos_id_gh + '\n' +
+              '        | repos_id:      ' + str(repos_id_gh) + '\n' +
               '        | issue_number:  ' + str(linked_issues.issue_num_gh) + '\n' +
               '        | --------------- comment ---------------' + '\n' +
               '        | comment_id:    ' + str(linked_comments.comment_id_gh) + '\n' +
@@ -376,6 +379,8 @@ def log_comment_rm(result, issue, linked_issues, linked_comments):
 def log_issue_edit_rm(result, issue, linked_issues):
 
     action_gh = 'EDIT'
+    repos_id_gh = linked_issues.repos_id_gh
+    url_gh = make_gh_repos_url(repos_id_gh)
 
     # изменили без комментария
     if (issue['comment_body'] == ''):
@@ -383,7 +388,7 @@ def log_issue_edit_rm(result, issue, linked_issues):
                   'GITHUB  | ---------------- issue ----------------' + '\n' +
                   '        | url_gh:        ' + url_gh + '\n' +
                   '        | issue_id:      ' + str(linked_issues.issue_id_gh) + '\n' +
-                  '        | repos_id:      ' + repos_id_gh + '\n' +
+                  '        | repos_id:      ' + str(repos_id_gh) + '\n' +
                   '        | issue_number:  ' + str(linked_issues.issue_num_gh) + '\n' +
                   '        |\n' +
                   'REDMINE | ---------------- issue ----------------' + '\n' +
@@ -398,7 +403,7 @@ def log_issue_edit_rm(result, issue, linked_issues):
                   'GITHUB  | ---------------- issue ----------------' + '\n' +
                   '        | url_gh:        ' + url_gh + '\n' +
                   '        | issue_id:      ' + str(linked_issues.issue_id_gh) + '\n' +
-                  '        | repos_id:      ' + repos_id_gh + '\n' +
+                  '        | repos_id:      ' + str(repos_id_gh) + '\n' +
                   '        | issue_number:  ' + str(linked_issues.issue_num_gh) + '\n' +
                   '        |\n' +
                   'REDMINE | ---------------- issue ----------------' + '\n' +
@@ -444,8 +449,8 @@ def prevent_cyclic_comment_rm(issue):
 
 BOT_ID_GH = 53174303        # id бота в гитхабе (предотвращение зацикливания)
 
-repos_id_gh = '194635238'   # id репозитория в гитхабе
-url_gh = "https://api.github.com/repositories/" + repos_id_gh + "/issues"
+#repos_id_gh = '194635238'   # id репозитория в гитхабе
+#url_gh = "https://api.github.com/repositories/" + repos_id_gh + "/issues"
 
 # ----------------------------------------------------- ФУНКЦИИ --------------------------------------------------
 
@@ -460,7 +465,7 @@ def chk_if_gh_user_is_our_bot(user_id_gh):
 
 
 # при изменении в гитхабе: всегда оставляем комментарий об изменении в редмайне, затем производим сами изменения
-def log_issue_gh(result, issue, linked_issues):
+def log_issue_gh(result, issue, linked_issues, project_id_rm):
 
     if (issue['action'] == 'opened'):
         action_rm = 'POST'
@@ -492,7 +497,7 @@ def log_issue_gh(result, issue, linked_issues):
               '        | issue_id:      ' + str(linked_issues.issue_id_rm) + '\n'
               '        | project_id:    ' + str(project_id_rm))
 
-def log_comment_gh(result, issue, linked_issues):
+def log_comment_gh(result, issue, linked_issues, project_id_rm):
 #def log_comment_gh(result, issue, linked_issues, linked_comments):
 
     action_rm = 'EDIT'

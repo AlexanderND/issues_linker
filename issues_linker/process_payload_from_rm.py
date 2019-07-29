@@ -247,6 +247,8 @@ def process_payload_from_rm(payload):
             issue['tracker_id'],            # id трекера в редмайне
             issue['status_id'],             # id статуса в редмайне
             issue['priority_id'])           # id приоритета в редмайне
+
+        # добавляем linked_issues в linked_projects
         linked_projects.add_linked_issues(linked_issues)
 
 
@@ -459,6 +461,7 @@ def process_payload_from_rm(payload):
 
     # ============================================ ЗАГРУЗКА ISSUE В GITHUB =============================================
 
+
     linked_projects = Linked_Projects.objects.get_by_project_id_rm(issue['project_id'])
     if (issue['action'] == 'opened'):
 
@@ -483,10 +486,12 @@ def process_payload_from_rm(payload):
         request_result = edit_issue(linked_projects, issue)
 
     else:
+
         error_text = 'ERROR: WRONG ACTION'
         WRITE_LOG('\n' + '='*35 + ' ' + str(datetime.datetime.today()) + ' ' + '='*35 + '\n' +
                   'received webhook from REDMINE: issues | ' + 'action: ' + str(issue['action']) + '\n' +
                   error_text)
+
         return HttpResponse(error_text, status=422)
 
 
