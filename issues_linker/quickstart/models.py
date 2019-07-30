@@ -369,9 +369,11 @@ class Linked_Projects_Manager(models.Manager):
     use_in_migrations = True
 
 
-    def linked_projects(self, project_id_rm, repo_id_gh):
+    def create_linked_projects(self, project_id_rm, repos_id_gh, url_rm, url_gh):
         linked_projects = self.model(project_id_rm=project_id_rm,
-                                     repo_id_gh=repo_id_gh)
+                                     repos_id_gh=repos_id_gh,
+                                     url_rm=url_rm,
+                                     url_gh=url_gh)
         linked_projects.save()  # сохранение linked_projects в базе данных
 
         return linked_projects
@@ -388,8 +390,13 @@ class Linked_Projects_Manager(models.Manager):
 
 class Linked_Projects(models.Model):
 
+    # используются для привязки проектов
     project_id_rm = models.BigIntegerField(blank=1, null=1)         # id проекта в редмайне
     repos_id_gh = models.BigIntegerField(blank=1, null=1)           # id репозитория в гитхабе
+
+    # ссылки - используются лишь для получения id проектов, но более удобны лдя человека
+    url_rm = models.CharField(blank=1, max_length=256)              # ссылка на проект в редмайне
+    url_gh = models.CharField(blank=1, max_length=256)              # ссылка на проект в гитхабе
 
     issues = models.ManyToManyField(Linked_Issues, blank=1)         # задачи в проекте
 

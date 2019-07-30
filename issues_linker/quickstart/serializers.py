@@ -111,11 +111,11 @@ class Payload_RM_Serializer(serializers.HyperlinkedModelSerializer):
 # ======================================================== СВЯЗЬ =======================================================
 
 
-''' связынные проекты '''
-class Linked_Projects_Serializer(serializers.HyperlinkedModelSerializer):
+''' связынные комментарии в issue'''
+class Linked_Comments_Serializer(serializers.HyperlinkedModelSerializer):
     class Meta:
-        model = Linked_Projects
-        fields = ('project_id_rm', 'repos_id_gh', 'issues')
+        model = Linked_Comments
+        fields = ('comment_id_rm', 'comment_id_gh')
 
 ''' связынные issues в проекте '''
 class Linked_Issues_Serializer(serializers.HyperlinkedModelSerializer):
@@ -124,8 +124,9 @@ class Linked_Issues_Serializer(serializers.HyperlinkedModelSerializer):
         fields = ('issue_id_rm', 'issue_id_gh', 'repos_id_gh', 'issue_num_gh', 'comments',
                   'tracker_id_rm', 'status_id_rm', 'priority_id_rm', 'is_opened')
 
-''' связынные комментарии в issue'''
-class Linked_Comments_Serializer(serializers.HyperlinkedModelSerializer):
+''' связынные проекты '''
+class Linked_Projects_Serializer(serializers.HyperlinkedModelSerializer):
     class Meta:
-        model = Linked_Comments
-        fields = ('comment_id_rm', 'comment_id_gh')
+        model = Linked_Projects
+        fields = ('url_rm', 'url_gh', 'issues')
+        read_only_fields = ('project_id_rm', 'repos_id_gh')

@@ -73,8 +73,9 @@ def process_payload_from_gh(payload):
     issue = parse_payload(payload)
 
     # авторизация в redmine по токену
-    api_key_redmime = read_file('api_keys/api_key_redmime_local.txt') # загрузка ключа для redmine api
-    api_key_redmime = api_key_redmime.replace('\n', '')  # избавляемся от \n в конце строки
+    api_key_redmime = read_file('api_keys/api_key_redmime_local.txt')   # загрузка ключа для redmine api
+    #api_key_redmime = read_file('api_keys/api_key_redmime.txt')        # загрузка ключа для redmine api
+    api_key_redmime = api_key_redmime.replace('\n', '')                 # избавляемся от \n в конце строки
 
     # загрузка template из файла
     issue_redmine_template = read_file('parsed_data_templates/issue_redmine_template.json')
@@ -86,8 +87,8 @@ def process_payload_from_gh(payload):
 
 
     # авторизация в гитхабе по токену
-    api_key_github = read_file('api_keys/api_key_github.txt')   # загрузка ключа для github api
-    api_key_github = api_key_github.replace('\n', '')  # избавляемся от \n в конце строки
+    api_key_github = read_file('api_keys/api_key_github.txt')           # загрузка ключа для github api
+    api_key_github = api_key_github.replace('\n', '')                   # избавляемся от \n в конце строки
 
     # загрузка issue template из файла
     issue_github_template = read_file('parsed_data_templates/issue_github_template.json')
@@ -199,7 +200,7 @@ def process_payload_from_gh(payload):
 
         return request_result
 
-    # TODO: отправлять комментарий бота, что нельзя открыть jegected issue + логи?
+    # TODO: отправлять комментарий бота, что нельзя открыть rejected issue + логи?
     # закрыть issue в гитхабе
     def close_gh_issue(linked_issues, url_gh):
 
@@ -335,11 +336,6 @@ def process_payload_from_gh(payload):
             tracker_id_rm,                  # id трекера в редмайне
             status_id_rm,                   # id статуса в редмайне
             priority_id_rm)                 # id приоритета в редмайне
-
-        # добавляем label-ы в linked_issues
-        linked_issues.tracker_id_rm = tracker_id_rm
-        linked_issues.status_id_rm = status_id_rm
-        linked_issues.priority_id_rm = priority_id_rm
 
         # добавляем linked_issues в linked_projects
         linked_projects.add_linked_issues(linked_issues)

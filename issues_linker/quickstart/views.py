@@ -11,8 +11,12 @@ from issues_linker.quickstart.serializers import Linked_Projects_Serializer, Lin
 
 from issues_linker.process_payload_from_gh import process_payload_from_gh    # загрузка issue в Redmine
 from issues_linker.process_payload_from_rm import process_payload_from_rm    # загрузка issue в Github
+
 # загрузка комментариев к issue в Github
 from issues_linker.process_comment_payload_from_gh import process_comment_payload_from_gh
+
+# связь проектов
+from issues_linker.link_projects import link_projects
 
 
 '''# testing
@@ -101,14 +105,14 @@ class Payload_From_RM_ViewSet(viewsets.ModelViewSet):
 # ======================================================== СВЯЗЬ =======================================================
 
 
-''' связынные проекты '''
-class Linked_Projects_ViewSet(viewsets.ModelViewSet):
+''' связынные комментарии в issue'''
+class Linked_Comments_ViewSet(viewsets.ModelViewSet):
     """
-    Linked_Projects_ViewSet.
-    Здесь хранится информация о том, какие проекты связаны между собой.
+    Linked_Comments_ViewSet.
+    Здесь хранится информация о том, какие комментарии связаны между собой.
     """
-    queryset = Linked_Projects.objects.all()
-    serializer_class = Linked_Projects_Serializer
+    queryset = Linked_Comments.objects.all()
+    serializer_class = Linked_Comments_Serializer
 
 ''' связынные issues в проекте '''
 class Linked_Issues_ViewSet(viewsets.ModelViewSet):
@@ -119,11 +123,23 @@ class Linked_Issues_ViewSet(viewsets.ModelViewSet):
     queryset = Linked_Issues.objects.all()
     serializer_class = Linked_Issues_Serializer
 
-''' связынные комментарии в issue'''
-class Linked_Comments_ViewSet(viewsets.ModelViewSet):
+''' связынные проекты '''
+class Linked_Projects_ViewSet(viewsets.ModelViewSet):
     """
-    Linked_Comments_ViewSet.
-    Здесь хранится информация о том, какие комментарии связаны между собой.
+    Linked_Projects_ViewSet.\n
+    Здесь хранится информация о том, какие проекты связаны между собой.\n
+    Пожалуйста, используйте или ссылки, или id (иначе всё может сломаться).\n
+    Максимальная длина url_rm: 256\n
+    Максимальная длина url_gh: 256\n
     """
-    queryset = Linked_Comments.objects.all()
-    serializer_class = Linked_Comments_Serializer
+
+    # переопределение create, чтобы получить id проектов из ссылок
+    def create(self, request, *args, **kwargs):
+
+        link_result = link_projects(request.data)
+
+        #return super(Linked_Projects_ViewSet, self).create(request, *args, **kwargs)
+        return link_result
+
+    queryset = Linked_Projects.objects.all()
+    serializer_class = Linked_Projects_Serializer
