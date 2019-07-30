@@ -592,7 +592,7 @@ def process_payload_from_gh(payload):
 
         return request_result
 
-    # TODO: бот не совсем корректно реагирует, если изменить трекер и что-либо ещё
+    # TODO: бот не совсем корректно реагирует, если изменить трекер и что-либо ещё (частично исправил)
     # TODO: также, бот несколько раз упоминает действие в редмайне (labeled, unlabeld) (так как гитхаб отсылает все изменения столько раз, сколько label-ов было изменено...)
     def label_issue(linked_projects, issue):
 
@@ -667,30 +667,9 @@ def process_payload_from_gh(payload):
                     if (tracker_id_rm == linked_issues.tracker_id_rm):
                         tracker_id_rm = label_gh['id_rm']
 
-        # проверяем, был ли установлен трекер
+        # проверяем, был ли изменён трекер
         if (tracker_id_rm == None):
             tracker_id_rm = linked_issues.tracker_id_rm
-
-        # корректируем label-ы в гитхабе
-        tracker = match_tracker_to_gh(tracker_id_rm)
-        request_result = correct_gh_labels(issue, tracker, linked_issues)   # корректируем label-ы в гитхабе
-
-        # обновляем информацию в таблице
-        update_linked_issues(linked_issues,
-                             tracker_id_rm,
-                             linked_issues.status_id_rm,
-                             linked_issues.priority_id_rm,
-                             True)
-
-        # проверяем, корректные ли label-ы
-        if (incorrect_labels):
-
-            # сообщаем об ошибке
-            error_text = "ERROR: process_payload_from_gh.label_issue\n" +\
-                         "incorrect labels in GITHUB"
-
-            return LOGICAL_ERR(error_text)
-
 
 
         # ------------------------------------------ ОБРАБОТКА ФРАЗЫ БОТА -----------------------------------------
@@ -717,28 +696,55 @@ def process_payload_from_gh(payload):
         # --------------------------------------- ЗАГРУЗКА ДАННЫХ В РЕДМАЙН ----------------------------------------
 
 
-        issue_templated = issue_redmine_template.render(
-            project_id=project_id_rm,
-            issue_id=linked_issues.issue_id_rm,
-            tracker_id=tracker_id_rm,
-            status_id=linked_issues.status_id_rm,
-            priority_id=linked_issues.priority_id_rm,
-            subject=title,
-            description=issue_body,
-            notes=comment_body)
+        # корректируем label-ы в гитхабе
+        tracker = match_tracker_to_gh(tracker_id_rm)
+        request_result = correct_gh_labels(issue, tracker, linked_issues)  # корректируем label-ы в гитхабе
 
-        # кодировка Latin-1 на некоторых задачах приводит к ошибке кодировки в питоне
-        issue_templated = issue_templated.encode('utf-8')
+        # TODO: похоже, он не успевает изменить linked_issues.tracker_id_rm: вебхуки приходят почти одновременно
+        # проверяем, был ли изменён трекер и предотвращаем двойную отправку сообщений в гитхаб
+        if ((tracker_id_rm != linked_issues.tracker_id_rm) & (issue['action'] == 'labeled')):
 
-        issue_url_rm = url_rm.replace('.json',
-                                      '/' + str(linked_issues.issue_id_rm) + '.json')
-        request_result = requests.put(issue_url_rm,
-                                      data=issue_templated,
-                                      headers=headers_rm)
-        # ДЕБАГГИНГ
-        log_issue_gh(request_result, issue, linked_issues, linked_projects.project_id_rm)
+            # обновляем информацию в таблице
+            update_linked_issues(linked_issues,
+                                 tracker_id_rm,
+                                 linked_issues.status_id_rm,
+                                 linked_issues.priority_id_rm,
+                                 True)
 
-        return request_result
+            issue_templated = issue_redmine_template.render(
+                project_id=project_id_rm,
+                issue_id=linked_issues.issue_id_rm,
+                tracker_id=tracker_id_rm,
+                status_id=linked_issues.status_id_rm,
+                priority_id=linked_issues.priority_id_rm,
+                subject=title,
+                description=issue_body,
+                notes=comment_body)
+
+            # кодировка Latin-1 на некоторых задачах приводит к ошибке кодировки в питоне
+            issue_templated = issue_templated.encode('utf-8')
+
+            issue_url_rm = url_rm.replace('.json',
+                                          '/' + str(linked_issues.issue_id_rm) + '.json')
+            request_result = requests.put(issue_url_rm,
+                                          data=issue_templated,
+                                          headers=headers_rm)
+
+        # проверяем, корректные ли label-ы
+        if (incorrect_labels):
+
+            # сообщаем об ошибке
+            error_text = "ERROR: process_payload_from_gh.label_issue\n" +\
+                         "incorrect labels in GITHUB"
+
+            return LOGICAL_ERR(error_text)
+
+        else:
+
+            # ДЕБАГГИНГ
+            log_issue_gh(request_result, issue, linked_issues, linked_projects.project_id_rm)
+
+            return request_result
 
 
     # ============================================ ЗАГРУЗКА ISSUE В REDMINE ============================================
