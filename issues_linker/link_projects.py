@@ -34,6 +34,8 @@ from issues_linker.my_functions import match_priority_to_gh         # сопос
 from issues_linker.my_functions import make_gh_repos_url            # ссылка на гитхаб
 
 
+# TODO: при связи проектов, проверять: а не связани ли они уже
+# TODO: при связи проектов, запрашивать: все текущие issues и комментарии к ним
 def link_projects(payload):
 
 
@@ -118,5 +120,84 @@ def link_projects(payload):
         url_rm,
         url_gh)
 
+
+    # ============================== СОЗДАНИЕ НЕОБХОДИМЫХ ДЛЯ РАБОТЫ LABEL-ОВ В ГИТХАБЕ ================================
+
+
+    # создание label-ов в гитхабе
+    create_label_github_template = read_file('parsed_data_templates/create_label_github_template.json')
+    create_label_github_template = Template(create_label_github_template)  # шаблон создания label-ов
+
+    labels_url_gh = api_url_gh + '/labels'
+
+    # label-ы, необходимые для работы связи
+    # (да, немного некрасиво выглядит)
+    labels = [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}]
+
+    labels[0]['name'] = 'Priority: low'
+    labels[0]['description'] = 'Low priority issue'
+    labels[0]['color'] = '#ffe99c'
+
+    labels[1]['name'] = 'Priority: normal'
+    labels[1]['description'] = "Most issues should have 'normal' priority"
+    labels[1]['color'] = '#ffdb5e'
+
+    labels[2]['name'] = 'Priority: urgent'
+    labels[2]['description'] = 'Urgent issue'
+    labels[2]['color'] = '#ffc600'
+
+    labels[3]['name'] = 'Status: feedback'
+    labels[3]['description'] = 'We are awaiting your feedback on the issue'
+    labels[3]['color'] = '#85ffb0'
+
+    labels[4]['name'] = 'Status: new'
+    labels[4]['description'] = 'Default status for new issues'
+    labels[4]['color'] = '#2b57ff'
+
+    labels[5]['name'] = 'Status: rejected'
+    labels[5]['description'] = 'Issue rejected'
+    labels[5]['color'] = '#a80000'
+
+    labels[6]['name'] = 'Status: verification'
+    labels[6]['description'] = 'We are verifying, that the issue has been resolved'
+    labels[6]['color'] = '#c9ffdc'
+
+    labels[7]['name'] = 'Status: working'
+    labels[7]['description'] = 'We are working on it. Please, be patient!'
+    labels[7]['color'] = '#38ff7e'
+
+    labels[8]['name'] = 'Tracker: bug'
+    labels[8]['description'] = "Something isn't working"
+    labels[8]['color'] = '#e00000'
+
+    labels[9]['name'] = 'Tracker: task'
+    labels[9]['description'] = 'Suggestions or the like'
+    labels[9]['color'] = '#2b57ff'
+
+    response_text = 'Projects posted successfully!\n' +\
+                    "(or not, I actually don't know)\n"+\
+                    "Labels:\n\n"
+
+    # TODO: исправить постинг label-ов
+    # постим label-ы в гитхаб
+    for label in labels:
+
+        label_templated = create_label_github_template.render(
+            name=label['name'],
+            description=label['description'],
+            color=label['color'])
+
+        # кодировка Latin-1 на некоторых задачах приводит к ошибке кодировки в питоне
+        label_templated = label_templated.encode('utf-8')
+
+        request_result = requests.post(labels_url_gh,
+                                       data=label_templated,
+                                       headers=headers_gh)
+        response_text += label['name'] + '\n'
+        response_text += str(request_result) + '\n'
+        response_text += str(request_result.text) + '\n'
+
+
+    WRITE_LOG(response_text)
     # TODO: выдавать то же, что выдавалось бы без переопределения метода create
-    return HttpResponse('Projects posted successfully!', status=200)
+    return HttpResponse(response_text, status=200)
