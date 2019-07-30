@@ -182,8 +182,7 @@ def process_payload_from_gh(payload):
 
 
         issue_templated = issue_github_template.render(
-            title = issue['issue_title'],
-            body = issue['issue_body'],
+            title=issue['issue_title'],
             priority=priority,
             status=status,
             tracker=tracker)
@@ -501,6 +500,7 @@ def process_payload_from_gh(payload):
         return request_result
 
     # TODO: бот не совсем корректно реагирует, если изменить трекер и что-либо ещё
+    # TODO: также, бот несколько раз упоминает действие в редмайне (labeled, unlabeld) (так как гитхаб отсылает все изменения столько раз, сколько label-ов было изменено...)
     def label_issue(linked_projects, issue):
 
 
@@ -552,11 +552,11 @@ def process_payload_from_gh(payload):
             tracker_id_rm = linked_issues.tracker_id_rm
 
         # проверяем, корректные ли label-ы
-        elif (tracker_id_rm == linked_issues.tracker_id_rm):
+        if (tracker_id_rm == linked_issues.tracker_id_rm):
 
-            # корректируем label-ы в гитхабе
+            # корректируем label-ы в гитхабе, при необходимости
             tracker = match_tracker_to_gh(tracker_id_rm)
-            correct_gh_labels(issue, tracker, linked_issues)
+            request_result = correct_gh_labels(issue, tracker, linked_issues)   # корректируем label-ы в гитхабе
 
             # сообщаем об ошибке
             error_text = "ERROR: process_payload_from_gh.label_issue\n" +\
@@ -564,15 +564,17 @@ def process_payload_from_gh(payload):
 
             return LOGICAL_ERR(error_text)
 
-        # обновляем информацию в таблице
-        update_linked_issues(linked_issues,
-                             tracker_id_rm,
-                             linked_issues.status_id_rm,
-                             linked_issues.priority_id_rm,
-                             True)
+        else:
 
-        tracker = match_tracker_to_gh(tracker_id_rm)
-        correct_gh_labels(issue, tracker, linked_issues)    # корректируем label-ы в гитхабе
+            # обновляем информацию в таблице
+            update_linked_issues(linked_issues,
+                                 tracker_id_rm,
+                                 linked_issues.status_id_rm,
+                                 linked_issues.priority_id_rm,
+                                 True)
+
+            tracker = match_tracker_to_gh(tracker_id_rm)
+            request_result = correct_gh_labels(issue, tracker, linked_issues)   # корректируем label-ы в гитхабе
 
 
         # ------------------------------------------ ОБРАБОТКА ФРАЗЫ БОТА -----------------------------------------

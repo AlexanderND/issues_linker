@@ -10,14 +10,14 @@ from django.http import HttpResponse    # ответы серверу
 def WRITE_LOG_COLOUR(string, colour):
 
     # получение абсолютного пути до файла
-    script_dir = os.path.dirname(__file__)  # <-- absolute dir the script is in
-    log_file_name = os.path.join(script_dir, 'logs/server_log.txt')
-    log = open(log_file_name, 'a')
+    #script_dir = os.path.dirname(__file__)  # <-- absolute dir the script is in
+    #log_file_name = os.path.join(script_dir, 'logs/server_log.txt')
+    #log = open(log_file_name, 'a')
 
     print(colour + string + '\033[0m')
-    log.write(string + '\n')
+    #log.write(string + '\n')
 
-    log.close()
+    #log.close()
 
 '''
 Различные цвета (форматы) текста в консоли
@@ -34,11 +34,20 @@ def WRITE_LOG(string):
 
     string = str(string)
 
-    if (string.find('ERROR') == -1):
-        # выводим в консоли голубым цветом
-        WRITE_LOG_COLOUR(string, '\033[96m')
+    if (string.find('ERROR:') == -1):
+
+        if (string.find('WARNING:') == -1):
+
+            # выводим в консоли голубым цветом
+            WRITE_LOG_COLOUR(string, '\033[96m')
+
+        else:
+
+            # выводим в консоли жёлтым цветом
+            WRITE_LOG_COLOUR(string, '\033[93m')
 
     else:
+
         # выводим в консоли красным цветом
         WRITE_LOG_COLOUR(string, '\033[91m')
 

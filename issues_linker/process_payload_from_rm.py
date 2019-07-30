@@ -9,6 +9,7 @@ from issues_linker.quickstart.models import Linked_Issues           # связа
 from issues_linker.quickstart.models import Linked_Comments         # связанные комментарии
 
 from issues_linker.my_functions import WRITE_LOG                    # ведение логов
+from issues_linker.my_functions import WRITE_LOG_WAR                # ведение логов (предупреждения)
 from issues_linker.my_functions import align_special_symbols        # обработка спец. символов (\ -> \\)
 from issues_linker.my_functions import read_file                    # загрузка файла (возвращает строку)
 
@@ -515,7 +516,7 @@ def process_payload_from_rm(payload):
     # ============================================ ЗАГРУЗКА ISSUE В GITHUB =============================================
 
 
-    #block_action_opened = True
+    block_action_opened = True
 
     linked_projects = Linked_Projects.objects.get_by_project_id_rm(issue['project_id'])
     if (issue['action'] == 'opened'):
@@ -524,6 +525,17 @@ def process_payload_from_rm(payload):
 
             error_text = prevent_cyclic_issue_rm(issue)
             return HttpResponse(error_text, status=200)
+
+        if (block_action_opened):
+
+            error_text = "WARNING: process_payload_from_rm\n" + \
+                         "PROHIBITED ACTION"
+
+            WRITE_LOG('\n' + '=' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 35 + '\n' +
+                      'received webhook from REDMINE: issues | ' + 'action: ' + str(issue['action']) + '\n' +
+                      error_text)
+
+            return HttpResponse(error_text, status=403)
 
         request_result = post_issue(linked_projects, issue)
 
