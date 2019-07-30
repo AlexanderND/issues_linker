@@ -516,7 +516,7 @@ def process_payload_from_rm(payload):
     # ============================================ ЗАГРУЗКА ISSUE В GITHUB =============================================
 
 
-    block_action_opened = True
+    block_action_opened = True  # запрет копирования задач: RM -> GH
 
     linked_projects = Linked_Projects.objects.get_by_project_id_rm(issue['project_id'])
     if (issue['action'] == 'opened'):

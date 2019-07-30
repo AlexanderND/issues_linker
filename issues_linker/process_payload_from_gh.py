@@ -499,6 +499,93 @@ def process_payload_from_gh(payload):
 
         return request_result
 
+    def reject_issue(linked_projects, issue):
+
+
+        # ----------------------------------------------- ПОДГОТОВКА ----------------------------------------------
+
+
+        # дополнительная проверка, что проекты связаны
+        if (linked_projects.count() == 0):
+
+            error_text = "ERROR: process_payload_from_gh.reject_issue\n" +\
+                         "issue " + str(issue['action']) + " in GITHUB, but the project is not linked to REDMINE"
+
+            return PREPARATION_ERR(error_text)
+
+        linked_projects = linked_projects[0]
+
+        project_id_rm = linked_projects.project_id_rm
+        repos_id_gh = linked_projects.repos_id_gh
+        url_gh = make_gh_repos_url(repos_id_gh)
+
+        linked_issues = linked_projects.get_issue_by_id_gh(issue['issue_id'])
+
+        # дополнительная проверка, что issue связаны
+        if (linked_issues.count() == 0):
+
+            error_text = "ERROR: process_payload_from_gh.reject_issue\n" +\
+                         "issue " + str(issue['action']) + " in GITHUB, but it's not linked to REDMINE"
+
+            return PREPARATION_ERR(error_text)
+
+        linked_issues = linked_issues[0]
+
+        # обновляем информацию в таблице
+        update_linked_issues(linked_issues,
+                             linked_issues.tracker_id_rm,
+                             status_ids_rm[4],              # 4 - rejected
+                             linked_issues.priority_id_rm,
+                             False)
+
+        # ------------------------------------------ ОБРАБОТКА ФРАЗЫ БОТА -----------------------------------------
+
+
+        #title = '[From Github] ' + issue['issue_title']
+        title = issue['issue_title']
+
+        # проверяем, если автор issue - бот
+        if (chk_if_gh_user_is_our_bot(issue['issue_author_id'])):
+            issue_body = del_bot_phrase(issue['issue_body'])        # удаляем фразу бота
+
+        else:
+            issue_body = add_bot_phrase(issue, 'issue_body')        # добавляем фразу бота
+
+        comment_body = add_bot_phrase(issue, 'comment_body_action') # добавляем фразу бота в комментарий к действию
+
+        # обработка спец. символов
+        title = align_special_symbols(title)
+        issue_body = align_special_symbols(issue_body)
+        comment_body = align_special_symbols(comment_body)
+
+
+        # --------------------------------------- ЗАГРУЗКА ДАННЫХ В РЕДМАЙН ----------------------------------------
+
+
+        issue_templated = issue_redmine_template.render(
+            project_id=project_id_rm,
+            issue_id=linked_issues.issue_id_rm,
+            tracker_id=linked_issues.tracker_id_rm,
+            status_id=status_ids_rm[4],                     # 4 - rejected
+            priority_id=linked_issues.priority_id_rm,
+            subject=title,
+            description=issue_body,
+            notes=comment_body)
+
+        # кодировка Latin-1 на некоторых задачах приводит к ошибке кодировки в питоне
+        issue_templated = issue_templated.encode('utf-8')
+
+        issue_url_rm = url_rm.replace('.json',
+                                      '/' + str(linked_issues.issue_id_rm) + '.json')
+        request_result = requests.put(issue_url_rm,
+                                      data=issue_templated,
+                                      headers=headers_rm)
+
+        # ДЕБАГГИНГ
+        log_issue_gh(request_result, issue, linked_issues, linked_projects.project_id_rm)
+
+        return request_result
+
     # TODO: бот не совсем корректно реагирует, если изменить трекер и что-либо ещё
     # TODO: также, бот несколько раз упоминает действие в редмайне (labeled, unlabeld) (так как гитхаб отсылает все изменения столько раз, сколько label-ов было изменено...)
     def label_issue(linked_projects, issue):
@@ -628,6 +715,8 @@ def process_payload_from_gh(payload):
     # ============================================ ЗАГРУЗКА ISSUE В REDMINE ============================================
 
 
+    do_delete_issues = False    # запрет удаления issues (вместо удаления ставим rejected)
+
     linked_projects = Linked_Projects.objects.get_by_repos_id_gh(issue['repos_id'])
     if (issue['action'] == 'opened'):
 
@@ -672,7 +761,11 @@ def process_payload_from_gh(payload):
             error_text = prevent_cyclic_issue_gh(issue)
             return HttpResponse(error_text, status=200)
 
-        request_result = delete_issue(linked_projects, issue)
+        if (do_delete_issues):
+            request_result = delete_issue(linked_projects, issue)
+
+        else:
+            request_result = reject_issue(linked_projects, issue)
 
     # Совершенно безразлично, 'labeled' или 'unlabeled'
     elif ((issue['action'] == 'labeled') | (issue['action'] == 'unlabeled')):
