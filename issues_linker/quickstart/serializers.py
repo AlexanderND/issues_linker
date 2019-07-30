@@ -7,6 +7,7 @@ from issues_linker.quickstart.models import Repository_GH, Project_RM, Issue_GH,
 # мои модели (связь)
 from issues_linker.quickstart.models import Linked_Projects, Linked_Issues, Linked_Comments
 
+
 '''# testing
 class UserSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
@@ -121,7 +122,7 @@ class Linked_Issues_Serializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Linked_Issues
         fields = ('issue_id_rm', 'issue_id_gh', 'repos_id_gh', 'issue_num_gh', 'comments',
-                  'tracker_id_rm', 'status_id_rm', 'priority_id_rm')
+                  'tracker_id_rm', 'status_id_rm', 'priority_id_rm', 'is_opened')
 
 ''' связынные комментарии в issue'''
 class Linked_Comments_Serializer(serializers.HyperlinkedModelSerializer):

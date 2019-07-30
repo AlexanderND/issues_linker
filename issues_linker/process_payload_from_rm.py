@@ -31,6 +31,11 @@ from issues_linker.my_functions import match_tracker_to_gh          # сопос
 from issues_linker.my_functions import match_status_to_gh           # сопоставление label-ов
 from issues_linker.my_functions import match_priority_to_gh         # сопоставление label-ов
 
+from issues_linker.my_functions import tracker_ids_rm               # ids трекеров задачи в редмайне
+from issues_linker.my_functions import status_ids_rm                # ids статусов задачи в редмайне
+from issues_linker.my_functions import priority_ids_rm              # ids приоритетов задачи в редмайне
+from issues_linker.my_functions import url_rm                       # ссылка на сервер редмайна
+
 
 def process_payload_from_rm(payload):
     payload = payload['payload']    # достаём содержимое payload. payload payload. payload? payload!
@@ -173,8 +178,21 @@ def process_payload_from_rm(payload):
     def update_linked_issues(linked_issues, issue):
 
         linked_issues.tracker_id_rm = issue['tracker_id']
-        linked_issues.status_id_rm = issue['status_id']
         linked_issues.priority_id_rm = issue['priority_id']
+
+        # если rejected
+        if (issue['status_id'] == status_ids_rm[4]):
+            linked_issues.is_opened = False
+            linked_issues.status_id_rm = issue['priority_id']
+
+        # если closed
+        elif (issue['status_id'] == status_ids_rm[5]):
+            linked_issues.is_opened = False
+
+        # иначе - открываем
+        else:
+            linked_issues.is_opened = True
+            linked_issues.status_id_rm = issue['priority_id']
 
         linked_issues.save()
 
@@ -431,7 +449,7 @@ def process_payload_from_rm(payload):
         # ------------------------------------------ СОХРАНЕНИЕ ДАННЫХ --------------------------------------------
 
 
-        # сохранение данных на сервере
+        # обновляем информацию в таблице
         update_linked_issues(linked_issues,
                              issue)
 

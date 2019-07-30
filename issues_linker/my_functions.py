@@ -85,13 +85,20 @@ def del_bot_phrase(body):
 
     # если body не пустой - удаляем фразу бота
     else:
-        body_processed = body_parts[1] + ': '
 
-        for body_part in range(2, len(body_parts) - 1):
-            body_processed += body_parts[body_part] + ': '
+        # обработка случая, когда пользователь использовал ': ' в тексте
+        if (len(body_parts) > 2):
+            body_processed = body_parts[1] + ': '
 
-        body_processed += body_parts[len(body_parts) - 1]
-        body_processed = body_processed.replace('\n>', '\n')    # убираем цитирование бота
+            for body_part in range(2, len(body_parts) - 1):
+                body_processed += body_parts[body_part] + ': '
+
+            body_processed += body_parts[len(body_parts) - 1]
+
+        else:
+            body_processed = body_parts[1]
+
+        body_processed = body_processed.replace('\n>', '\n')  # убираем цитирование бота
 
     return body_processed
 
@@ -275,7 +282,8 @@ def match_priority_to_gh(priority_id_rm):
 
 BOT_ID_RM = 6           # id бота в редмайне (предотвращение зацикливания)
 
-project_id_rm = 2       # 2 - проект на локальном сервере редмайна (тестовый сервер)
+# project_id_rm = 2     # первый тестовый проект на локальном сервере редмайна (тестовый сервер)
+# project_id_rm = 3     # второй тестовый проект на локальном сервере редмайна (тестовый сервер)
 
 '''
 0 (4)  - Задача                         | Tracker: task
@@ -354,7 +362,7 @@ def log_issue_post_rm(result, issue, linked_issues):
               'GITHUB  | ---------------- issue ----------------' + '\n' +
               '        | url:           ' + url_gh + '\n' +
               '        | issue_id:      ' + str(linked_issues.issue_id_gh) + '\n' +
-              '        | repos_id:      ' + repos_id_gh + '\n' +
+              '        | repos_id:      ' + str(repos_id_gh) + '\n' +
               '        | issue_number:  ' + str(linked_issues.issue_num_gh) + '\n' +
               '        |\n' +
               'REDMINE | ---------------- issue ----------------' + '\n' +
@@ -465,6 +473,9 @@ def prevent_cyclic_comment_rm(issue):
 
 BOT_ID_GH = 53174303    # id бота в гитхабе (предотвращение зацикливания)
 
+# repos_id_gh = 194635238   # первый тестовый проект
+# repos_id_gh = 198999948   # второй тестовый проект
+
 # ----------------------------------------------------- ФУНКЦИИ --------------------------------------------------
 
 def make_gh_repos_url(repos_id_gh):
@@ -494,7 +505,16 @@ def log_issue_gh(result, issue, linked_issues, project_id_rm):
     elif (issue['action'] == 'edited'):
         action_rm = 'EDIT'
 
+    elif (issue['action'] == 'closed'):
+        action_rm = 'EDIT'
+
+    elif (issue['action'] == 'reopened'):
+        action_rm = 'EDIT'
+
     elif (issue['action'] == 'labeled'):
+        action_rm = 'EDIT'
+
+    elif (issue['action'] == 'unlabeled'):
         action_rm = 'EDIT'
 
     else:

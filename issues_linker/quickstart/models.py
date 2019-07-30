@@ -327,6 +327,9 @@ class Linked_Issues(models.Model):
     status_id_rm = models.IntegerField(blank=1, null=1)
     priority_id_rm = models.IntegerField(blank=1, null=1)
 
+    # состояние issue: закрыт / открыт
+    is_opened = models.BooleanField(default=True)
+
     comments = models.ManyToManyField(Linked_Comments, blank=1)     # комментарии к issue
 
 
@@ -346,10 +349,6 @@ class Linked_Issues(models.Model):
 
     def get_comment_by_id_rm(self, comment_id_rm):
         return Linked_Comments.objects.get_by_comment_id_rm(comment_id_rm)
-
-
-    def set_tracker_id_rm(self, tracker_id):
-        self.tracker_id_rm = tracker_id
 
 
     db_table = 'linked_issues'

@@ -159,14 +159,17 @@ def process_payload_from_gh(payload):
             return None
 
     # обновление linked_issues в базе данных сервера (tracker_id, status_id, priority_id)
-    def update_linked_issues(linked_issues, tracker_id, status_id, priority_id):
+    def update_linked_issues(linked_issues, tracker_id, status_id, priority_id, is_opened):
 
         linked_issues.tracker_id_rm = tracker_id
         linked_issues.status_id_rm = status_id
         linked_issues.priority_id_rm = priority_id
 
+        linked_issues.is_opened = is_opened
+
         linked_issues.save()
 
+    # TODO: отправлять комментарий бота, что нельзя установить неправильные label-ы + логи?
     # исправление label-ов в гитхабе
     def correct_gh_labels(issue, tracker, linked_issues):
 
@@ -188,6 +191,27 @@ def process_payload_from_gh(payload):
         issue_templated = issue_templated.encode('utf-8')
 
         url_gh = make_gh_repos_url(linked_issues.repos_id_gh)
+
+        # добавление issue_id к ссылке
+        issue_url_gh = url_gh + '/' + str(linked_issues.issue_num_gh)
+        request_result = requests.patch(issue_url_gh,
+                                   data=issue_templated,
+                                   headers=headers_gh)
+
+        return request_result
+
+    # TODO: отправлять комментарий бота, что нельзя открыть jegected issue + логи?
+    # закрыть issue в гитхабе
+    def close_gh_issue(linked_issues, url_gh):
+
+
+        # ---------------------------------------- ЗАГРУЗКА ДАННЫХ В ГИТХАБ ----------------------------------------
+
+
+        issue_templated = issue_github_template.render(
+            state='closed')
+        # кодировка Latin-1 на некоторых задачах приводит к ошибке кодировки в питоне
+        issue_templated = issue_templated.encode('utf-8')
 
         # добавление issue_id к ссылке
         issue_url_gh = url_gh + '/' + str(linked_issues.issue_num_gh)
@@ -331,7 +355,8 @@ def process_payload_from_gh(payload):
 
         return request_result
 
-    def edit_issue(linked_projects, issue, status_id):
+    # is_opened - issue открыто / закрыто
+    def edit_issue(linked_projects, issue, is_opened):
 
 
         # ----------------------------------------------- ПОДГОТОВКА ----------------------------------------------
@@ -348,6 +373,8 @@ def process_payload_from_gh(payload):
         linked_projects = linked_projects[0]
 
         project_id_rm = linked_projects.project_id_rm
+        repos_id_gh = linked_projects.repos_id_gh
+        url_gh = make_gh_repos_url(repos_id_gh)
 
         linked_issues = linked_projects.get_issue_by_id_gh(issue['issue_id'])
 
@@ -361,6 +388,20 @@ def process_payload_from_gh(payload):
 
         linked_issues = linked_issues[0]
 
+        # проверка: что issue был отклонён (запрещаем открывать вновь)
+        if (linked_issues.status_id_rm == status_ids_rm[4]):
+
+            if (is_opened == True):
+
+                return close_gh_issue(linked_issues, url_gh)
+
+
+        # обновляем информацию в таблице
+        update_linked_issues(linked_issues,
+                             linked_issues.tracker_id_rm,
+                             linked_issues.status_id_rm,
+                             linked_issues.priority_id_rm,
+                             is_opened)
 
         # ------------------------------------------ ОБРАБОТКА ФРАЗЫ БОТА -----------------------------------------
 
@@ -386,6 +427,12 @@ def process_payload_from_gh(payload):
         # --------------------------------------- ЗАГРУЗКА ДАННЫХ В РЕДМАЙН ----------------------------------------
 
 
+        if (is_opened):
+            status_id = linked_issues.status_id_rm
+
+        else:
+            status_id = status_ids_rm[5]    # closed
+
         issue_templated = issue_redmine_template.render(
             project_id=project_id_rm,
             issue_id=linked_issues.issue_id_rm,
@@ -404,7 +451,6 @@ def process_payload_from_gh(payload):
         request_result = requests.put(issue_url_rm,
                                       data=issue_templated,
                                       headers=headers_rm)
-
 
         # ДЕБАГГИНГ
         log_issue_gh(request_result, issue, linked_issues, linked_projects.project_id_rm)
@@ -518,10 +564,13 @@ def process_payload_from_gh(payload):
 
             return LOGICAL_ERR(error_text)
 
+        # обновляем информацию в таблице
         update_linked_issues(linked_issues,
                              tracker_id_rm,
                              linked_issues.status_id_rm,
-                             linked_issues.priority_id_rm)
+                             linked_issues.priority_id_rm,
+                             True)
+
         tracker = match_tracker_to_gh(tracker_id_rm)
         correct_gh_labels(issue, tracker, linked_issues)    # корректируем label-ы в гитхабе
 
@@ -594,7 +643,7 @@ def process_payload_from_gh(payload):
             error_text = prevent_cyclic_issue_gh(issue)
             return HttpResponse(error_text, status=200)
 
-        request_result = edit_issue(linked_projects, issue, status_ids_rm[0])      # 0 - status "new"
+        request_result = edit_issue(linked_projects, issue, True)
 
     elif (issue['action'] == 'closed'):
 
@@ -603,7 +652,7 @@ def process_payload_from_gh(payload):
             error_text = prevent_cyclic_issue_gh(issue)
             return HttpResponse(error_text, status=200)
 
-        request_result = edit_issue(linked_projects, issue, status_ids_rm[5])      # 5 - status "closed"
+        request_result = edit_issue(linked_projects, issue, False)
 
     elif (issue['action'] == 'reopened'):
 
@@ -612,7 +661,7 @@ def process_payload_from_gh(payload):
             error_text = prevent_cyclic_issue_gh(issue)
             return HttpResponse(error_text, status=200)
 
-        request_result = edit_issue(linked_projects, issue, status_ids_rm[0])      # 0 - status "new"
+        request_result = edit_issue(linked_projects, issue, True)
 
     elif (issue['action'] == 'deleted'):
 
