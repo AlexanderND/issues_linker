@@ -86,26 +86,17 @@ def read_file(file_path):
 def del_bot_phrase(body):
 
     body_parts = body.split(': ')  # разбиваем body на части (часть 0 - фраза бота)
-    WRITE_LOG(str(body_parts))
 
     # если body пустой - значит, фраза бота закончилась на точку (нет опсания)
-    if (len(body_parts) == 1):
-        body_processed = ''
+    body_processed = ''
+    if (len(body_parts) > 1):
 
-    # если body не пустой - удаляем фразу бота
-    else:
+        for body_part in range(1, len(body_parts)):
+            body_processed += body_parts[body_part]
 
-        # обработка случая, когда пользователь использовал ': ' в тексте
-        if (len(body_parts) > 2):
-            body_processed = body_parts[1] + ': '
-
-            for body_part in range(2, len(body_parts) - 1):
-                body_processed += body_parts[body_part] + ': '
-
-            body_processed += body_parts[len(body_parts) - 1]
-
-        else:
-            body_processed = body_parts[1]
+            # много частей, если пользователь использовал ': ' в тексте
+            if (body_part < len(body_parts) - 1):
+                body_processed += ': '
 
         body_processed = body_processed.replace('\n>', '\n')  # убираем цитирование бота
 

@@ -456,7 +456,6 @@ def process_payload_from_gh(payload):
 
         return request_result
 
-    # TODO: не удалять, а ставить "rejected" в редмайне
     def delete_issue(linked_projects, issue):
 
 
@@ -494,6 +493,10 @@ def process_payload_from_gh(payload):
 
         request_result = requests.delete(issue_url_rm,
                                          headers=headers_rm)
+
+        # удаление linked_issues из базы данных
+        linked_issues.delete()
+
         # ДЕБАГГИНГ
         log_issue_gh(request_result, issue, linked_issues, linked_projects.project_id_rm)
 
@@ -581,6 +584,9 @@ def process_payload_from_gh(payload):
                                       data=issue_templated,
                                       headers=headers_rm)
 
+        # удаление linked_issues из базы данных
+        linked_issues.delete()
+
         # ДЕБАГГИНГ
         log_issue_gh(request_result, issue, linked_issues, linked_projects.project_id_rm)
 
@@ -618,13 +624,40 @@ def process_payload_from_gh(payload):
 
         linked_issues = linked_issues[0]
 
+        priority_id_rm = None
+        status_id_rm = None
         tracker_id_rm = None
+        incorrect_labels = False
         labels = issue['labels']
         for label in labels:
 
             label_gh = match_label_to_rm(label['name'])
 
-            if (label_gh['type'] == 'Tracker'):
+            if (label_gh['type'] == 'Priority'):
+
+                if (priority_id_rm == None):
+
+                    priority_id_rm = label_gh['id_rm']
+
+                    if (priority_id_rm != linked_issues.priority_id_rm):
+                        incorrect_labels = True
+
+                else:
+                    incorrect_labels = True
+
+            elif (label_gh['type'] == 'Status'):
+
+                if (status_id_rm == None):
+
+                    status_id_rm = label_gh['id_rm']
+
+                    if (status_id_rm != linked_issues.status_id_rm):
+                        incorrect_labels = True
+
+                else:
+                    incorrect_labels = True
+
+            elif (label_gh['type'] == 'Tracker'):
 
                 if (tracker_id_rm == None):
                     tracker_id_rm = label_gh['id_rm']
@@ -638,12 +671,19 @@ def process_payload_from_gh(payload):
         if (tracker_id_rm == None):
             tracker_id_rm = linked_issues.tracker_id_rm
 
-        # проверяем, корректные ли label-ы
-        if (tracker_id_rm == linked_issues.tracker_id_rm):
+        # корректируем label-ы в гитхабе
+        tracker = match_tracker_to_gh(tracker_id_rm)
+        request_result = correct_gh_labels(issue, tracker, linked_issues)   # корректируем label-ы в гитхабе
 
-            # корректируем label-ы в гитхабе, при необходимости
-            tracker = match_tracker_to_gh(tracker_id_rm)
-            request_result = correct_gh_labels(issue, tracker, linked_issues)   # корректируем label-ы в гитхабе
+        # обновляем информацию в таблице
+        update_linked_issues(linked_issues,
+                             tracker_id_rm,
+                             linked_issues.status_id_rm,
+                             linked_issues.priority_id_rm,
+                             True)
+
+        # проверяем, корректные ли label-ы
+        if (incorrect_labels):
 
             # сообщаем об ошибке
             error_text = "ERROR: process_payload_from_gh.label_issue\n" +\
@@ -651,17 +691,6 @@ def process_payload_from_gh(payload):
 
             return LOGICAL_ERR(error_text)
 
-        else:
-
-            # обновляем информацию в таблице
-            update_linked_issues(linked_issues,
-                                 tracker_id_rm,
-                                 linked_issues.status_id_rm,
-                                 linked_issues.priority_id_rm,
-                                 True)
-
-            tracker = match_tracker_to_gh(tracker_id_rm)
-            request_result = correct_gh_labels(issue, tracker, linked_issues)   # корректируем label-ы в гитхабе
 
 
         # ------------------------------------------ ОБРАБОТКА ФРАЗЫ БОТА -----------------------------------------

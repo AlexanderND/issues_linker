@@ -285,6 +285,7 @@ class Linked_Comments(models.Model):
 # ===================================================== СВЯЗЬ ISSUES ===================================================
 
 
+# TODO: при удалении linked_issues linked_comments не удаляются (использовать что-то другое, вместо ManyToMany (https://stackoverflow.com/questions/3937194/django-cascade-deletion-in-manytomanyrelation))
 '''Класс "Linked_Issues" - связанные issues (issue_id_rm - repo_id_gh, issue_id_gh)'''
 class Linked_Issues_Manager(models.Manager):
 
