@@ -33,6 +33,7 @@ from issues_linker.my_functions import match_priority_to_gh         # сопос
 
 from issues_linker.my_functions import make_gh_repos_url            # ссылка на гитхаб
 
+
 def process_payload_from_gh(payload):
 
 
@@ -97,7 +98,7 @@ def process_payload_from_gh(payload):
                   'Content-Type': 'application/json'}
 
 
-    # ============================================= КОМАНДЫ ДЛЯ ЗАГРУЗКИ ===============================================
+    # ============================================ ВСПОМОГАТЕЛЬНЫЕ КОМАНДЫ =============================================
 
 
     # issue_body
@@ -145,19 +146,19 @@ def process_payload_from_gh(payload):
             issue_url = '"issue":' + issue['issue_url']
             comment_body = 'I am a bot, bleep-bloop.\n' +\
                          author_url + ' Has ' + issue['action'] + ' the ' + issue_url + ' in Github.'
-                         #author_url + ' Has ' + issue['action'] + ' a comment on ' + issue_url + '.'
 
             return comment_body
 
         else:
 
-            WRITE_LOG("\nERROR: process_payload_from_gh.add_bot_phrase - unknown parameter 'to': " + to + '.' +
-                      "\nPlease, check your code on possible typos." +
-                      "\nAlternatively, add logic to process '" + to + "' action correctly.\n")
+            WRITE_LOG("\nERROR: 'process_payload_from_gh.add_bot_phrase'\n" +
+                      "unknown parameter 'to': " + to + '.\n' +
+                      "Please, check your code on possible typos.\n" +
+                      "Alternatively, add logic to process '" + to + "' parameter correctly.")
 
             return None
 
-
+    # обновление linked_issues в базе данных сервера (tracker_id, status_id, priority_id)
     def update_linked_issues(linked_issues, tracker_id, status_id, priority_id):
 
         linked_issues.tracker_id_rm = tracker_id
@@ -166,7 +167,7 @@ def process_payload_from_gh(payload):
 
         linked_issues.save()
 
-
+    # исправление label-ов в гитхабе
     def correct_gh_labels(issue, tracker, linked_issues):
 
         # добавление label-ов
@@ -196,20 +197,49 @@ def process_payload_from_gh(payload):
 
         return request_result
 
+
+    # типичные ошибки на этапе проверки: не связаны проекты, задачи, комментарии, неизвестное действие и т.п.
+    def PREPARATION_ERR(error_text):
+
+        # добавляем, чтобы в начале получилось: 'PREPARATION ERROR'
+        error_text = 'PREPARATION ' + error_text
+
+        WRITE_LOG('\n' + '=' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 35 + '\n' +
+                  'received webhook from GITHUB: issues | ' + 'action: ' + str(issue['action']) + '\n' +
+                  error_text)
+
+        return HttpResponse(error_text, status=404)
+
+    # логическая ошибка: неизвестное действие, неправильные label-ы в гитхабе и т.п.
+    def LOGICAL_ERR(error_text):
+
+        # добавляем, чтобы в начале получилось: 'LOGICAL ERROR'
+        error_text = 'LOGICAL ' + error_text
+
+        WRITE_LOG('\n' + '=' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 35 + '\n' +
+                  'received webhook from GITHUB: issues | ' + 'action: ' + str(issue['action']) + '\n' +
+                  error_text)
+
+        return HttpResponse(error_text, status=422)
+
+
+    # ============================================= КОМАНДЫ ДЛЯ ЗАГРУЗКИ ===============================================
+
+
     def post_issue(linked_projects, issue):
 
 
         # ----------------------------------------------- ПОДГОТОВКА ----------------------------------------------
 
 
-        '''
         # дополнительная проверка, что проекты связаны
         if (linked_projects.count() == 0):
-            error_text = "ERROR: issue posted in REDMINE, but the project is not linked to GITHUB"
-            WRITE_LOG('\n' + '=' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 35 + '\n' +
-                      'received webhook from REDMINE: issues | ' + 'action: ' + str(issue['action']) + '\n' +
-                      error_text)
-            return HttpResponse(error_text, status=404)'''
+
+            error_text = "ERROR: process_payload_from_gh.post_issue\n" +\
+                         "issue " + str(issue['action']) + " in GITHUB, but the project is not linked to REDMINE"
+
+            return PREPARATION_ERR(error_text)
+
         linked_projects = linked_projects[0]
 
         project_id_rm = linked_projects.project_id_rm
@@ -306,14 +336,15 @@ def process_payload_from_gh(payload):
 
         # ----------------------------------------------- ПОДГОТОВКА ----------------------------------------------
 
-        '''
+
         # дополнительная проверка, что проекты связаны
         if (linked_projects.count() == 0):
-            error_text = "ERROR: issue posted in REDMINE, but the project is not linked to GITHUB"
-            WRITE_LOG('\n' + '=' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 35 + '\n' +
-                      'received webhook from REDMINE: issues | ' + 'action: ' + str(issue['action']) + '\n' +
-                      error_text)
-            return HttpResponse(error_text, status=404)'''
+
+            error_text = "ERROR: process_payload_from_gh.edit_issue\n" +\
+                         "issue " + str(issue['action']) + " in GITHUB, but the project is not linked to REDMINE"
+
+            return PREPARATION_ERR(error_text)
+
         linked_projects = linked_projects[0]
 
         project_id_rm = linked_projects.project_id_rm
@@ -323,11 +354,10 @@ def process_payload_from_gh(payload):
         # дополнительная проверка, что issue связаны
         if (linked_issues.count() == 0):
 
-            error_text = "ERROR: issue edited in GITHUB, but it's not linked to REDMINE"
-            WRITE_LOG('\n' + '-'*20 + ' ' + str(datetime.datetime.today()) + ' | EDIT issue in REDMINE ' + '-'*19 + '\n' +
-                      error_text)
+            error_text = "ERROR: process_payload_from_gh.edit_issue\n" +\
+                         "issue " + str(issue['action']) + " in GITHUB, but it's not linked to REDMINE"
 
-            return HttpResponse(error_text, status=404)
+            return PREPARATION_ERR(error_text)
 
         linked_issues = linked_issues[0]
 
@@ -387,14 +417,15 @@ def process_payload_from_gh(payload):
 
         # ----------------------------------------------- ПОДГОТОВКА -----------------------------------------------
 
-        '''
+
         # дополнительная проверка, что проекты связаны
         if (linked_projects.count() == 0):
-            error_text = "ERROR: issue posted in REDMINE, but the project is not linked to GITHUB"
-            WRITE_LOG('\n' + '=' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 35 + '\n' +
-                      'received webhook from REDMINE: issues | ' + 'action: ' + str(issue['action']) + '\n' +
-                      error_text)
-            return HttpResponse(error_text, status=404)'''
+
+            error_text = "ERROR: process_payload_from_gh.delete_issue\n" +\
+                         "issue " + str(issue['action']) + " in GITHUB, but the project is not linked to REDMINE"
+
+            return PREPARATION_ERR(error_text)
+
         linked_projects = linked_projects[0]
 
         linked_issues = linked_projects.get_issue_by_id_gh(issue['issue_id'])
@@ -402,11 +433,10 @@ def process_payload_from_gh(payload):
         # дополнительная проверка, что issue связаны
         if (linked_issues.count() == 0):
 
-            error_text = "ERROR: issue deleted in GITHUB, but it's not linked to REDMINE"
-            WRITE_LOG('\n' + '-'*20 + ' ' + str(datetime.datetime.today()) + ' | EDIT issue in REDMINE ' + '-'*19 + '\n' +
-                      error_text)
+            error_text = "ERROR: process_payload_from_gh.delete_issue\n" +\
+                         "issue " + str(issue['action']) + " in GITHUB, but it's not linked to REDMINE"
 
-            return HttpResponse(error_text, status=404)
+            return PREPARATION_ERR(error_text)
 
         linked_issues = linked_issues[0]
 
@@ -430,14 +460,15 @@ def process_payload_from_gh(payload):
 
         # ----------------------------------------------- ПОДГОТОВКА -----------------------------------------------
 
-        '''
+
         # дополнительная проверка, что проекты связаны
         if (linked_projects.count() == 0):
-            error_text = "ERROR: issue posted in REDMINE, but the project is not linked to GITHUB"
-            WRITE_LOG('\n' + '=' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 35 + '\n' +
-                      'received webhook from REDMINE: issues | ' + 'action: ' + str(issue['action']) + '\n' +
-                      error_text)
-            return HttpResponse(error_text, status=404)'''
+
+            error_text = "ERROR: process_payload_from_gh.label_issue\n" +\
+                         "issue " + str(issue['action']) + " in GITHUB, but the project is not linked to REDMINE"
+
+            return PREPARATION_ERR(error_text)
+
         linked_projects = linked_projects[0]
 
         project_id_rm = linked_projects.project_id_rm
@@ -447,11 +478,10 @@ def process_payload_from_gh(payload):
         # дополнительная проверка, что issue связаны
         if (linked_issues.count() == 0):
 
-            error_text = "ERROR: issue edited in GITHUB, but it's not linked to REDMINE"
-            WRITE_LOG('\n' + '-'*20 + ' ' + str(datetime.datetime.today()) + ' | EDIT issue in REDMINE ' + '-'*19 + '\n' +
-                      error_text)
+            error_text = "ERROR: process_payload_from_gh.label_issue\n" +\
+                         "issue " + str(issue['action']) + " in GITHUB, but it's not linked to REDMINE"
 
-            return HttpResponse(error_text, status=404)
+            return PREPARATION_ERR(error_text)
 
         linked_issues = linked_issues[0]
 
@@ -478,14 +508,15 @@ def process_payload_from_gh(payload):
         # проверяем, корректные ли label-ы
         elif (tracker_id_rm == linked_issues.tracker_id_rm):
 
-            error_text = "ERROR: incorrect labels in GITHUB"
-            WRITE_LOG('\n' + '-'*20 + ' ' + str(datetime.datetime.today()) + ' | EDIT issue in REDMINE ' + '-'*19 + '\n' +
-                      error_text)
-
+            # корректируем label-ы в гитхабе
             tracker = match_tracker_to_gh(tracker_id_rm)
-            correct_gh_labels(issue, tracker, linked_issues)  # корректируем label-ы в гитхабе
+            correct_gh_labels(issue, tracker, linked_issues)
 
-            return HttpResponse(error_text, status=422)
+            # сообщаем об ошибке
+            error_text = "ERROR: process_payload_from_gh.label_issue\n" +\
+                         "incorrect labels in GITHUB"
+
+            return LOGICAL_ERR(error_text)
 
         update_linked_issues(linked_issues,
                              tracker_id_rm,
@@ -604,12 +635,10 @@ def process_payload_from_gh(payload):
 
     else:
 
-        error_text = 'ERROR: WRONG ACTION'
-        WRITE_LOG('\n' + '='*35 + ' ' + str(datetime.datetime.today()) + ' ' + '='*35 + '\n' +
-                  'received webhook from GITHUB: issues | ' + 'action: ' + str(issue['action']) + '\n' +
-                  error_text)
+        error_text = "ERROR: process_payload_from_gh\n" +\
+                     "UNKNOWN ACTION"
 
-        return HttpResponse(error_text, status=422)
+        return LOGICAL_ERR(error_text)
 
 
     return allign_request_result(request_result)

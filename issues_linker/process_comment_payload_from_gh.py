@@ -28,7 +28,6 @@ from issues_linker.my_functions import allign_request_result        # созда
 
 
 def process_comment_payload_from_gh(payload):
-    #payload = json.loads(payload['payload'])    # достаём содержимое payload
 
 
     # =================================================== ПОДГОТОВКА ===================================================
@@ -80,7 +79,7 @@ def process_comment_payload_from_gh(payload):
                'Content-Type': 'application/json'}
 
 
-    # ============================================= КОМАНДЫ ДЛЯ ЗАГРУЗКИ ===============================================
+    # ============================================ ВСПОМОГАТЕЛЬНЫЕ КОМАНДЫ =============================================
 
 
     # issue_body
@@ -166,20 +165,48 @@ def process_comment_payload_from_gh(payload):
             return None
 
 
+    # типичные ошибки на этапе проверки: не связаны проекты, задачи, комментарии, неизвестное действие и т.п.
+    def PREPARATION_ERR(error_text):
+
+        # добавляем, чтобы в начале получилось: 'PREPARATION ERROR'
+        error_text = 'PREPARATION ' + error_text
+
+        WRITE_LOG('\n' + '=' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 35 + '\n' +
+                  'received webhook from GITHUB: issues_comments | ' + 'action: ' + str(issue['action']) + '\n' +
+                  error_text)
+
+        return HttpResponse(error_text, status=404)
+
+    # логическая ошибка: неизвестное действие, неправильные label-ы в гитхабе и т.п.
+    def LOGICAL_ERR(error_text):
+
+        # добавляем, чтобы в начале получилось: 'LOGICAL ERROR'
+        error_text = 'LOGICAL ' + error_text
+
+        WRITE_LOG('\n' + '=' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 35 + '\n' +
+                  'received webhook from GITHUB: issues_comments | ' + 'action: ' + str(issue['action']) + '\n' +
+                  error_text)
+
+        return HttpResponse(error_text, status=422)
+
+
+    # ============================================= КОМАНДЫ ДЛЯ ЗАГРУЗКИ ===============================================
+
+
     def post_comment(linked_projects, issue):
 
 
         # ----------------------------------------------- ПОДГОТОВКА ----------------------------------------------
 
 
-        '''
         # дополнительная проверка, что проекты связаны
         if (linked_projects.count() == 0):
-            error_text = "ERROR: issue posted in REDMINE, but the project is not linked to GITHUB"
-            WRITE_LOG('\n' + '=' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 35 + '\n' +
-                      'received webhook from REDMINE: issues | ' + 'action: ' + str(issue['action']) + '\n' +
-                      error_text)
-            return HttpResponse(error_text, status=404)'''
+
+            error_text = "ERROR: process_comment_payload_from_gh.post_comment\n" +\
+                         "comment " + str(issue['action']) +" in GITHUB, but the project is not linked to REDMINE"
+
+            return PREPARATION_ERR(error_text)
+
         linked_projects = linked_projects[0]
 
         project_id_rm = linked_projects.project_id_rm
@@ -189,11 +216,10 @@ def process_comment_payload_from_gh(payload):
         # дополнительная проверка, что issue связаны
         if (linked_issues.count() == 0):
 
-            error_text = "ERROR: posted comment in GITHUB, but the issue is not linked to REDMINE"
-            WRITE_LOG('\n' + '-'*20 + ' ' + str(datetime.datetime.today()) + ' | EDIT issue in REDMINE ' + '-'*19 + '\n' +
-                      error_text)
+            error_text = "ERROR: process_comment_payload_from_gh.post_comment\n" +\
+                         "comment " + str(issue['action']) + " in GITHUB, but the issue is not linked to REDMINE"
 
-            return HttpResponse(error_text, status=404)
+            return PREPARATION_ERR(error_text)
 
         linked_issues = linked_issues[0]
 
@@ -246,20 +272,22 @@ def process_comment_payload_from_gh(payload):
 
         return request_result
 
+    # изменение комментария (постим новый, пишем 'edited comment')
     def edit_comment(linked_projects, issue):
 
 
         # ----------------------------------------------- ПОДГОТОВКА ----------------------------------------------
 
 
-        '''
+
         # дополнительная проверка, что проекты связаны
         if (linked_projects.count() == 0):
-            error_text = "ERROR: issue posted in REDMINE, but the project is not linked to GITHUB"
-            WRITE_LOG('\n' + '=' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 35 + '\n' +
-                      'received webhook from REDMINE: issues | ' + 'action: ' + str(issue['action']) + '\n' +
-                      error_text)
-            return HttpResponse(error_text, status=404)'''
+
+            error_text = "ERROR: process_comment_payload_from_gh.edit_comment\n" +\
+                         "comment " + str(issue['action']) + " in GITHUB, but the project is not linked to REDMINE"
+
+            return PREPARATION_ERR(error_text)
+
         linked_projects = linked_projects[0]
 
         project_id_rm = linked_projects.project_id_rm
@@ -269,11 +297,10 @@ def process_comment_payload_from_gh(payload):
         # дополнительная проверка, что issue связаны
         if (linked_issues.count() == 0):
 
-            error_text = "ERROR: edited comment in GITHUB, but the issue is not linked to REDMINE"
-            WRITE_LOG('\n' + '-'*20 + ' ' + str(datetime.datetime.today()) + ' | EDIT issue in REDMINE ' + '-'*19 + '\n' +
-                      error_text)
+            error_text = "ERROR: process_comment_payload_from_gh.edit_comment\n" +\
+                         "comment " + str(issue['action']) + " in GITHUB, but the issue is not linked to REDMINE"
 
-            return HttpResponse(error_text, status=404)
+            return PREPARATION_ERR(error_text)
 
         linked_issues = linked_issues[0]
 
@@ -282,11 +309,10 @@ def process_comment_payload_from_gh(payload):
         # дополнительная проверка, что комментарии связаны
         if (linked_comments.count() == 0):
 
-            error_text = "ERROR: edited comment in GITHUB, but it is not linked to REDMINE"
-            WRITE_LOG('\n' + '-'*20 + ' ' + str(datetime.datetime.today()) + ' | EDIT issue in REDMINE ' + '-'*19 + '\n' +
-                      error_text)
+            error_text = "ERROR: process_comment_payload_from_gh.edit_comment\n" +\
+                         "comment " + str(issue['action']) + " in GITHUB, but it's not linked to REDMINE"
 
-            return HttpResponse(error_text, status=404)
+            return PREPARATION_ERR(error_text)
 
         linked_comments = linked_comments[0]
 
@@ -345,7 +371,10 @@ def process_comment_payload_from_gh(payload):
 
         return request_result
 
-    '''def edit_comment(issue, linked_issues):
+    '''
+    # изменение комментария (не постим новый, а изменяем старый)
+    # СТАРЫЙ КОД: перед использованием - привести в порядок (как edit_comment выше)
+    def edit_comment(issue, linked_issues):
 
         # дополнительная проверка, что issue связаны
         # (на случай, если изменили не связанный issue)
@@ -439,12 +468,10 @@ def process_comment_payload_from_gh(payload):
 
     else:
 
-        error_text = 'ERROR: WRONG ACTION'
-        WRITE_LOG('\n' + '='*35 + ' ' + str(datetime.datetime.today()) + ' ' + '='*35 + '\n' +
-                  'received webhook from GITHUB: issue_comment | ' + 'action: ' + str(issue['action']) + '\n' +
-                  error_text)
+        error_text = "ERROR: process_comment_payload_from_gh\n" + \
+                     "WRONG ACTION"
 
-        return HttpResponse(error_text, status=422)
+        return LOGICAL_ERR(error_text)
 
 
     return allign_request_result(request_result)

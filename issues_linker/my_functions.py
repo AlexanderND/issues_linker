@@ -47,6 +47,11 @@ def WRITE_LOG_ERR(string):
     # выводим в консоли красным цветом
     WRITE_LOG_COLOUR(string, '\033[91m')
 
+def WRITE_LOG_WAR(string):
+
+    # выводим в консоли оранжевым цветом
+    WRITE_LOG_COLOUR(string, '\033[93m')
+
 
 # обработка спец. символов (\ -> \\)
 def align_special_symbols(str):
@@ -149,7 +154,7 @@ def match_label_to_rm(label_gh):
 
     else:
         WRITE_LOG('ERROR: UNKNOWN GITHUB LABEL: ' + str(label_gh))
-        label_id_rm = None
+        label = None
 
     '''
     label_gh = {}
@@ -201,10 +206,13 @@ def match_label_to_rm(label_gh):
 
     return label
 
+
 # функция сопостовления статуса в редмайне label-у гитхаба
 def match_tracker_to_gh(tracker_id_rm):
+
     if (tracker_id_rm == tracker_ids_rm[0]):
         label_gh = 'Tracker: task'
+
     elif (tracker_id_rm == tracker_ids_rm[1]):
         label_gh = 'Tracker: bug'
 
@@ -219,14 +227,19 @@ def match_status_to_gh(status_id_rm):
 
     if (status_id_rm == status_ids_rm[0]):
         label_gh = 'Status: new'
+
     elif (status_id_rm == status_ids_rm[1]):
         label_gh = 'Status: working'
+
     elif (status_id_rm == status_ids_rm[2]):
         label_gh = 'Status: feedback'
+
     elif (status_id_rm == status_ids_rm[3]):
         label_gh = 'Status: verification'
+
     elif (status_id_rm == status_ids_rm[4]):
         label_gh = 'Status: rejected'
+
     elif (status_id_rm == status_ids_rm[5]):
         label_gh = 'Status: closed'
 
@@ -241,8 +254,10 @@ def match_priority_to_gh(priority_id_rm):
 
     if (priority_id_rm == priority_ids_rm[0]):
         label_gh = 'Priority: normal'
+
     elif (priority_id_rm == priority_ids_rm[1]):
         label_gh = 'Priority: low'
+
     elif (priority_id_rm == priority_ids_rm[2]):
         label_gh = 'Priority: urgent'
 
@@ -397,6 +412,7 @@ def log_issue_edit_rm(result, issue, linked_issues):
                   '        | issue_url:     ' + issue['issue_url'] + '\n' +
                   '        | issue_id:      ' + str(issue['issue_id']) + '\n' +
                   '        | project_id:    ' + str(issue['project_id']))
+
     # изменили с комментарием
     else:
         WRITE_LOG(action_gh + ' result in GITHUB: ' + str(result.status_code) + ' ' + str(result.reason) + '\n' +
@@ -447,19 +463,21 @@ def prevent_cyclic_comment_rm(issue):
 
 # ---------------------------------------------------- КОНСТАНТЫ -------------------------------------------------
 
-BOT_ID_GH = 53174303        # id бота в гитхабе (предотвращение зацикливания)
-
-#repos_id_gh = '194635238'   # id репозитория в гитхабе
-#url_gh = "https://api.github.com/repositories/" + repos_id_gh + "/issues"
+BOT_ID_GH = 53174303    # id бота в гитхабе (предотвращение зацикливания)
 
 # ----------------------------------------------------- ФУНКЦИИ --------------------------------------------------
 
 def make_gh_repos_url(repos_id_gh):
-    return "https://api.github.com/repositories/" + str(repos_id_gh) + "/issues"
+
+    url_gh = "https://api.github.com/repositories/" + str(repos_id_gh) + "/issues"
+
+    return url_gh
 
 def chk_if_gh_user_is_our_bot(user_id_gh):
+
     if (user_id_gh == BOT_ID_GH):
         return True
+
     else:
         return False
 
@@ -469,12 +487,16 @@ def log_issue_gh(result, issue, linked_issues, project_id_rm):
 
     if (issue['action'] == 'opened'):
         action_rm = 'POST'
+
     elif (issue['action'] == 'deleted'):
         action_rm = 'DELETE'
+
     elif (issue['action'] == 'edited'):
         action_rm = 'EDIT'
+
     elif (issue['action'] == 'labeled'):
         action_rm = 'EDIT'
+
     else:
         action_rm = issue['action'] + ' (ERROR: invalid action)'
 
