@@ -184,6 +184,7 @@ def process_payload_from_gh(payload):
 
         issue_templated = issue_github_template.render(
             title=issue['issue_title'],
+            body=issue['issue_body'],
             priority=priority,
             status=status,
             tracker=tracker)

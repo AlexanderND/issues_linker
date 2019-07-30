@@ -95,7 +95,7 @@ def process_comment_payload_from_gh(payload):
             author_url_gh = '"' + issue['issue_author_login'] + '":' + 'https://github.com/' + issue['issue_author_login']
             issue_url_gh = '"issue":' + issue['issue_url']
             issue_body = 'I am a bot, bleep-bloop.\n' +\
-                         author_url_gh + ' Has opened an ' + issue_url_gh + ' in Github'
+                         author_url_gh + ' Has opened the ' + issue_url_gh + ' in Github'
                          #author_url_gh + ' Has ' + issue['action'] + ' an issue on ' + issue_url_gh
 
             # добавляем описание задачи
