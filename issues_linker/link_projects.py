@@ -146,7 +146,7 @@ def link_projects(payload):
     response_text = 'Projects posted successfully!\n' +\
                     "(or not, I actually don't know)\n" +\
                     "Labels:\n\n"
-    '''
+
     # загрузка label-ов в гитхаб
     def log_label_post(label, post_result):
 
@@ -219,7 +219,7 @@ def link_projects(payload):
         log_label_post(label, request_result)
 
         response_text += log_text
-    '''
+
 
     # =================================== ЗАГРУЗКА ВСЕХ ISSUE ИЗ ГИТХАБА В РЕДМАЙН =====================================
 

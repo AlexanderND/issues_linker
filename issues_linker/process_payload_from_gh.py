@@ -141,15 +141,6 @@ def process_payload_from_gh(payload):
 
             return comment_body
 
-        elif (to == 'comment_body_action'):
-
-            author_url = '"' + issue['sender_login'] + '":' + 'https://github.com/' + issue['sender_login']
-            issue_url = '"issue":' + issue['issue_url']
-            comment_body = 'I am a bot, bleep-bloop.\n' +\
-                         author_url + ' Has ' + issue['action'] + ' the ' + issue_url + ' in Github.'
-
-            return comment_body
-
         else:
 
             WRITE_LOG("\nERROR: 'process_payload_from_gh.add_bot_phrase'\n" +
