@@ -9,6 +9,7 @@ from issues_linker.quickstart.models import Linked_Issues           # связа
 
 from issues_linker.my_functions import WRITE_LOG                    # ведение логов
 from issues_linker.my_functions import WRITE_LOG_ERR                # ведение логов ошибок
+from issues_linker.my_functions import WRITE_LOG_WAR                # ведение логов ошибок
 from issues_linker.my_functions import align_special_symbols        # обработка спец. символов (\ -> \\)
 from issues_linker.my_functions import read_file                    # загрузка файла (возвращает строку)
 
@@ -114,6 +115,31 @@ def link_projects(payload):
     # ============================================= СОХРАНЕНИЕ ID-ШНИКОВ ===============================================
 
 
+    def log_link_projects_start():
+
+        WRITE_LOG('\n' + '=' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 35 + '\n' +
+                  'LINKING PROJECTS IN PROGRESS' + '\n' +
+                  'GITHUB       | ---------------------------------------' + '\n' +
+                  '             | repos_id:     ' + str(repos_id_gh) + '\n' +
+                  '             | repos_url:    ' + url_gh + '\n' +
+                  'REDMINE      | ---------------------------------------' + '\n' +
+                  '             | project_id:   ' + str(project_id_rm) + '\n' +
+                  '             | project_url:  ' + url_rm)
+
+    def log_link_projects_finish():
+
+        WRITE_LOG('FINISHED LINKING PROJECTS' + '\n' +
+                  'GITHUB       | ---------------------------------------' + '\n' +
+                  '             | repos_id:     ' + str(repos_id_gh) + '\n' +
+                  '             | repos_url:    ' + url_gh + '\n' +
+                  'REDMINE      | ---------------------------------------' + '\n' +
+                  '             | project_id:   ' + str(project_id_rm) + '\n' +
+                  '             | project_url:  ' + url_rm + '\n' +
+                  '\n' + '=' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 35 + '\n')
+
+
+    log_link_projects_start()
+
     # занесение в базу данных информацию о том, что данные проекты связаны
     linked_projects = Linked_Projects.objects.create_linked_projects(
         project_id_rm,
@@ -142,6 +168,50 @@ def link_projects(payload):
                     "(or not, I actually don't know)\n" +\
                     "Labels:\n\n"
 
+    # загрузка label-ов в гитхаб
+    def log_label_post(label, post_result):
+
+        post_result_text = str(post_result.text)
+        """post_result_text = ''
+
+        # приводим текст ответа в удобный вид
+        step = 10
+        WRITE_LOG(len(post_result.text))
+        for index in range(0, len(post_result.text), step):
+            post_result_text += post_result.text[index:]
+
+            # добавляем, чтобы текст находился в правой части консоли
+            if ((len(post_result.text) - index - step) > 0):
+                post_result_text += '\n             |               '"""
+
+        log_text = '\n' + '-' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '-' * 35 + '\n' +\
+                   'POSTing new label to GITHUB:' + '\n' +\
+                   'GITHUB       | ---------------------------------------' + '\n' +\
+                   '             | repos_id:     ' + str(repos_id_gh) + '\n' +\
+                   '             | repos_url:    ' + url_gh + '\n' +\
+                   'REDMINE      | ---------------------------------------' + '\n' +\
+                   '             | project_id:   ' + str(project_id_rm) + '\n' +\
+                   '             | project_url:  ' + url_rm + '\n' +\
+                   'LABEL        | ---------------------------------------' + '\n' +\
+                   '             | name:         ' + label['name'] + '\n' +\
+                   '             | description:  ' + label['description'] + '\n' +\
+                   '             | color:        ' + label['color'] + '\n' +\
+                   '             | default:      ' + label['default'] + '\n' +\
+                   'POST RESULT  | ---------------------------------------' + '\n' +\
+                   '             | status:       ' + str(post_result) + '\n' +\
+                   '             | text:         ' + post_result_text + '\n'
+                   #'-' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '-' * 35 + '\n'
+
+        if (post_result.status_code == 201):
+            WRITE_LOG(log_text)
+
+        # скорее всего, label просто уже существует
+        elif (post_result.status_code == 422):
+            WRITE_LOG_WAR(log_text)
+
+        else:
+            WRITE_LOG_ERR(log_text)
+
     # TODO: исправить постинг label-ов (не приходит description)
     # TODO: исправить постинг label-ов (не приходит default)
     # постим label-ы в гитхаб
@@ -157,23 +227,21 @@ def link_projects(payload):
         # кодировка Latin-1 на некоторых задачах приводит к ошибке кодировки в питоне
         label_templated = label_templated.encode('utf-8')
 
-        post_result = requests.post(labels_url_gh,
+        request_result = requests.post(labels_url_gh,
                                     data=label_templated,
                                     headers=headers_gh)
 
         log_text= ''
         log_text += label['name'] + '\n'
-        log_text += str(post_result) + '\n'
-        log_text += str(post_result.text) + '\n'
+        log_text += str(request_result) + '\n'
+        log_text += str(request_result.text) + '\n'
 
-        if (post_result.status_code == 201):
-            WRITE_LOG(log_text)
-
-        else:
-            WRITE_LOG_ERR(log_text)
+        # ДЕБАГГИНГ
+        log_label_post(label, request_result)
 
         response_text += log_text
 
+    log_link_projects_finish()
 
     # TODO: выдавать то же, что выдавалось бы без переопределения метода create
     return HttpResponse(response_text.replace('\n', '<br>'), status=200)    # <br> - новая строка в html
