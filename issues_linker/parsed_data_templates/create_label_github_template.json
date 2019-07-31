@@ -1,5 +1,6 @@
 {
   "name":"{{name}}",
   "description":"{{description}}",
-  "color":"{{color}}"
+  "color":"{{color}}",
+  "default":"{{default}}"
 }
