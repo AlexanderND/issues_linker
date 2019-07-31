@@ -31,6 +31,7 @@ BOLD = '\033[1m'
 UNDERLINE = '\033[4m'
 '''
 # TODO: заменить .find на использование разных функций логов (после завершиния разработки?)
+# выбирает цвет автоматически
 def WRITE_LOG(string):
 
     string = str(string)
@@ -52,15 +53,23 @@ def WRITE_LOG(string):
         # выводим в консоли красным цветом
         WRITE_LOG_COLOUR(string, '\033[91m')
 
+# ошибки
 def WRITE_LOG_ERR(string):
 
     # выводим в консоли красным цветом
     WRITE_LOG_COLOUR(string, '\033[91m')
 
+# предупреждения
 def WRITE_LOG_WAR(string):
 
     # выводим в консоли оранжевым цветом
     WRITE_LOG_COLOUR(string, '\033[93m')
+
+# уведомления о последующих многократных действиях
+def WRITE_LOG_GRN(string):
+
+    # выводим в консоли оранжевым цветом
+    WRITE_LOG_COLOUR(string, '\033[92m')
 
 
 # обработка спец. символов (\ -> \\)
@@ -275,6 +284,8 @@ def match_priority_to_gh(priority_id_rm):
 
     return label_gh
 
+allow_log_cyclic = False
+
 
 # ======================================================== REDMINE =====================================================
 
@@ -450,9 +461,11 @@ def prevent_cyclic_issue_rm(issue):
                  ' | user id: ' + str(issue['issue_author_id']) + ' (our bot)\n' +\
                  'Aborting action, in order to prevent cyclic: GH -> S -> RM -> S -> GH -> ...'
 
-    WRITE_LOG('\n' + '=' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 35 + '\n' +
-              'received webhook from REDMINE: issues | ' + 'action: ' + str(issue['action']) + '\n' +
-              error_text)
+    if (allow_log_cyclic):
+
+        WRITE_LOG('\n' + '=' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 35 + '\n' +
+                  'received webhook from REDMINE: issues | ' + 'action: ' + str(issue['action']) + '\n' +
+                  error_text)
 
 def prevent_cyclic_comment_rm(issue):
 
@@ -460,9 +473,11 @@ def prevent_cyclic_comment_rm(issue):
                  ' | user id: ' + str(issue['comment_author_id']) + ' (our bot)\n' +\
                  'Aborting action, in order to prevent cyclic: GH -> S -> RM -> S -> GH -> ...'
 
-    WRITE_LOG('\n' + '=' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 35 + '\n' +
-              'received webhook from REDMINE: issues | ' + 'action: ' + str(issue['action']) + '\n' +
-              error_text)
+    if (allow_log_cyclic):
+
+        WRITE_LOG('\n' + '=' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 35 + '\n' +
+                  'received webhook from REDMINE: issues | ' + 'action: ' + str(issue['action']) + '\n' +
+                  error_text)
 
     return error_text
 
@@ -526,7 +541,7 @@ def log_issue_gh(result, issue, linked_issues, project_id_rm):
               action_rm + ' result in REDMINE: ' + str(result.status_code) + ' ' + str(result.reason) + '\n' +
               'GITHUB  | sender_id:     ' + str(issue['sender_id']) + '\n' +
               '        | sender_login:  ' + str(issue['sender_login']) + '\n' +
-              '        | ---------------- issue ----------------' + '\n' 
+              '        | ---------------- issue ----------------' + '\n' +
               '        | author_id:     ' + str(issue['issue_author_id']) + '\n' +
               '        | author_login:  ' + str(issue['issue_author_login']) + '\n' +
               '        | issue_url:     ' + issue['issue_url'] + '\n' +
@@ -537,7 +552,7 @@ def log_issue_gh(result, issue, linked_issues, project_id_rm):
               '        |\n' +
               'REDMINE | ---------------- issue ----------------' + '\n' +
               '        | url_rm:        ' + url_rm + '\n' +
-              '        | issue_id:      ' + str(linked_issues.issue_id_rm) + '\n'
+              '        | issue_id:      ' + str(linked_issues.issue_id_rm) + '\n' +
               '        | project_id:    ' + str(project_id_rm))
 
 def log_comment_gh(result, issue, linked_issues, project_id_rm):
@@ -565,7 +580,7 @@ def log_comment_gh(result, issue, linked_issues, project_id_rm):
               '        |\n' +
               'REDMINE | ---------------- issue ----------------' + '\n' +
               '        | url_rm:        ' + url_rm + '\n' +
-              '        | issue_id:      ' + str(linked_issues.issue_id_rm) + '\n'
+              '        | issue_id:      ' + str(linked_issues.issue_id_rm) + '\n' +
               '        | project_id:    ' + str(project_id_rm) + '\n')
 
 
@@ -575,9 +590,11 @@ def prevent_cyclic_issue_gh(issue):
                  ' | user id: ' + str(issue['sender_id']) + ' (our bot)\n' + \
                  'Aborting action, in order to prevent cyclic: GH -> S -> RM -> S -> GH -> ...'
 
-    WRITE_LOG('\n' + '=' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 35 + '\n' +
-              'received webhook from GITHUB: issues | ' + 'action: ' + str(issue['action']) + '\n' +
-              error_text)
+    if (allow_log_cyclic):
+
+        WRITE_LOG('\n' + '=' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 35 + '\n' +
+                  'received webhook from GITHUB: issues | ' + 'action: ' + str(issue['action']) + '\n' +
+                  error_text)
 
     return error_text
 
@@ -587,8 +604,10 @@ def prevent_cyclic_comment_gh(issue):
                  ' | user id: ' + str(issue['sender_id']) + ' (our bot)\n' + \
                  'Aborting action, in order to prevent cyclic: GH -> S -> RM -> S -> GH -> ...'
 
-    WRITE_LOG('\n' + '=' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 35 + '\n' +
-              'received webhook from GITHUB: issue_comment | ' + 'action: ' + str(issue['action']) + '\n' +
-              error_text)
+    if (allow_log_cyclic):
+
+        WRITE_LOG('\n' + '=' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 35 + '\n' +
+                  'received webhook from GITHUB: issue_comment | ' + 'action: ' + str(issue['action']) + '\n' +
+                  error_text)
 
     return error_text

@@ -5,35 +5,14 @@ import json
 from django.http import HttpResponse                                # ответы серверу (гитхабу)
 
 from issues_linker.quickstart.models import Linked_Projects         # связанные проекты
-from issues_linker.quickstart.models import Linked_Issues           # связанные issues
 
 from issues_linker.my_functions import WRITE_LOG                    # ведение логов
 from issues_linker.my_functions import WRITE_LOG_ERR                # ведение логов ошибок
 from issues_linker.my_functions import WRITE_LOG_WAR                # ведение логов ошибок
-from issues_linker.my_functions import align_special_symbols        # обработка спец. символов (\ -> \\)
+from issues_linker.my_functions import WRITE_LOG_GRN                # ведение логов (многократные действия)
 from issues_linker.my_functions import read_file                    # загрузка файла (возвращает строку)
 
-from issues_linker.my_functions import tracker_ids_rm               # ids трекеров задачи в редмайне
-from issues_linker.my_functions import status_ids_rm                # ids статусов задачи в редмайне
-from issues_linker.my_functions import priority_ids_rm              # ids приоритетов задачи в редмайне
-from issues_linker.my_functions import url_rm                       # ссылка на сервер редмайна
-
-from issues_linker.my_functions import chk_if_gh_user_is_our_bot    # проверка на бота (предотвращение
-                                                                    # зацикливания: GH -> S -> RM -> ...)
-from issues_linker.my_functions import log_issue_gh                 # лог связи issues
-from issues_linker.my_functions import prevent_cyclic_issue_gh      # предотвращение зацикливания
-
-from issues_linker.my_functions import match_label_to_rm            # сопостовление label-а в гитхабе редмайну
-
-from issues_linker.my_functions import del_bot_phrase               # удаление фразы бота
-
-from issues_linker.my_functions import allign_request_result        # создание корректного ответа серверу
-
-from issues_linker.my_functions import match_tracker_to_gh          # сопоставление label-ов
-from issues_linker.my_functions import match_status_to_gh           # сопоставление label-ов
-from issues_linker.my_functions import match_priority_to_gh         # сопоставление label-ов
-
-from issues_linker.my_functions import make_gh_repos_url            # ссылка на гитхаб
+from issues_linker.query_data_gh_to_rm import query_data_gh_to_rm   # запрос всех issues и комментариев к ним с гитхаба
 
 
 # TODO: при связи проектов, проверять: а не связани ли они уже
@@ -117,25 +96,25 @@ def link_projects(payload):
 
     def log_link_projects_start():
 
-        WRITE_LOG('\n' + '=' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 35 + '\n' +
-                  'LINKING PROJECTS IN PROGRESS' + '\n' +
-                  'GITHUB       | ---------------------------------------' + '\n' +
-                  '             | repos_id:     ' + str(repos_id_gh) + '\n' +
-                  '             | repos_url:    ' + url_gh + '\n' +
-                  'REDMINE      | ---------------------------------------' + '\n' +
-                  '             | project_id:   ' + str(project_id_rm) + '\n' +
-                  '             | project_url:  ' + url_rm)
+        WRITE_LOG_GRN('\n' + '=' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 35 + '\n' +
+                      'LINKING PROJECTS IN PROGRESS' + '\n' +
+                      'GITHUB       | ---------------------------------------' + '\n' +
+                      '             | repos_id:     ' + str(repos_id_gh) + '\n' +
+                      '             | repos_url:    ' + url_gh + '\n' +
+                      'REDMINE      | ---------------------------------------' + '\n' +
+                      '             | project_id:   ' + str(project_id_rm) + '\n' +
+                      '             | project_url:  ' + url_rm)
 
     def log_link_projects_finish():
 
-        WRITE_LOG('FINISHED LINKING PROJECTS' + '\n' +
-                  'GITHUB       | ---------------------------------------' + '\n' +
-                  '             | repos_id:     ' + str(repos_id_gh) + '\n' +
-                  '             | repos_url:    ' + url_gh + '\n' +
-                  'REDMINE      | ---------------------------------------' + '\n' +
-                  '             | project_id:   ' + str(project_id_rm) + '\n' +
-                  '             | project_url:  ' + url_rm + '\n' +
-                  '\n' + '=' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 35 + '\n')
+        WRITE_LOG_GRN('FINISHED LINKING PROJECTS' + '\n' +
+                      'GITHUB       | ---------------------------------------' + '\n' +
+                      '             | repos_id:     ' + str(repos_id_gh) + '\n' +
+                      '             | repos_url:    ' + url_gh + '\n' +
+                      'REDMINE      | ---------------------------------------' + '\n' +
+                      '             | project_id:   ' + str(project_id_rm) + '\n' +
+                      '             | project_url:  ' + url_rm + '\n' +
+                      '\n' + '=' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 35 + '\n')
 
 
     log_link_projects_start()
@@ -167,7 +146,7 @@ def link_projects(payload):
     response_text = 'Projects posted successfully!\n' +\
                     "(or not, I actually don't know)\n" +\
                     "Labels:\n\n"
-
+    '''
     # загрузка label-ов в гитхаб
     def log_label_post(label, post_result):
 
@@ -240,6 +219,13 @@ def link_projects(payload):
         log_label_post(label, request_result)
 
         response_text += log_text
+    '''
+
+    # =================================== ЗАГРУЗКА ВСЕХ ISSUE ИЗ ГИТХАБА В РЕДМАЙН =====================================
+
+
+    # запрос issues и комментариев к ним из гитхаба и отправка в редмайн
+    query_data_gh_to_rm(linked_projects)
 
     log_link_projects_finish()
 
