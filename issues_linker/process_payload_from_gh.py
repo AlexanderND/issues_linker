@@ -278,14 +278,17 @@ def process_payload_from_gh(payload):
 
             tracker_rm = match_label_to_rm(label['name'])
 
-            if (tracker_rm['type'] == 'Tracker'):
+            # если label известный
+            if (tracker_rm != None):
 
-                if (tracker_id_rm == None):
-                    tracker_id_rm = tracker_rm['id_rm']
+                if (tracker_rm['type'] == 'Tracker'):
 
-                # если пользователь выбрал более одного трекера -> значение по умолчанию
-                else:
-                    tracker_id_rm = tracker_ids_rm[0]
+                    if (tracker_id_rm == None):
+                        tracker_id_rm = tracker_rm['id_rm']
+
+                    # если пользователь выбрал более одного трекера -> значение по умолчанию
+                    else:
+                        tracker_id_rm = tracker_ids_rm[0]
 
         # проверяем, был ли установлен трекер
         if (tracker_id_rm == None):
@@ -630,39 +633,42 @@ def process_payload_from_gh(payload):
 
             label_gh = match_label_to_rm(label['name'])
 
-            if (label_gh['type'] == 'Priority'):
+            #если label известный
+            if (label_gh != None):
 
-                if (priority_id_rm == None):
+                if (label_gh['type'] == 'Priority'):
 
-                    priority_id_rm = label_gh['id_rm']
+                    if (priority_id_rm == None):
 
-                    if (priority_id_rm != linked_issues.priority_id_rm):
+                        priority_id_rm = label_gh['id_rm']
+
+                        if (priority_id_rm != linked_issues.priority_id_rm):
+                            incorrect_labels = True
+
+                    else:
                         incorrect_labels = True
 
-                else:
-                    incorrect_labels = True
+                elif (label_gh['type'] == 'Status'):
 
-            elif (label_gh['type'] == 'Status'):
+                    if (status_id_rm == None):
 
-                if (status_id_rm == None):
+                        status_id_rm = label_gh['id_rm']
 
-                    status_id_rm = label_gh['id_rm']
+                        if (status_id_rm != linked_issues.status_id_rm):
+                            incorrect_labels = True
 
-                    if (status_id_rm != linked_issues.status_id_rm):
+                    else:
                         incorrect_labels = True
 
-                else:
-                    incorrect_labels = True
+                elif (label_gh['type'] == 'Tracker'):
 
-            elif (label_gh['type'] == 'Tracker'):
-
-                if (tracker_id_rm == None):
-                    tracker_id_rm = label_gh['id_rm']
-
-                # пользователь выбрал новый трекер, но не удалил старый -> выбираем новый
-                else:
-                    if (tracker_id_rm == linked_issues.tracker_id_rm):
+                    if (tracker_id_rm == None):
                         tracker_id_rm = label_gh['id_rm']
+
+                    # пользователь выбрал новый трекер, но не удалил старый -> выбираем новый
+                    else:
+                        if (tracker_id_rm == linked_issues.tracker_id_rm):
+                            tracker_id_rm = label_gh['id_rm']
 
         # проверяем, был ли изменён трекер
         if (tracker_id_rm == None):
