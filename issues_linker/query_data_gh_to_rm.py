@@ -501,6 +501,17 @@ def query_data_gh_to_rm(linked_projects):
                       '\n  ' + '=' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 35 + '\n')
 
 
+    def query_issues_log(logs_):
+
+        logs = ''
+
+        for log in logs_:
+
+            logs+= log
+
+        return logs
+
+
     # ====================================== ЗАГРУЗКА ДАННЫХ ИЗ GITHUB В REDMINE =======================================
 
 
@@ -531,34 +542,54 @@ def query_data_gh_to_rm(linked_projects):
         num_issues = json.loads(request_result.text)['total_count']
 
 
-        # --------------------------------------- ЗАПРОС ВСЕХ ЗАДАЧ С ПРОЕКТА -------------------------------------
+        # ----------------------------------- ЗАПРОС ВСЕХ ЗАДАЧ С ПРОЕКТА В ГИТХАБЕ ------------------------------------
 
+
+        issues = []
+        WRITE_LOG('  QUERRYING ISSUES FROM GITHUB')
+
+        per_page = 6  # для тестов
+        #per_page = 100  # кол-во issue за страницу
+        page = 1
 
         # цикл перехода по всем страницам, по 100 issue за страницу
-        per_page = 100  # кол-во issue за страницу
-        page = 1
-        issue_index = 1
-        # TODO: постить в редмайн в обратном порядке
-        while page < 1 + num_issues / per_page:
+        while True:
 
-            url = url_gh + '&per_page=' + str(per_page) + '&page=' + str(page)
+            WRITE_LOG('  page: ' + str(page) + ' | status: ' + str(request_result.status_code) + ' ' + str(request_result.reason))
+
+            ''' https://api.github.com/search/issues?q=repo:AlexanderND/issues_linker_auto_labels_test/issues&per_page=5&page=1 '''
+            url = url_gh + '/issues&per_page=' + str(per_page) + '&page=' + str(page)
             request_result = requests.get(url)
 
-            issues = json.loads(request_result.text)['items']
+            issues_on_page = json.loads(request_result.text)['items']
 
+            i = 1
             # цикл перебора всех задач на странице
-            for issue in issues:
-
-                #WRITE_LOG(issue)
+            for issue in issues_on_page:
 
                 issue_parsed = parse_issue_item(issue)
 
-                # отправляем issue в редмайн
-                post_result = post_issue(linked_projects, issue_parsed)
-                # TODO: запрашивать комменты к задаче
+                # сохраняем данные
+                issues.append(issue_parsed)
 
             # переход на след. страницу
             page += 1
+
+            # цикл с постусловием
+            if (page > 1 + num_issues / per_page):
+                break
+
+
+
+        # --------------------------------- ОТПРАВКА ЗАДАЧ В СВЯЗАННЫЙ ПРОЕКТ В РЕДМАЙНЕ -------------------------------
+
+
+        # отправляем задачи в редмайн в обратном порядке
+        for issue in reversed(issues):
+
+            post_result = post_issue(linked_projects, issue)
+            # TODO: запрашивать комменты к задаче
+
 
         log_link_issues_finish()
 
