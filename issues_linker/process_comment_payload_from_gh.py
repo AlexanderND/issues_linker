@@ -72,7 +72,7 @@ def process_comment_payload_from_gh(payload):
     api_key_redmime = api_key_redmime.replace('\n', '')  # избавляемся от \n в конце строки
 
     # загрузка template из файла
-    issue_redmine_template = read_file('parsed_data_templates/issue_redmine_template.json')
+    issue_redmine_template = read_file('data/issue_redmine_template.json')
     issue_redmine_template = Template(issue_redmine_template)  # шаблон для каждого issue
 
     # заголовки авторизации и приложения, при отправке запросов на редмайн

@@ -126,7 +126,7 @@ def link_projects(payload):
 
 
     # создание label-ов в гитхабе
-    create_label_github_template = read_file('parsed_data_templates/create_label_github_template.json')
+    create_label_github_template = read_file('data/create_label_github_template.json')
     create_label_github_template = Template(create_label_github_template)  # шаблон создания label-ов
 
     labels_url_gh = api_url_gh + '/labels'

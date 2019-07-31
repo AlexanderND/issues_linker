@@ -95,11 +95,11 @@ def process_payload_from_rm(payload):
     api_key_github = api_key_github.replace('\n', '')  # избавляемся от \n в конце строки
 
     # загрузка issue template из файла
-    issue_github_template = read_file('parsed_data_templates/issue_github_template.json')
+    issue_github_template = read_file('data/issue_github_template.json')
     issue_github_template = Template(issue_github_template)  # шаблон для каждого issue
 
     # загрузка comment template из файла
-    comment_github_template = read_file('parsed_data_templates/comment_github_template.json')
+    comment_github_template = read_file('data/comment_github_template.json')
     comment_github_template = Template(comment_github_template)  # шаблон для каждого issue
 
     # заголовки авторизации и приложения, при отправке запросов на гитхаб
