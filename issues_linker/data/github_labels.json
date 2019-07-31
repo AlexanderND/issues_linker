@@ -1,0 +1,65 @@
+{
+  "labels":
+  [
+    {
+      "name":"Priority: low",
+      "description":"Low priority issue",
+      "color":"ffe99c",
+      "default":"false"
+    },
+    {
+      "name":"Priority: normal",
+      "description":"Most issues should have 'normal' priority",
+      "color":"ffdb5e",
+      "default":"true"
+    },
+    {
+      "name":"Priority: urgent",
+      "description":"Urgent issue",
+      "color":"ffc600",
+      "default":"false"
+    },
+    {
+      "name":"Status: feedback",
+      "description":"We are awaiting your feedback on the issue",
+      "color":"85ffb0",
+      "default":"false"
+    },
+    {
+      "name":"Status: new",
+      "description":"Default status for new issues",
+      "color":"2b57ff",
+      "default":"true"
+    },
+    {
+      "name":"Status: rejected",
+      "description":"Issue rejected",
+      "color":"a80000",
+      "default":"false"
+    },
+    {
+      "name":"Status: verification",
+      "description":"We are verifying, that the issue has been resolved",
+      "color":"c9ffdc",
+      "default":"false"
+    },
+    {
+      "name":"Status: working",
+      "description":"We are working on it. Please, be patient!",
+      "color":"38ff7e",
+      "default":"false"
+    },
+    {
+      "name":"Tracker: bug",
+      "description":"Something isn't working",
+      "color":"e00000",
+      "default":"false"
+    },
+    {
+      "name":"Tracker: task",
+      "description":"Suggestions or the like",
+      "color":"2b57ff",
+      "default":"true"
+    }
+  ]
+}

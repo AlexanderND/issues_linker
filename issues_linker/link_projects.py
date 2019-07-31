@@ -57,7 +57,7 @@ def link_projects(payload):
     api_key_redmime = api_key_redmime.replace('\n', '')                 # избавляемся от \n в конце строки
 
     '''
-    # авторизация в redmine по токену (реальный сервер
+    # авторизация в redmine по токену (реальный сервер)
     api_key_redmime = read_file('api_keys/api_key_redmime_local.txt')   # загрузка ключа для redmine api
     api_key_redmime = api_key_redmime.replace('\n', '')                 # избавляемся от \n в конце строки
     '''
@@ -126,65 +126,17 @@ def link_projects(payload):
 
 
     # создание label-ов в гитхабе
-    create_label_github_template = read_file('data/create_label_github_template.json')
-    create_label_github_template = Template(create_label_github_template)  # шаблон создания label-ов
+    github_label_template = read_file('data/github_label_template.json')
+    github_label_template = Template(github_label_template)     # шаблон создания label-ов
 
     labels_url_gh = api_url_gh + '/labels'
 
-    # label-ы, необходимые для работы связи
-    # (да, немного костыль)
-    labels = [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}]
-    #labels = [{}]  # для тестов
 
-    labels[0]['name'] = 'Priority: low'
-    labels[0]['description'] = 'Low priority issue'
-    labels[0]['color'] = 'ffe99c'
-    labels[0]['default'] = 'false'
+    # загрузка label-ов, необходимых для связи с гитхабом
+    github_labels = read_file('data/github_labels.json')
+    github_labels = json.loads(github_labels)
 
-    labels[1]['name'] = 'Priority: normal'
-    labels[1]['description'] = "Most issues should have 'normal' priority"
-    labels[1]['color'] = 'ffdb5e'
-    labels[1]['default'] = 'true'
-
-    labels[2]['name'] = 'Priority: urgent'
-    labels[2]['description'] = 'Urgent issue'
-    labels[2]['color'] = 'ffc600'
-    labels[2]['default'] = 'false'
-
-    labels[3]['name'] = 'Status: feedback'
-    labels[3]['description'] = 'We are awaiting your feedback on the issue'
-    labels[3]['color'] = '85ffb0'
-    labels[3]['default'] = 'false'
-
-    labels[4]['name'] = 'Status: new'
-    labels[4]['description'] = 'Default status for new issues'
-    labels[4]['color'] = '2b57ff'
-    labels[4]['default'] = 'true'
-
-    labels[5]['name'] = 'Status: rejected'
-    labels[5]['description'] = 'Issue rejected'
-    labels[5]['color'] = 'a80000'
-    labels[5]['default'] = 'false'
-
-    labels[6]['name'] = 'Status: verification'
-    labels[6]['description'] = 'We are verifying, that the issue has been resolved'
-    labels[6]['color'] = 'c9ffdc'
-    labels[6]['default'] = 'false'
-
-    labels[7]['name'] = 'Status: working'
-    labels[7]['description'] = 'We are working on it. Please, be patient!'
-    labels[7]['color'] = '38ff7e'
-    labels[7]['default'] = 'false'
-
-    labels[8]['name'] = 'Tracker: bug'
-    labels[8]['description'] = "Something isn't working"
-    labels[8]['color'] = 'e00000'
-    labels[8]['default'] = 'false'
-
-    labels[9]['name'] = 'Tracker: task'
-    labels[9]['description'] = 'Suggestions or the like'
-    labels[9]['color'] = '2b57ff'
-    labels[9]['default'] = 'true'
+    labels = github_labels['labels']
 
     response_text = 'Projects posted successfully!\n' +\
                     "(or not, I actually don't know)\n" +\
@@ -196,7 +148,7 @@ def link_projects(payload):
     for label in labels:
 
         # загружаем label-ы
-        label_templated = create_label_github_template.render(
+        label_templated = github_label_template.render(
             name=label['name'],
             description=label['description'],
             color=label['color'],
