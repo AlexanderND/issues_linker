@@ -15,6 +15,8 @@ allow_log_cyclic = False
 allow_log_project_linking = True
 detailed_log_project_linking = False
 
+allow_correct_github_labels = False
+
 
 # ===================================================== СПЕЦ. ФУНКЦИИ ==================================================
 

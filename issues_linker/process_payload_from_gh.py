@@ -33,6 +33,8 @@ from issues_linker.my_functions import match_priority_to_gh         # сопос
 
 from issues_linker.my_functions import make_gh_repos_url            # ссылка на гитхаб
 
+from issues_linker.my_functions import allow_correct_github_labels
+
 
 def process_payload_from_gh(payload):
 
@@ -165,32 +167,34 @@ def process_payload_from_gh(payload):
     # исправление label-ов в гитхабе
     def correct_gh_labels(issue, tracker, linked_issues):
 
-        # добавление label-ов
-        priority = match_priority_to_gh(linked_issues.priority_id_rm)
-        status = match_status_to_gh(linked_issues.status_id_rm)
+        if (allow_correct_github_labels):
+
+            # добавление label-ов
+            priority = match_priority_to_gh(linked_issues.priority_id_rm)
+            status = match_status_to_gh(linked_issues.status_id_rm)
 
 
-        # ---------------------------------------- ЗАГРУЗКА ДАННЫХ В ГИТХАБ ----------------------------------------
+            # ---------------------------------------- ЗАГРУЗКА ДАННЫХ В ГИТХАБ ----------------------------------------
 
 
-        issue_templated = issue_github_template.render(
-            title=issue['issue_title'],
-            body=issue['issue_body'],
-            priority=priority,
-            status=status,
-            tracker=tracker)
-        # кодировка Latin-1 на некоторых задачах приводит к ошибке кодировки в питоне
-        issue_templated = issue_templated.encode('utf-8')
+            issue_templated = issue_github_template.render(
+                title=issue['issue_title'],
+                body=issue['issue_body'],
+                priority=priority,
+                status=status,
+                tracker=tracker)
+            # кодировка Latin-1 на некоторых задачах приводит к ошибке кодировки в питоне
+            issue_templated = issue_templated.encode('utf-8')
 
-        url_gh = make_gh_repos_url(linked_issues.repos_id_gh)
+            url_gh = make_gh_repos_url(linked_issues.repos_id_gh)
 
-        # добавление issue_id к ссылке
-        issue_url_gh = url_gh + '/' + str(linked_issues.issue_num_gh)
-        request_result = requests.patch(issue_url_gh,
-                                   data=issue_templated,
-                                   headers=headers_gh)
+            # добавление issue_id к ссылке
+            issue_url_gh = url_gh + '/' + str(linked_issues.issue_num_gh)
+            request_result = requests.patch(issue_url_gh,
+                                       data=issue_templated,
+                                       headers=headers_gh)
 
-        return request_result
+            return request_result
 
     # TODO: отправлять комментарий бота, что нельзя открыть rejected issue + логи?
     # закрыть issue в гитхабе

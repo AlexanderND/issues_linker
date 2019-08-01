@@ -36,7 +36,8 @@ from issues_linker.my_functions import make_gh_repos_url            # ссылк
 
 from issues_linker.my_functions import allow_log_cyclic             # разрешить лог предотвращения зацикливания
 from issues_linker.my_functions import allow_log_project_linking    # разрешить лог связи серверов
-from issues_linker.my_functions import detailed_log_project_linking # подробный лог связи серверов
+from issues_linker.my_functions import allow_correct_github_labels
+
 
 
 def query_data_gh_to_rm(linked_projects):
@@ -241,35 +242,37 @@ def query_data_gh_to_rm(linked_projects):
     # исправление label-ов в гитхабе
     def correct_gh_labels(issue, tracker, linked_issues):
 
-        # добавление label-ов
-        priority = match_priority_to_gh(linked_issues.priority_id_rm)
-        status = match_status_to_gh(linked_issues.status_id_rm)
+        if (allow_correct_github_labels):
+
+            # добавление label-ов
+            priority = match_priority_to_gh(linked_issues.priority_id_rm)
+            status = match_status_to_gh(linked_issues.status_id_rm)
 
 
-        # ---------------------------------------- ЗАГРУЗКА ДАННЫХ В ГИТХАБ ----------------------------------------
+            # ---------------------------------------- ЗАГРУЗКА ДАННЫХ В ГИТХАБ ----------------------------------------
 
 
-        issue_title = align_special_symbols(issue['issue_title'])
-        issue_body = align_special_symbols(issue['issue_body'])
+            issue_title = align_special_symbols(issue['issue_title'])
+            issue_body = align_special_symbols(issue['issue_body'])
 
-        issue_templated = issue_github_template.render(
-            title=issue_title,
-            body=issue_body,
-            priority=priority,
-            status=status,
-            tracker=tracker)
-        # кодировка Latin-1 на некоторых задачах приводит к ошибке кодировки в питоне
-        issue_templated = issue_templated.encode('utf-8')
+            issue_templated = issue_github_template.render(
+                title=issue_title,
+                body=issue_body,
+                priority=priority,
+                status=status,
+                tracker=tracker)
+            # кодировка Latin-1 на некоторых задачах приводит к ошибке кодировки в питоне
+            issue_templated = issue_templated.encode('utf-8')
 
-        url_gh = make_gh_repos_url(linked_issues.repos_id_gh)
+            url_gh = make_gh_repos_url(linked_issues.repos_id_gh)
 
-        # добавление issue_id к ссылке
-        issue_url_gh = url_gh + '/' + str(linked_issues.issue_num_gh)
-        request_result = requests.patch(issue_url_gh,
-                                        data=issue_templated,
-                                        headers=headers_gh)
+            # добавление issue_id к ссылке
+            issue_url_gh = url_gh + '/' + str(linked_issues.issue_num_gh)
+            request_result = requests.patch(issue_url_gh,
+                                            data=issue_templated,
+                                            headers=headers_gh)
 
-        return request_result
+            return request_result
 
 
     # парсинг комментария
