@@ -36,7 +36,8 @@ from issues_linker.my_functions import make_gh_repos_url            # ссылк
 
 from issues_linker.my_functions import allow_log_cyclic             # разрешить лог предотвращения зацикливания
 from issues_linker.my_functions import allow_log_project_linking    # разрешить лог связи серверов
-from issues_linker.my_functions import allow_correct_github_labels
+from issues_linker.my_functions import detailed_log_project_linking # подробный лог связи серверов
+from issues_linker.my_functions import allow_correct_github_labels  # разрешение корректировки labl-ов в гитхабе
 
 
 
@@ -184,7 +185,6 @@ def query_data_gh_to_rm(linked_projects):
                       '            | project_id:    ' + str(project_id_rm) + '\n')
 
     #def log_correct_gh_labels(issue, tracker, linked_issues):
-
 
 
     # issue_body
