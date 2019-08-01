@@ -33,6 +33,8 @@ from issues_linker.my_functions import match_priority_to_gh         # сопос
 
 from issues_linker.my_functions import make_gh_repos_url            # ссылка на гитхаб
 
+from issues_linker.my_functions import allow_log_cyclic             # разрешить лог предотвращения зацикливания
+
 
 def query_data_gh_to_rm(linked_projects):
 
@@ -157,7 +159,7 @@ def query_data_gh_to_rm(linked_projects):
     def log_link_comments_start():
 
         WRITE_LOG_GRN('\n    ' + '=' * 33 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 33 + '\n' +
-                      "    LINKING CJMMENTS BETWEEN ISSUES" + '\n' +
+                      "    LINKING COMMENTS BETWEEN ISSUES" + '\n' +
                       '    GITHUB       | ---------------------------------------' + '\n' +
                       '                 | repos_id:     ' + str(linked_projects.repos_id_gh) + '\n' +
                       '                 | repos_url:    ' + linked_projects.url_gh + '\n' +
@@ -248,32 +250,7 @@ def query_data_gh_to_rm(linked_projects):
                   '            | project_id:    ' + str(project_id_rm) + '\n')
 
 
-    # обработка задачи
-    def parse_issue(issue):
-
-        issue_parsed = {}  # словарь issue (название, описание, ссылка)
-
-        # заполение полей issue
-        issue_parsed['issue_title'] = issue['title']
-        issue_parsed['issue_body'] = issue['body']
-        issue_parsed['issue_author_id'] = issue['user']['id']
-        issue_parsed['issue_author_login'] = issue['user']['login']
-
-        # идентификаторы (для связи и логов)
-        issue_parsed['issue_id'] = issue['id']
-        issue_parsed['repos_id'] = linked_projects.repos_id_gh
-        issue_parsed['issue_number'] = issue['number']
-
-        # ссылка на issue (для фразы бота и логов)
-        issue_parsed['issue_url'] = issue['html_url']
-
-        issue_parsed['labels'] = issue['labels']
-
-        issue_parsed['action'] = 'opened'
-
-        return issue_parsed
-
-    # обработка комментария
+    # парсинг комментария
     def parse_comment(issue, comment):
 
         comment_parsed = {}  # словарь issue (название, описание, ссылка)
@@ -300,9 +277,109 @@ def query_data_gh_to_rm(linked_projects):
 
         return comment_parsed
 
+    # парсинг задачи
+    def parse_issue(issue):
+
+        issue_parsed = {}  # словарь issue (название, описание, ссылка)
+
+        # заполение полей issue
+        issue_parsed['issue_title'] = issue['title']
+        issue_parsed['issue_body'] = issue['body']
+        issue_parsed['issue_author_id'] = issue['user']['id']
+        issue_parsed['issue_author_login'] = issue['user']['login']
+
+        # идентификаторы (для связи и логов)
+        issue_parsed['issue_id'] = issue['id']
+        issue_parsed['repos_id'] = linked_projects.repos_id_gh
+        issue_parsed['issue_number'] = issue['number']
+
+        # ссылка на issue (для фразы бота и логов)
+        issue_parsed['issue_url'] = issue['html_url']
+
+        issue_parsed['labels'] = issue['labels']
+
+        issue_parsed['action'] = 'opened'
+
+        return issue_parsed
+
+
+    def prevent_cyclic_comment_gh(issue):
+
+        error_text = '    The user, who left the comment: ' + issue['issue_author_login'] + ' | user id: ' + str(issue['issue_author_id']) + ' (our bot)\n' + \
+                     '    Aborting action, in order to prevent cyclic: GH -> S -> RM -> S -> GH -> ...'
+
+        if (allow_log_cyclic):
+            WRITE_LOG(error_text)
+
+        return error_text
 
     # ============================================= КОМАНДЫ ДЛЯ ЗАГРУЗКИ ===============================================
 
+
+    def post_comment(linked_projects, linked_issues, comment):
+
+
+        # ----------------------------------------------- ПОДГОТОВКА ----------------------------------------------
+
+
+        # проверяем, если автор комментария - наш бот
+        if (chk_if_gh_user_is_our_bot(comment['comment_author_id'])):
+
+            error_text = prevent_cyclic_comment_gh(comment)
+            return HttpResponse(error_text, status=200)
+
+
+        project_id_rm = linked_projects.project_id_rm
+
+
+        # ------------------------------------------ ОБРАБОТКА ФРАЗЫ БОТА -----------------------------------------
+
+
+        # проверяем, если автор issue - наш бот
+        if (chk_if_gh_user_is_our_bot(comment['issue_author_id'])):
+            issue_body = del_bot_phrase(comment['issue_body'])
+
+        else:
+            issue_body = add_bot_phrase(comment, 'issue_body')
+
+        comment_body = add_bot_phrase(comment, 'comment_body')    # добавляем фразу бота
+
+        # обработка спец. символов
+        issue_title = align_special_symbols(comment['issue_title'])
+        issue_body = align_special_symbols(issue_body)
+        comment_body = align_special_symbols(comment_body)
+
+
+        # --------------------------------------- ЗАГРУЗКА ДАННЫХ В РЕДМАЙН ----------------------------------------
+
+
+        issue_templated = issue_redmine_template.render(
+            project_id=project_id_rm,
+            issue_id=linked_issues.issue_id_rm,
+            priority_id=linked_issues.priority_id_rm,
+            subject=issue_title,
+            description=issue_body,
+            notes=comment_body)
+
+        # кодировка Latin-1 на некоторых задачах приводит к ошибке кодировки в питоне
+        issue_templated = issue_templated.encode('utf-8')
+
+        issue_url_rm = url_rm.replace('.json',
+                                      '/' + str(linked_issues.issue_id_rm) + '.json')
+        request_result = requests.put(issue_url_rm,
+                                      data=issue_templated,
+                                      headers=headers_rm)
+
+
+        # ------------------------------------------ СОХРАНЕНИЕ ДАННЫХ --------------------------------------------
+        # (делаем привязку комментариев после получения веб-хука от редмайна)
+
+
+        # ДЕБАГГИНГ
+        log_comment_gh(request_result, comment, linked_issues, linked_projects.project_id_rm)
+
+
+        return request_result
 
     def post_issue(linked_projects, issue):
 
@@ -400,64 +477,6 @@ def query_data_gh_to_rm(linked_projects):
         result['linked_issues'] = linked_issues
 
         return result
-
-    def post_comment(linked_projects, linked_issues, issue):
-
-
-        # ----------------------------------------------- ПОДГОТОВКА ----------------------------------------------
-
-
-        project_id_rm = linked_projects.project_id_rm
-
-
-        # ------------------------------------------ ОБРАБОТКА ФРАЗЫ БОТА -----------------------------------------
-
-
-        # проверяем, если автор issue - бот
-        if (chk_if_gh_user_is_our_bot(issue['issue_author_id'])):
-            issue_body = del_bot_phrase(issue['issue_body'])
-
-        else:
-            issue_body = add_bot_phrase(issue, 'issue_body')
-
-        comment_body = add_bot_phrase(issue, 'comment_body')    # добавляем фразу бота
-
-        # обработка спец. символов
-        issue_title = align_special_symbols(issue['issue_title'])
-        issue_body = align_special_symbols(issue_body)
-        comment_body = align_special_symbols(comment_body)
-
-
-        # --------------------------------------- ЗАГРУЗКА ДАННЫХ В РЕДМАЙН ----------------------------------------
-
-
-        issue_templated = issue_redmine_template.render(
-            project_id=project_id_rm,
-            issue_id=linked_issues.issue_id_rm,
-            priority_id=linked_issues.priority_id_rm,
-            subject=issue_title,
-            description=issue_body,
-            notes=comment_body)
-
-        # кодировка Latin-1 на некоторых задачах приводит к ошибке кодировки в питоне
-        issue_templated = issue_templated.encode('utf-8')
-
-        issue_url_rm = url_rm.replace('.json',
-                                      '/' + str(linked_issues.issue_id_rm) + '.json')
-        request_result = requests.put(issue_url_rm,
-                                      data=issue_templated,
-                                      headers=headers_rm)
-
-
-        # ------------------------------------------ СОХРАНЕНИЕ ДАННЫХ --------------------------------------------
-        # (делаем привязку комментариев после получения веб-хука от редмайна)
-
-
-        # ДЕБАГГИНГ
-        log_comment_gh(request_result, issue, linked_issues, linked_projects.project_id_rm)
-
-
-        return request_result
 
 
     # ====================================== ЗАГРУЗКА ДАННЫХ ИЗ GITHUB В REDMINE =======================================

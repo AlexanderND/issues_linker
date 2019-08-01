@@ -4,23 +4,15 @@ import datetime
 from django.http import HttpResponse    # ответы серверу
 
 
+allow_log = True
+allow_log_file = False
+allow_log_cyclic = False
+
+
 # ===================================================== СПЕЦ. ФУНКЦИИ ==================================================
-# TODO: заменить проверку action в write_log-ах на string.upper() (вывод строки капсом)
 
-def WRITE_LOG_COLOUR(string, colour):
-
-    # получение абсолютного пути до файла
-    #script_dir = os.path.dirname(__file__)  # <-- absolute dir the script is in
-    #log_file_name = os.path.join(script_dir, 'logs/server_log.txt')
-    #log = open(log_file_name, 'a')
-
-    print(colour + string + '\033[0m')
-    #log.write(string + '\n')
-
-    #log.close()
-
+''' Различные цвета (форматы) текста в консоли '''
 '''
-Различные цвета (форматы) текста в консоли
 HEADER = '\033[95m'
 OKBLUE = '\033[94m'
 OKGREEN = '\033[92m'
@@ -30,8 +22,28 @@ ENDC = '\033[0m'
 BOLD = '\033[1m'
 UNDERLINE = '\033[4m'
 '''
-# TODO: заменить .find на использование разных функций логов (после завершиния разработки?)
+
+def WRITE_LOG_COLOUR(string, colour):
+
+    if (allow_log):
+
+        if (allow_log_file):
+
+            # получение абсолютного пути до файла
+            script_dir = os.path.dirname(__file__)  # <-- absolute dir the script is in
+            log_file_name = os.path.join(script_dir, 'logs/server_log.txt')
+            log = open(log_file_name, 'a')
+
+            print(colour + string + '\033[0m')  # лог в консоли
+            log.write(string + '\n')            # лог в файл
+
+            log.close()
+
+        else:
+            print(colour + string + '\033[0m')  # лог в консоли
+
 # выбирает цвет автоматически
+# TODO: заменить .find на использование разных функций логов (после завершиния разработки?)
 def WRITE_LOG(string):
 
     string = str(string)
@@ -40,36 +52,36 @@ def WRITE_LOG(string):
 
         if (string.find('WARNING:') == -1):
 
-            # выводим в консоли голубым цветом
-            WRITE_LOG_COLOUR(string, '\033[96m')
+            WRITE_LOG_COLOUR(string, '\033[96m')    # выводим в консоли голубым цветом
 
         else:
 
-            # выводим в консоли жёлтым цветом
-            WRITE_LOG_COLOUR(string, '\033[93m')
+            WRITE_LOG_COLOUR(string, '\033[93m')    # выводим в консоли жёлтым цветом
 
     else:
 
-        # выводим в консоли красным цветом
-        WRITE_LOG_COLOUR(string, '\033[91m')
+        WRITE_LOG_COLOUR(string, '\033[91m')        # выводим в консоли красным цветом
 
 # ошибки
 def WRITE_LOG_ERR(string):
 
-    # выводим в консоли красным цветом
-    WRITE_LOG_COLOUR(string, '\033[91m')
+    string = str(string)
+
+    WRITE_LOG_COLOUR(string, '\033[91m')            # выводим в консоли красным цветом
 
 # предупреждения
 def WRITE_LOG_WAR(string):
 
-    # выводим в консоли оранжевым цветом
-    WRITE_LOG_COLOUR(string, '\033[93m')
+    string = str(string)
+
+    WRITE_LOG_COLOUR(string, '\033[93m')            # выводим в консоли оранжевым цветом
 
 # уведомления о последующих многократных действиях
 def WRITE_LOG_GRN(string):
 
-    # выводим в консоли оранжевым цветом
-    WRITE_LOG_COLOUR(string, '\033[92m')
+    string = str(string)
+
+    WRITE_LOG_COLOUR(string, '\033[92m')            # выводим в консоли оранжевым цветом
 
 
 # обработка спец. символов (\ -> \\)
@@ -173,54 +185,6 @@ def match_label_to_rm(label_gh):
         WRITE_LOG('ERROR: UNKNOWN GITHUB LABEL: ' + str(label_gh))
         label = None
 
-    '''
-    label_gh = {}
-
-    label_gh['type'], label_gh['name'] = str(label_gh).split(': ', 1)
-
-    if (label_gh['type'] == 'Priority'):
-        if (label_gh['name'] == 'low'):
-            label_gh['id_rm'] = priority_ids_rm[1]
-        elif (label_gh['name'] == 'normal'):
-            label_gh['id_rm'] = priority_ids_rm[0]
-        elif (label_gh['name'] == 'urgent'):
-            label_gh['id_rm'] = priority_ids_rm[2]
-        else:
-            WRITE_LOG('ERROR: UNKNOWN PRIORITY: ' + str(label_gh) +
-                      ' (type: ' + str(label_gh['type']) + ' | name: ' + str(label_gh['name']) + ')')
-            label_gh['id_rm'] = priority_ids_rm[0]
-
-    elif (label_gh['type'] == 'Status'):
-        if (label_gh['name'] == 'new'):
-            label_gh['id_rm'] = status_ids_rm[0]
-        elif (label_gh['name'] == 'working'):
-            label_gh['id_rm'] = status_ids_rm[1]
-        elif (label_gh['name'] == 'feedback'):
-            label_gh['id_rm'] = status_ids_rm[2]
-        elif (label_gh['name'] == 'verification'):
-            label_gh['id_rm'] = status_ids_rm[3]
-        elif (label_gh['name'] == 'rejected'):
-            label_gh['id_rm'] = status_ids_rm[4]
-        else:
-            WRITE_LOG('ERROR: UNKNOWN STATUS: ' + str(label_gh) +
-                      ' (type: ' + str(label_gh['type']) + ' | name: ' + str(label_gh['name']) + ')')
-            label_gh['id_rm'] = status_ids_rm[0]
-
-    elif (label_gh['type'] == 'Tracker'):
-        if (label_gh['name'] == 'task'):
-            label_gh['id_rm'] = tracker_ids_rm[0]
-        elif (label_gh['name'] == 'bug'):
-            label_gh['id_rm'] = tracker_ids_rm[1]
-        else:
-            WRITE_LOG('ERROR: UNKNOWN TRACKER: ' + str(label_gh) +
-                      ' (type: ' + str(label_gh['type']) + ' | name: ' + str(label_gh['name']) + ')')
-            label_gh['id_rm'] = tracker_ids_rm[0]
-
-    else:
-        WRITE_LOG('ERROR: UNKNOWN GITHUB LABEL: ' + str(label_gh))
-        label_gh['id_rm'] = None
-    '''
-
     return label
 
 
@@ -284,7 +248,6 @@ def match_priority_to_gh(priority_id_rm):
 
     return label_gh
 
-allow_log_cyclic = False
 
 
 # ======================================================== REDMINE =====================================================
@@ -326,7 +289,7 @@ url_rm = "http://localhost:3000/issues.json"    # локальный серве�
 """
 BOT_ID_RM = 6           # id бота в редмайне (предотвращение зацикливания)
 
-# project_id_rm = 455     # 455 - тестовый проект на реальном сервере
+# project_id_rm = 455     # 455 - тестовый проект на реальном сервере редмайна
 
 '''
 0 (3) - Задача                          | Tracker: task
