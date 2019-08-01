@@ -26,7 +26,7 @@ from issues_linker.my_functions import prevent_cyclic_comment_rm    # предо
 
 from issues_linker.my_functions import del_bot_phrase               # удаление фразы бота
 
-from issues_linker.my_functions import allign_request_result        # создание корректного ответа серверу
+from issues_linker.my_functions import align_request_result        # создание корректного ответа серверу
 
 from issues_linker.my_functions import match_tracker_to_gh          # сопоставление label-ов
 from issues_linker.my_functions import match_status_to_gh           # сопоставление label-ов
@@ -558,4 +558,4 @@ def process_payload_from_rm(payload):
         return LOGICAL_ERR(error_text)
 
 
-    return allign_request_result(request_result)
+    return align_request_result(request_result)

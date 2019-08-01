@@ -4,12 +4,20 @@ import datetime
 from django.http import HttpResponse    # ответы серверу
 
 
+# =================================================== КОНСТАНТЫ СЕРВЕРА ================================================
+
+
+# константы запрета ведения логов
 allow_log = True
 allow_log_file = False
 allow_log_cyclic = False
 
+allow_log_project_linking = True
+detailed_log_project_linking = False
+
 
 # ===================================================== СПЕЦ. ФУНКЦИИ ==================================================
+
 
 ''' Различные цвета (форматы) текста в консоли '''
 '''
@@ -87,7 +95,9 @@ def WRITE_LOG_GRN(string):
 # обработка спец. символов (\ -> \\)
 def align_special_symbols(str):
 
-    str = str.replace(r'"', r'\"')  # r - строка без спец. символов
+    str = str.replace('\r\n', '\n')     # для гитхаба
+
+    str = str.replace(r'"', r'\"')      # r - строка без спец. символов
     str = str.replace('\r', '\\r')
     str = str.replace('\n', '\\n')
     str = str.replace('\t', '\\t')
@@ -125,7 +135,7 @@ def del_bot_phrase(body):
     return body_processed
 
 # создание корректного ответа серверу
-def allign_request_result(request_result):
+def align_request_result(request_result):
 
     # type() возвращает тип объекта
     if (type(request_result) is HttpResponse):

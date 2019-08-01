@@ -12,6 +12,9 @@ from issues_linker.my_functions import WRITE_LOG_WAR                # веден
 from issues_linker.my_functions import WRITE_LOG_GRN                # ведение логов (многократные действия)
 from issues_linker.my_functions import read_file                    # загрузка файла (возвращает строку)
 
+from issues_linker.my_functions import allow_log_project_linking    # разрешить лог связи серверов
+from issues_linker.my_functions import detailed_log_project_linking # подробный лог связи серверов
+
 from issues_linker.query_data_gh_to_rm import query_data_gh_to_rm   # запрос всех issues и комментариев к ним с гитхаба
 
 
@@ -96,25 +99,29 @@ def link_projects(payload):
 
     def log_link_projects_start():
 
-        WRITE_LOG_GRN('\n' + '=' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 35 + '\n' +
-                      'LINKING PROJECTS IN PROGRESS' + '\n' +
-                      'GITHUB       | ---------------------------------------' + '\n' +
-                      '             | repos_id:     ' + str(repos_id_gh) + '\n' +
-                      '             | repos_url:    ' + url_gh + '\n' +
-                      'REDMINE      | ---------------------------------------' + '\n' +
-                      '             | project_id:   ' + str(project_id_rm) + '\n' +
-                      '             | project_url:  ' + url_rm)
+        if (allow_log_project_linking):
+
+            WRITE_LOG_GRN('\n' + '=' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 35 + '\n' +
+                          'LINKING PROJECTS IN PROGRESS' + '\n' +
+                          'GITHUB       | ---------------------------------------' + '\n' +
+                          '             | repos_id:     ' + str(repos_id_gh) + '\n' +
+                          '             | repos_url:    ' + url_gh + '\n' +
+                          'REDMINE      | ---------------------------------------' + '\n' +
+                          '             | project_id:   ' + str(project_id_rm) + '\n' +
+                          '             | project_url:  ' + url_rm)
 
     def log_link_projects_finish():
 
-        WRITE_LOG_GRN('FINISHED LINKING PROJECTS' + '\n' +
-                      'GITHUB       | ---------------------------------------' + '\n' +
-                      '             | repos_id:     ' + str(repos_id_gh) + '\n' +
-                      '             | repos_url:    ' + url_gh + '\n' +
-                      'REDMINE      | ---------------------------------------' + '\n' +
-                      '             | project_id:   ' + str(project_id_rm) + '\n' +
-                      '             | project_url:  ' + url_rm + '\n' +
-                      '\n' + '=' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 35 + '\n')
+        if (allow_log_project_linking):
+
+            WRITE_LOG_GRN('FINISHED LINKING PROJECTS' + '\n' +
+                          'GITHUB       | ---------------------------------------' + '\n' +
+                          '             | repos_id:     ' + str(repos_id_gh) + '\n' +
+                          '             | repos_url:    ' + url_gh + '\n' +
+                          'REDMINE      | ---------------------------------------' + '\n' +
+                          '             | project_id:   ' + str(project_id_rm) + '\n' +
+                          '             | project_url:  ' + url_rm + '\n' +
+                          '\n' + '=' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 35 + '\n')
 
 
     log_link_projects_start()
@@ -150,46 +157,37 @@ def link_projects(payload):
     # загрузка label-ов в гитхаб
     def log_label_post(label, post_result):
 
-        post_result_text = str(post_result.text)
-        """post_result_text = ''
+        if (allow_log_project_linking and detailed_log_project_linking):
 
-        # приводим текст ответа в удобный вид
-        step = 10
-        WRITE_LOG(len(post_result.text))
-        for index in range(0, len(post_result.text), step):
-            post_result_text += post_result.text[index:]
+            post_result_text = str(post_result.text)
 
-            # добавляем, чтобы текст находился в правой части консоли
-            if ((len(post_result.text) - index - step) > 0):
-                post_result_text += '\n             |               '"""
+            log_text = '\n' + '-' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '-' * 35 + '\n' +\
+                       'POSTing new label to GITHUB:' + '\n' +\
+                       'GITHUB       | ---------------------------------------' + '\n' +\
+                       '             | repos_id:     ' + str(repos_id_gh) + '\n' +\
+                       '             | repos_url:    ' + url_gh + '\n' +\
+                       'REDMINE      | ---------------------------------------' + '\n' +\
+                       '             | project_id:   ' + str(project_id_rm) + '\n' +\
+                       '             | project_url:  ' + url_rm + '\n' +\
+                       'LABEL        | ---------------------------------------' + '\n' +\
+                       '             | name:         ' + label['name'] + '\n' +\
+                       '             | description:  ' + label['description'] + '\n' +\
+                       '             | color:        ' + label['color'] + '\n' +\
+                       '             | default:      ' + label['default'] + '\n' +\
+                       'POST RESULT  | ---------------------------------------' + '\n' +\
+                       '             | status:       ' + str(post_result) + '\n' +\
+                       '             | text:         ' + post_result_text + '\n'
+                       #'-' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '-' * 35 + '\n'
 
-        log_text = '\n' + '-' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '-' * 35 + '\n' +\
-                   'POSTing new label to GITHUB:' + '\n' +\
-                   'GITHUB       | ---------------------------------------' + '\n' +\
-                   '             | repos_id:     ' + str(repos_id_gh) + '\n' +\
-                   '             | repos_url:    ' + url_gh + '\n' +\
-                   'REDMINE      | ---------------------------------------' + '\n' +\
-                   '             | project_id:   ' + str(project_id_rm) + '\n' +\
-                   '             | project_url:  ' + url_rm + '\n' +\
-                   'LABEL        | ---------------------------------------' + '\n' +\
-                   '             | name:         ' + label['name'] + '\n' +\
-                   '             | description:  ' + label['description'] + '\n' +\
-                   '             | color:        ' + label['color'] + '\n' +\
-                   '             | default:      ' + label['default'] + '\n' +\
-                   'POST RESULT  | ---------------------------------------' + '\n' +\
-                   '             | status:       ' + str(post_result) + '\n' +\
-                   '             | text:         ' + post_result_text + '\n'
-                   #'-' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '-' * 35 + '\n'
+            if (post_result.status_code == 201):
+                WRITE_LOG(log_text)
 
-        if (post_result.status_code == 201):
-            WRITE_LOG(log_text)
+            # скорее всего, label просто уже существует
+            elif (post_result.status_code == 422):
+                WRITE_LOG_WAR(log_text)
 
-        # скорее всего, label просто уже существует
-        elif (post_result.status_code == 422):
-            WRITE_LOG_WAR(log_text)
-
-        else:
-            WRITE_LOG_ERR(log_text)
+            else:
+                WRITE_LOG_ERR(log_text)
 
     # TODO: исправить постинг label-ов (не приходит description)
     # TODO: исправить постинг label-ов (не приходит default)
