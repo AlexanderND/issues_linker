@@ -18,6 +18,9 @@ from issues_linker.process_comment_payload_from_gh import process_comment_payloa
 # связь проектов
 from issues_linker.link_projects import link_projects
 
+# очередь выполнения задач
+from issues_linker.quickstart.models import Queue
+
 
 '''# testing
 class UserViewSet(viewsets.ModelViewSet):
@@ -136,7 +139,14 @@ class Linked_Projects_ViewSet(viewsets.ModelViewSet):
     # переопределение create, чтобы получить id проектов из ссылок
     def create(self, request, *args, **kwargs):
 
-        link_result = link_projects(request.data)
+        #queue = Queue.load()                        # загрузка очереди
+        #queue.get_in_line()                         # добавление задачи в очередь
+
+
+        link_result = link_projects(request.data)   # обработка запроса
+
+
+        #queue.get_out_of_line()                     # удаление задачи из очереди
 
         #return super(Linked_Projects_ViewSet, self).create(request, *args, **kwargs)
         return link_result

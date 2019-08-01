@@ -4,6 +4,8 @@ from issues_linker.my_functions import tracker_ids_rm           # ids треке
 from issues_linker.my_functions import status_ids_rm            # ids статусов задачи в редмайне
 from issues_linker.my_functions import priority_ids_rm          # ids приоритетов задачи в редмайне
 
+import queue
+
 # ======================================================= GITHUB =======================================================
 
 
@@ -421,3 +423,99 @@ class Linked_Projects(models.Model):
     class Meta:
         verbose_name = 'linked_projects'
         verbose_name_plural = 'linked_projects'
+
+
+"""# ================================================ ОЧЕРЕДЬ ОБРАБОТКИ ЗАДАЧ =============================================
+
+
+''' Класс SingletonModel -  '''
+class SingletonModel(models.Model):
+
+    class Meta:
+        abstract = True
+
+    def save(self, *args, **kwargs):
+        self.pk = 1
+        super(SingletonModel, self).save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        pass
+
+    @classmethod
+    def load(cls):
+        obj, created = cls.objects.get_or_create(pk=1)
+        return obj
+
+
+''' Класс "Queue_Tasks" - задачи в очереди обработки задач '''
+class Queue_Tasks_Manager(models.Manager):
+
+    use_in_migrations = True
+
+
+    def create_queue_task(self, task):
+
+        queue_task = self.model(task=task)
+
+        queue_task.save()   # сохранение queue_task в базе данных
+
+        return queue_task
+
+
+    def get_by_natural_key(self, id):
+        return self.get(id=id)
+
+class Queue_Tasks(models.Model):
+
+    task = models.CharField(blank=1, max_length=256)    # краткое описание задачи
+
+    db_table = 'queue_task'
+    objects = Queue_Tasks_Manager()
+
+    class Meta:
+        verbose_name = 'queue_task'
+        verbose_name_plural = 'queue_tasks'
+
+
+''' Класс "Queue" - очередь обработки задач '''
+class Queue_Manager(models.Manager):
+
+    use_in_migrations = True
+
+
+    def create_queue(self, project_id_rm, repos_id_gh, url_rm, url_gh):
+        linked_projects = self.model(project_id_rm=project_id_rm,
+                                     repos_id_gh=repos_id_gh,
+                                     url_rm=url_rm,
+                                     url_gh=url_gh)
+        linked_projects.save()  # сохранение linked_projects в базе данных
+
+        return linked_projects
+
+
+    def get_by_natural_key(self, id):
+        return self.get(id=id)
+
+class Queue(SingletonModel):
+
+    tasks = models.ManyToOneRel()
+
+
+    # добавление в очередь
+    def get_in_line(self, task):
+
+
+        return 0
+
+    # выход из очереди
+    def get_out_of_line(self, task):
+
+        return 0
+
+
+    db_table = 'queue'
+    objects = Queue_Manager()
+
+    class Meta:
+        verbose_name = 'queue'
+        verbose_name_plural = 'queue'"""
