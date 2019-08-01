@@ -75,99 +75,6 @@ def query_data_gh_to_rm(linked_projects):
     # ============================================ ВСПОМОГАТЕЛЬНЫЕ КОМАНДЫ =============================================
 
 
-    # issue_body
-    # comment_body
-    # добавляем фразу бота, со ссылкой на аккаунт пользователя в гитхабе
-    def add_bot_phrase(issue, to):
-
-        # добавляем фразу бота к описанию issue
-        if (to == 'issue_body'):
-
-            # добавляем фразу бота
-            author_url_gh = '"' + issue['issue_author_login'] + '":' + 'https://github.com/' + issue['issue_author_login']
-            issue_url_gh = '"issue":' + issue['issue_url']
-            issue_body = 'I am a bot, bleep-bloop.\n' +\
-                         author_url_gh + ' Has opened the ' + issue_url_gh + ' in Github'
-                         #author_url_gh + ' Has ' + issue['action'] + ' an issue on ' + issue_url_gh
-
-            # добавляем описание задачи
-            if (issue['issue_body'] == ''):
-                issue_body += '.'
-
-            else:
-                # добавляем цитирование
-                issue_body_ = issue['issue_body'].replace('\n', '\n>')
-                issue_body_ = '>' + issue_body_
-
-                issue_body += ': \n\n' + issue_body_
-
-            return issue_body
-
-        # добавляем фразу бота к комментарию
-        elif (to == 'comment_body'):
-
-            # добавляем цитирование
-            comment_body = issue['comment_body'].replace('\n', '\n>')
-            comment_body = '>' + comment_body
-
-            # добавляем фразу бота
-            author_url = '"' + issue['comment_author_login'] + '":' + 'https://github.com/' + issue['comment_author_login']
-            comment_url = '"comment":' + issue['issue_url'] + '#issuecomment-' + str(issue['comment_id'])
-            comment_body = 'I am a bot, bleep-bloop.\n' +\
-                           author_url + ' Has left a ' + comment_url + ' in Github: \n\n' + comment_body
-
-            return comment_body
-
-        else:
-
-            WRITE_LOG("\nERROR: 'process_payload_from_gh.add_bot_phrase'\n" +
-                      "unknown parameter 'to': " + to + '.\n' +
-                      "Please, check your code on possible typos.\n" +
-                      "Alternatively, add logic to process '" + to + "' parameter correctly.")
-
-            return None
-
-    # исправление label-ов в гитхабе
-    def correct_gh_labels(issue, tracker, linked_issues):
-
-        # добавление label-ов
-        priority = match_priority_to_gh(linked_issues.priority_id_rm)
-        status = match_status_to_gh(linked_issues.status_id_rm)
-
-
-        # ---------------------------------------- ЗАГРУЗКА ДАННЫХ В ГИТХАБ ----------------------------------------
-
-
-        issue_title = align_special_symbols(issue['issue_title'])
-        issue_body = align_special_symbols(issue['issue_body'])
-
-        issue_templated = issue_github_template.render(
-            title=issue_title,
-            body=issue_body,
-            priority=priority,
-            status=status,
-            tracker=tracker)
-        # кодировка Latin-1 на некоторых задачах приводит к ошибке кодировки в питоне
-        issue_templated = issue_templated.encode('utf-8')
-
-        url_gh = make_gh_repos_url(linked_issues.repos_id_gh)
-
-        WRITE_LOG(issue_templated)
-
-        # добавление issue_id к ссылке
-        issue_url_gh = url_gh + '/' + str(linked_issues.issue_num_gh)
-        request_result = requests.patch(issue_url_gh,
-                                        data=issue_templated,
-                                        headers=headers_gh)
-
-        WRITE_LOG(issue_url_gh)
-        WRITE_LOG(request_result)
-        if (request_result.status_code != 200):
-            WRITE_LOG(request_result.text)
-
-        return request_result
-
-
     # добавляем пробелы, чтобы отделить от лога проектов и задач (как табуляция)
     # лог связи комментариев
     def log_link_comments_start():
@@ -274,6 +181,95 @@ def query_data_gh_to_rm(linked_projects):
                       '            | url_rm:        ' + url_rm + '\n' +
                       '            | issue_id:      ' + str(linked_issues.issue_id_rm) + '\n' +
                       '            | project_id:    ' + str(project_id_rm) + '\n')
+
+    #def log_correct_gh_labels(issue, tracker, linked_issues):
+
+
+
+    # issue_body
+    # comment_body
+    # добавляем фразу бота, со ссылкой на аккаунт пользователя в гитхабе
+    def add_bot_phrase(issue, to):
+
+        # добавляем фразу бота к описанию issue
+        if (to == 'issue_body'):
+
+            # добавляем фразу бота
+            author_url_gh = '"' + issue['issue_author_login'] + '":' + 'https://github.com/' + issue['issue_author_login']
+            issue_url_gh = '"issue":' + issue['issue_url']
+            issue_body = 'I am a bot, bleep-bloop.\n' +\
+                         author_url_gh + ' Has opened the ' + issue_url_gh + ' in Github'
+                         #author_url_gh + ' Has ' + issue['action'] + ' an issue on ' + issue_url_gh
+
+            # добавляем описание задачи
+            if (issue['issue_body'] == ''):
+                issue_body += '.'
+
+            else:
+                # добавляем цитирование
+                issue_body_ = issue['issue_body'].replace('\n', '\n>')
+                issue_body_ = '>' + issue_body_
+
+                issue_body += ': \n\n' + issue_body_
+
+            return issue_body
+
+        # добавляем фразу бота к комментарию
+        elif (to == 'comment_body'):
+
+            # добавляем цитирование
+            comment_body = issue['comment_body'].replace('\n', '\n>')
+            comment_body = '>' + comment_body
+
+            # добавляем фразу бота
+            author_url = '"' + issue['comment_author_login'] + '":' + 'https://github.com/' + issue['comment_author_login']
+            comment_url = '"comment":' + issue['issue_url'] + '#issuecomment-' + str(issue['comment_id'])
+            comment_body = 'I am a bot, bleep-bloop.\n' +\
+                           author_url + ' Has left a ' + comment_url + ' in Github: \n\n' + comment_body
+
+            return comment_body
+
+        else:
+
+            WRITE_LOG("\nERROR: 'process_payload_from_gh.add_bot_phrase'\n" +
+                      "unknown parameter 'to': " + to + '.\n' +
+                      "Please, check your code on possible typos.\n" +
+                      "Alternatively, add logic to process '" + to + "' parameter correctly.")
+
+            return None
+
+    # исправление label-ов в гитхабе
+    def correct_gh_labels(issue, tracker, linked_issues):
+
+        # добавление label-ов
+        priority = match_priority_to_gh(linked_issues.priority_id_rm)
+        status = match_status_to_gh(linked_issues.status_id_rm)
+
+
+        # ---------------------------------------- ЗАГРУЗКА ДАННЫХ В ГИТХАБ ----------------------------------------
+
+
+        issue_title = align_special_symbols(issue['issue_title'])
+        issue_body = align_special_symbols(issue['issue_body'])
+
+        issue_templated = issue_github_template.render(
+            title=issue_title,
+            body=issue_body,
+            priority=priority,
+            status=status,
+            tracker=tracker)
+        # кодировка Latin-1 на некоторых задачах приводит к ошибке кодировки в питоне
+        issue_templated = issue_templated.encode('utf-8')
+
+        url_gh = make_gh_repos_url(linked_issues.repos_id_gh)
+
+        # добавление issue_id к ссылке
+        issue_url_gh = url_gh + '/' + str(linked_issues.issue_num_gh)
+        request_result = requests.patch(issue_url_gh,
+                                        data=issue_templated,
+                                        headers=headers_gh)
+
+        return request_result
 
 
     # парсинг комментария
