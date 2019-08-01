@@ -1,12 +1,8 @@
 from django.db import models
 
-from issues_linker.my_functions import tracker_ids_rm           # ids трекеров задачи в редмайне
-from issues_linker.my_functions import status_ids_rm            # ids статусов задачи в редмайне
-from issues_linker.my_functions import priority_ids_rm          # ids приоритетов задачи в редмайне
-
-import queue
 
 # ======================================================= GITHUB =======================================================
+# убрал .save(), так как нет задачи сохранять на сервере резервную копию данных
 
 
 '''Класс "Issue_GH" - поле "Issue" (title, body, url, number, id) в классе "Payload_GH" - Issue в гитхабе'''
@@ -112,6 +108,7 @@ class Payload_GH(models.Model):
 
 
 # ======================================================= REDMINE ======================================================
+# убрал .save(), так как нет задачи сохранять на сервере резервную копию данных
 
 
 '''Класс "Project_RM" - для хранения id репозитория в редмайне'''
@@ -243,7 +240,6 @@ class Payload_RM(models.Model):
         verbose_name_plural = 'payloads_from_rm'
 
 
-# убрал выше .save(), так как нет задачи сохранять на сервере резервную копию данных
 # ==================================================== СВЯЗЬ COMMENTS ==================================================
 
 
@@ -290,9 +286,7 @@ class Linked_Comments(models.Model):
 # TODO: при удалении linked_issues linked_comments не удаляются (использовать что-то другое, вместо ManyToMany (https://stackoverflow.com/questions/3937194/django-cascade-deletion-in-manytomanyrelation))
 '''Класс "Linked_Issues" - связанные issues (issue_id_rm - repo_id_gh, issue_id_gh)'''
 class Linked_Issues_Manager(models.Manager):
-
     use_in_migrations = True
-
 
     def create_linked_issues(self, issue_id_rm, issue_id_gh, repos_id_gh, issue_num_gh,
                              tracker_id_rm, status_id_rm, priority_id_rm):
@@ -307,7 +301,6 @@ class Linked_Issues_Manager(models.Manager):
 
         return linked_issues
 
-
     def get_by_natural_key(self, id):
         return self.get(id=id)
 
@@ -318,12 +311,11 @@ class Linked_Issues_Manager(models.Manager):
         return self.filter(issue_id_gh=issue_id_gh)
 
 class Linked_Issues(models.Model):
-
     issue_id_rm = models.BigIntegerField(blank=1, null=1)           # id issue в редмайне
     issue_id_gh = models.BigIntegerField(blank=1, null=1)           # id issue в гитхабе
 
     repos_id_gh = models.BigIntegerField(blank=1, null=1)           # id репозитория в гитхабе
-    issue_num_gh = models.BigIntegerField(blank=1, null=1)          # issue['number'] в гитхабе (номер issue в репозитории)
+    issue_num_gh = models.BigIntegerField(blank=1, null=1)          # номер issue в репозитории гитхаба
 
     # различные id-шники в редмайне (или label-ы в гитхабе)
     tracker_id_rm = models.IntegerField(blank=1, null=1)
@@ -337,7 +329,6 @@ class Linked_Issues(models.Model):
 
 
     def add_comment(self, comment_id_rm, comment_id_gh):
-
         comment = Linked_Comments.objects.create_linked_comments(
             comment_id_rm,
             comment_id_gh)
@@ -346,13 +337,11 @@ class Linked_Issues(models.Model):
 
         return comment
 
-
     def get_comment_by_id_gh(self, comment_id_gh):
         return Linked_Comments.objects.get_by_comment_id_gh(comment_id_gh)
 
     def get_comment_by_id_rm(self, comment_id_rm):
         return Linked_Comments.objects.get_by_comment_id_rm(comment_id_rm)
-
 
     db_table = 'linked_issues'
     objects = Linked_Issues_Manager()
@@ -360,7 +349,6 @@ class Linked_Issues(models.Model):
     class Meta:
         verbose_name = 'linked_issues'
         verbose_name_plural = 'linked_issues'
-
 
 # ==================================================== СВЯЗЬ PROJECTS ==================================================
 
@@ -425,37 +413,22 @@ class Linked_Projects(models.Model):
         verbose_name_plural = 'linked_projects'
 
 
-"""# ================================================ ОЧЕРЕДЬ ОБРАБОТКИ ЗАДАЧ =============================================
+# ================================================ ОЧЕРЕДЬ ОБРАБОТКИ ЗАДАЧ =============================================
 
 
-''' Класс SingletonModel -  '''
-class SingletonModel(models.Model):
-
-    class Meta:
-        abstract = True
-
-    def save(self, *args, **kwargs):
-        self.pk = 1
-        super(SingletonModel, self).save(*args, **kwargs)
-
-    def delete(self, *args, **kwargs):
-        pass
-
-    @classmethod
-    def load(cls):
-        obj, created = cls.objects.get_or_create(pk=1)
-        return obj
-
-
-''' Класс "Queue_Tasks" - задачи в очереди обработки задач '''
+''' Класс "Tasks_In_Queue" - задачи в очереди обработки задач '''
 class Queue_Tasks_Manager(models.Manager):
 
     use_in_migrations = True
 
 
-    def create_queue_task(self, task):
+    def create_queue_task(self, project_id_rm, repos_id_gh,
+                                issue_id_rm, issue_id_gh,
+                                comment_id_rm, comment_id_gh):
 
-        queue_task = self.model(task=task)
+        queue_task = self.model(project_id_rm, repos_id_gh,
+                                issue_id_rm, issue_id_gh,
+                                comment_id_rm, comment_id_gh)
 
         queue_task.save()   # сохранение queue_task в базе данных
 
@@ -465,9 +438,45 @@ class Queue_Tasks_Manager(models.Manager):
     def get_by_natural_key(self, id):
         return self.get(id=id)
 
-class Queue_Tasks(models.Model):
+    def get_natural_key(self):
+        return self.id
 
-    task = models.CharField(blank=1, max_length=256)    # краткое описание задачи
+
+    # ПРОЕКТЫ
+    def get_by_project_id_rm(self, project_id_rm):
+        return self.get(project_id_rm=project_id_rm)
+
+    def get_by_repos_id_gh(self, repos_id_gh):
+        return self.get(repos_id_gh=repos_id_gh)
+
+    # ЗАДАЧИ
+    def get_by_issue_id_rm(self, issue_id_rm):
+        return self.get(issue_id_rm=issue_id_rm)
+
+    def get_by_issue_id_gh(self, issue_id_gh):
+        return self.get(issue_id_gh=issue_id_gh)
+
+    # КОММЕНТАРИИ
+    def get_by_comment_id_rm(self, comment_id_rm):
+        return self.get(comment_id_rm=comment_id_rm)
+
+    def get_by_comment_id_gh(self, comment_id_gh):
+        return self.get(comment_id_gh=comment_id_gh)
+
+class Tasks_In_Queue(models.Model):
+
+    # ПРОЕКТЫ
+    project_id_rm = models.BigIntegerField(blank=1, null=1)     # id проекта в редмайне
+    repos_id_gh = models.BigIntegerField(blank=1, null=1)       # id репозитория в гитхабе
+
+    # ЗАДАЧИ
+    issue_id_rm = models.BigIntegerField(blank=1, null=1)       # id issue в редмайне
+    issue_id_gh = models.BigIntegerField(blank=1, null=1)       # id issue в гитхабе
+
+    # КОММЕНТАРИИ
+    comment_id_rm = models.BigIntegerField(blank=1, null=1)     # id комментария в редмайне
+    comment_id_gh = models.BigIntegerField(blank=1, null=1)     # id комментария в гитхабе
+
 
     db_table = 'queue_task'
     objects = Queue_Tasks_Manager()
@@ -483,32 +492,118 @@ class Queue_Manager(models.Manager):
     use_in_migrations = True
 
 
-    def create_queue(self, project_id_rm, repos_id_gh, url_rm, url_gh):
-        linked_projects = self.model(project_id_rm=project_id_rm,
-                                     repos_id_gh=repos_id_gh,
-                                     url_rm=url_rm,
-                                     url_gh=url_gh)
-        linked_projects.save()  # сохранение linked_projects в базе данных
+    '''def save(self, *args, **kwargs):
+        self.pk = 1
+        super(SingletonModel, self).save(*args, **kwargs)
 
-        return linked_projects
-
+    def delete(self, *args, **kwargs):
+        pass'''
 
     def get_by_natural_key(self, id):
         return self.get(id=id)
 
-class Queue(SingletonModel):
 
-    tasks = models.ManyToOneRel()
+    @classmethod
+    def load(cls):
+        obj, created = cls.objects.get_or_create(pk=1)
+        return obj
+
+# ожидание очереди
+def wait(id):
+
+    # прекращаем ожидание, если объект является самым первым добавленным
+    if (id == 0):
+        return 0
+
+    # цикл проверки, не подошла ли очередь
+    while True:
+
+        # прекращаем ожидание, если в очереди нет задач с id меньше, чем у данной задачи (подошла очередь)
+        if (Tasks_In_Queue.objects.get_by_natural_key(id - 1) == None):
+            return 0
+
+class Queue(models.Model):
+
+    tasks = models.ManyToManyField(Tasks_In_Queue, blank=1)      # задачи в очереди на обработку
 
 
-    # добавление в очередь
-    def get_in_line(self, task):
+    # ПРОЕКТЫ
+    def project_in_line(self, project_id_rm, repos_id_gh):
 
+        issue_id_rm = None
+        issue_id_gh = None
+
+        comment_id_rm = None
+        comment_id_gh = None
+
+        queue_task = Tasks_In_Queue(project_id_rm, repos_id_gh,
+                                    issue_id_rm, issue_id_gh,
+                                    comment_id_rm, comment_id_gh)
+
+        self.tasks.add(queue_task)
+
+        id = queue_task.objects.get_natural_key()
+        return wait(id)
+
+    def project_out_of_line(self, linked_projects):
+
+        repos_id_gh = linked_projects.repos_id_gh
+        task = Tasks_In_Queue.objects.get_by_repos_id_gh(repos_id_gh)
+        task.delete()   # удаляем задачу из базы данных
 
         return 0
 
-    # выход из очереди
-    def get_out_of_line(self, task):
+
+    # ЗАДАЧИ
+    def issue_in_line(self, linked_projects, issue_id_rm, issue_id_gh):
+
+        project_id_rm = linked_projects.project_id_rm
+        repos_id_gh = linked_projects.repos_id_gh
+
+        comment_id_rm = None
+        comment_id_gh = None
+
+        queue_task = Tasks_In_Queue(project_id_rm, repos_id_gh,
+                                    issue_id_rm, issue_id_gh,
+                                    comment_id_rm, comment_id_gh)
+
+        self.tasks.add(queue_task)
+
+        id = queue_task.objects.get_natural_key()
+        return wait(id)
+
+    def issue_out_of_line(self, linked_issues):
+
+        issue_id_gh = linked_issues.issue_id_gh
+        task = Tasks_In_Queue.objects.get_by_issue_id_gh(issue_id_gh)
+        task.delete()   # удаляем задачу из базы данных
+
+        return 0
+
+
+    # КОММЕНТАРИИ
+    def comment_in_line(self, linked_projects, linked_issues, comment_id_rm, comment_id_gh):
+
+        project_id_rm = linked_projects.project_id_rm
+        repos_id_gh = linked_projects.repos_id_gh
+
+        issue_id_rm = linked_issues.issue_id_rm
+        issue_id_gh = linked_issues.issue_id_gh
+
+        queue_task = Tasks_In_Queue(project_id_rm, repos_id_gh,
+                                    issue_id_rm, issue_id_gh,
+                                    comment_id_rm, comment_id_gh)
+
+        self.tasks.add(queue_task)
+
+        id = queue_task.objects.get_natural_key()
+        return wait(id)
+
+    def comment_out_of_line(self, linked_comments):
+
+        comment_id_gh = linked_comments.comment_id_gh
+        task = Tasks_In_Queue.objects.get_by_comment_id_gh(comment_id_gh)
+        task.delete()   # удаляем задачу из базы данных
 
         return 0
 
@@ -518,4 +613,4 @@ class Queue(SingletonModel):
 
     class Meta:
         verbose_name = 'queue'
-        verbose_name_plural = 'queue'"""
+        verbose_name_plural = 'queue'

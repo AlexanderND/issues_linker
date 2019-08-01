@@ -9,6 +9,11 @@ from issues_linker.quickstart.models import Payload_GH, Payload_RM
 from issues_linker.quickstart.models import Linked_Projects, Linked_Issues, Linked_Comments
 from issues_linker.quickstart.serializers import Linked_Projects_Serializer, Linked_Issues_Serializer, Linked_Comments_Serializer
 
+# мои модели (очередь обработки задач)
+from issues_linker.quickstart.serializers import Tasks_In_Queue_Serializer, Queue_Serializer
+from issues_linker.quickstart.models import Tasks_In_Queue, Queue
+
+# обработка payload-ов
 from issues_linker.process_payload_from_gh import process_payload_from_gh    # загрузка issue в Redmine
 from issues_linker.process_payload_from_rm import process_payload_from_rm    # загрузка issue в Github
 
@@ -18,8 +23,6 @@ from issues_linker.process_comment_payload_from_gh import process_comment_payloa
 # связь проектов
 from issues_linker.link_projects import link_projects
 
-# очередь выполнения задач
-from issues_linker.quickstart.models import Queue
 
 
 '''# testing
@@ -153,3 +156,35 @@ class Linked_Projects_ViewSet(viewsets.ModelViewSet):
 
     queryset = Linked_Projects.objects.all()
     serializer_class = Linked_Projects_Serializer
+
+
+# ================================================ ОЧЕРЕДЬ ОБРАБОТКИ ЗАДАЧ =============================================
+
+
+''' задачи в очереди обработки задач '''
+class Tasks_In_Queue_ViewSet(viewsets.ModelViewSet):
+    """
+    Tasks_In_Queue_ViewSet.\n
+    Здесь хранится информация о том, какие проекты задачи ожидают обработку\n
+    """
+
+    # переопределение create
+    def create(self, request, *args, **kwargs):
+        return 'no'
+
+    queryset = Tasks_In_Queue.objects.all()
+    serializer_class = Tasks_In_Queue_Serializer
+
+''' очередь обработки задач '''
+class Queue_ViewSet(viewsets.ModelViewSet):
+    """
+    Queue_ViewSet.\n
+    Здесь хранится информация о том, какие проекты задачи ожидают обработку\n
+    """
+
+    # переопределение create
+    def create(self, request, *args, **kwargs):
+        return 'no'
+
+    queryset = Queue.objects.all()
+    serializer_class = Queue_Serializer

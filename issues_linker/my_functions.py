@@ -16,7 +16,7 @@ allow_log_project_linking = True
 detailed_log_project_linking = False
 
 # TODO: не транслировать в редмайн и не сохранять на сервере изменения трекера
-allow_correct_github_labels = False
+allow_correct_github_labels = True
 
 
 # ===================================================== СПЕЦ. ФУНКЦИИ ==================================================

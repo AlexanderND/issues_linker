@@ -80,4 +80,18 @@ Django REST framowork tutorial: https://www.django-rest-framework.org/tutorial/q
 
 Настройка GIT: https://help.github.com/en/articles/adding-an-existing-project-to-github-using-the-command-line
 
+=============================================== ССЫЛКИ НА ПРОЕКТЫ ===============================================
+
+1) Redmine: http://localhost:3000/projects/issues_linker_auto_labels_test
+   Github:  https://github.com/AlexanderND/issues_linker_auto_labels_test
+ 
+2) Redmine: http://localhost:3000/projects/github-test-2
+   Github:  https://github.com/AlexanderND/test
+
+3) Redmine: http://localhost:3000/projects/github-test-3
+   Github:  https://github.com/AlexanderND/test-repository
+
+4) Redmine: 
+   Github:  
+
 
