@@ -17,6 +17,9 @@ from issues_linker.my_functions import detailed_log_project_linking # подро
 
 from issues_linker.query_data_gh_to_rm import query_data_gh_to_rm   # запрос всех issues и комментариев к ним с гитхаба
 
+# очередь обработки задач
+from issues_linker.quickstart.models import Queue
+
 
 # TODO: при связи проектов, проверять: а не связани ли они уже
 # TODO: при связи проектов, запрашивать: все текущие issues и комментарии к ним
@@ -70,9 +73,10 @@ def link_projects(payload):
 
         project_id_rm = json.loads(request_result.text)['project']['id']
 
-    # связь по id
-    #else:
-    #    project_id_rm = payload['project_id_rm']
+    # TODO: связь по id
+    else:
+        #project_id_rm = payload['project_id_rm']
+        return 0
 
 
     # ========================================== ПОЛУЧЕНИЕ REPOS_ID ГИТХАБА ============================================
@@ -89,13 +93,18 @@ def link_projects(payload):
 
         repos_id_gh = json.loads(request_result.text)['id']
 
-    # связь по id
-    #else:
-    #    repos_id_gh = payload['repos_id_gh']
+    # TODO: связь по id
+    else:
+        #repos_id_gh = payload['repos_id_gh']
+        return 0
 
 
     # ============================================= СОХРАНЕНИЕ ID-ШНИКОВ ===============================================
 
+
+    # ЗАНЕСЕНИЕ ОБРАБОТКИ ЗАДАЧИ В ОЧЕРЕДЬ
+    queue = Queue.load()
+    queue.project_in_line(project_id_rm, repos_id_gh)
 
     def log_link_projects_start():
 
@@ -226,6 +235,7 @@ def link_projects(payload):
     query_data_gh_to_rm(linked_projects)
 
     log_link_projects_finish()
+    queue.project_out_of_line(linked_projects)
 
     # TODO: выдавать то же, что выдавалось бы без переопределения метода create
     return HttpResponse(response_text.replace('\n', '<br>'), status=200)    # <br> - новая строка в html

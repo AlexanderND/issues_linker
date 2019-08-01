@@ -1,5 +1,10 @@
 from django.db import models
 
+from issues_linker.my_functions import WRITE_LOG                    # ведение логов
+
+# обработка исключений: объект не найден
+from django.core.exceptions import ObjectDoesNotExist
+
 
 # ======================================================= GITHUB =======================================================
 # убрал .save(), так как нет задачи сохранять на сервере резервную копию данных
@@ -417,26 +422,33 @@ class Linked_Projects(models.Model):
 
 
 ''' Класс "Tasks_In_Queue" - задачи в очереди обработки задач '''
-class Queue_Tasks_Manager(models.Manager):
+class Tasks_In_Queue_Manager(models.Manager):
 
     use_in_migrations = True
 
 
-    def create_queue_task(self, project_id_rm, repos_id_gh,
-                                issue_id_rm, issue_id_gh,
-                                comment_id_rm, comment_id_gh):
+    def create_task_in_queue(self, project_id_rm, repos_id_gh,
+                             issue_id_rm, issue_id_gh,
+                             comment_id_rm, comment_id_gh):
 
-        queue_task = self.model(project_id_rm, repos_id_gh,
-                                issue_id_rm, issue_id_gh,
-                                comment_id_rm, comment_id_gh)
+        task_in_queue = self.model(project_id_rm, repos_id_gh,
+                                   issue_id_rm, issue_id_gh,
+                                   comment_id_rm, comment_id_gh)
 
-        queue_task.save()   # сохранение queue_task в базе данных
+        task_in_queue.save()   # сохранение queue_task в базе данных
 
-        return queue_task
+        return task_in_queue
 
 
     def get_by_natural_key(self, id):
-        return self.get(id=id)
+
+        try:
+            task_in_queue = self.get(id=id)
+
+        except ObjectDoesNotExist:
+            task_in_queue = None
+
+        return task_in_queue
 
     def get_natural_key(self):
         return self.id
@@ -479,7 +491,7 @@ class Tasks_In_Queue(models.Model):
 
 
     db_table = 'queue_task'
-    objects = Queue_Tasks_Manager()
+    objects = Tasks_In_Queue_Manager()
 
     class Meta:
         verbose_name = 'queue_task'
@@ -492,6 +504,14 @@ class Queue_Manager(models.Manager):
     use_in_migrations = True
 
 
+    def creqte_queue(self):
+
+        queue = self.model()
+        queue.save()   # сохранение queue в базе данных
+
+        return queue
+
+
     '''def save(self, *args, **kwargs):
         self.pk = 1
         super(SingletonModel, self).save(*args, **kwargs)
@@ -500,13 +520,26 @@ class Queue_Manager(models.Manager):
         pass'''
 
     def get_by_natural_key(self, id):
-        return self.get(id=id)
 
+        try:
+            queue = self.get(id=id)
 
-    @classmethod
-    def load(cls):
-        obj, created = cls.objects.get_or_create(pk=1)
-        return obj
+        except ObjectDoesNotExist:
+            queue = None
+
+        return queue
+
+    def get_all(self):
+
+        queue = self.all()
+
+        if (len(queue) < 1):
+            queue = None
+
+        else:
+            queue = queue[0]
+
+        return queue
 
 # ожидание очереди
 def wait(id):
@@ -522,6 +555,7 @@ def wait(id):
         if (Tasks_In_Queue.objects.get_by_natural_key(id - 1) == None):
             return 0
 
+# TODO: исправить id проверки первой записи (начинаются с 1?)
 class Queue(models.Model):
 
     tasks = models.ManyToManyField(Tasks_In_Queue, blank=1)      # задачи в очереди на обработку
@@ -536,13 +570,19 @@ class Queue(models.Model):
         comment_id_rm = None
         comment_id_gh = None
 
-        queue_task = Tasks_In_Queue(project_id_rm, repos_id_gh,
-                                    issue_id_rm, issue_id_gh,
-                                    comment_id_rm, comment_id_gh)
+        '''task_in_queue = self.objects.creqte_queue(project_id_rm, repos_id_gh,
+                                                  issue_id_rm, issue_id_gh,
+                                                  comment_id_rm, comment_id_gh)'''
+        WRITE_LOG('1')
+        task_in_queue = Tasks_In_Queue(project_id_rm, repos_id_gh,
+                                                  issue_id_rm, issue_id_gh,
+                                                  comment_id_rm, comment_id_gh)
+        task_in_queue.save()
 
-        self.tasks.add(queue_task)
+        self.tasks.add(task_in_queue)
 
-        id = queue_task.objects.get_natural_key()
+        id = task_in_queue.objects.get_natural_key()
+
         return wait(id)
 
     def project_out_of_line(self, linked_projects):
@@ -606,6 +646,18 @@ class Queue(models.Model):
         task.delete()   # удаляем задачу из базы данных
 
         return 0
+
+
+    # ЗАГРУЗКА ОЧЕРЕДИ (если не создана - создаём, если создана - отправляем)
+    @classmethod
+    def load(self):
+
+        queue = self.objects.get_all()
+
+        if (queue == None):
+            queue = Queue.objects.creqte_queue()
+
+        return queue
 
 
     db_table = 'queue'
