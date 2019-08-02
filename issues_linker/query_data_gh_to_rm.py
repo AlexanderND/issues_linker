@@ -40,7 +40,6 @@ from issues_linker.my_functions import detailed_log_project_linking # подро
 from issues_linker.my_functions import allow_correct_github_labels  # разрешение корректировки labl-ов в гитхабе
 
 
-
 def query_data_gh_to_rm(linked_projects):
 
 
@@ -553,7 +552,9 @@ def query_data_gh_to_rm(linked_projects):
         url_gh = 'https://api.github.com/search/issues?q=repo:' + repos_url_gh
         request_result = requests.get(url_gh)   # для total_count
 
+        WRITE_LOG('  ISSUES total_count QUERRY RESULT: ' + str(request_result))
         num_issues = json.loads(request_result.text)['total_count']
+        WRITE_LOG('  total_count: ' + str(num_issues))
 
 
         # ----------------------------------- ЗАПРОС ВСЕХ ЗАДАЧ С ПРОЕКТА В ГИТХАБЕ ------------------------------------
@@ -562,14 +563,16 @@ def query_data_gh_to_rm(linked_projects):
         issues = []
         WRITE_LOG('  QUERRYING ISSUES FROM GITHUB')
 
-        per_page = 6  # для тестов
-        #per_page = 100  # кол-во issue за страницу
+        #per_page = 6  # для тестов
+        per_page = 100  # кол-во issue за страницу
         page = 1
 
         # цикл перехода по всем страницам, по 100 issue за страницу
         while True:
 
-            WRITE_LOG('  page: ' + str(page) + ' | status: ' + str(request_result.status_code) + ' ' + str(request_result.reason))
+            WRITE_LOG('  per_page: ' + str(per_page) + ' page: ' + str(page) +
+                      #' | 1 + num_issues / per_page : ' + str(1 + num_issues / per_page) +
+                      ' | status: ' + str(request_result.status_code) + ' ' + str(request_result.reason))
 
             ''' https://api.github.com/search/issues?q=repo:AlexanderND/issues_linker_auto_labels_test/issues&per_page=5&page=1 '''
             url = url_gh + '/issues&per_page=' + str(per_page) + '&page=' + str(page)
@@ -589,9 +592,8 @@ def query_data_gh_to_rm(linked_projects):
             page += 1
 
             # цикл с постусловием
-            if (page > 1 + num_issues / per_page):
+            if (page >= 1 + num_issues / per_page):
                 break
-
 
 
         # --------------------------------- ОТПРАВКА ЗАДАЧ В СВЯЗАННЫЙ ПРОЕКТ В РЕДМАЙНЕ -------------------------------

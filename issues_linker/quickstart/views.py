@@ -26,7 +26,6 @@ from issues_linker.process_comment_payload_from_gh import process_comment_payloa
 from issues_linker.link_projects import link_projects
 
 
-
 '''# testing
 class UserViewSet(viewsets.ModelViewSet):
     """
