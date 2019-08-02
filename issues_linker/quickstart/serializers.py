@@ -9,7 +9,8 @@ from issues_linker.quickstart.models import Issue_GH, Repository_GH, Payload_GH,
 from issues_linker.quickstart.models import Linked_Projects, Linked_Issues, Linked_Comments
 
 # мои модели (очередь обработки задач)
-from issues_linker.quickstart.models import Tasks_In_Queue, Queue
+#from issues_linker.quickstart.models import Tasks_In_Queue, Queue
+from issues_linker.quickstart.models import Queue
 
 
 '''# testing
@@ -140,17 +141,17 @@ class Linked_Projects_Serializer(serializers.HyperlinkedModelSerializer):
 
 
 ''' задачи в очереди обработки задач '''
-class Tasks_In_Queue_Serializer(serializers.HyperlinkedModelSerializer):
+'''class Tasks_In_Queue_Serializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Tasks_In_Queue
         fields = ('project_id_rm', 'repos_id_gh',
                   'issue_id_rm', 'issue_id_gh',
-                  'comment_id_rm', 'comment_id_gh')
+                  'comment_id_rm', 'comment_id_gh')'''
 
 ''' очередь обработки задач '''
 class Queue_Serializer(serializers.HyperlinkedModelSerializer):
-    tasks = Tasks_In_Queue_Serializer(many=True, read_only=True)
+    #tasks = Tasks_In_Queue_Serializer(many=True, read_only=True)
 
     class Meta:
         model = Queue
-        fields = (['tasks'])
+        fields = (['queue'])

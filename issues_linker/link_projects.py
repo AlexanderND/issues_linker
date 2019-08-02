@@ -233,7 +233,7 @@ def link_projects(payload):
     query_data_gh_to_rm(linked_projects)
 
     log_link_projects_finish()
-    queue.task_out_of_line(linked_projects)     # УДАЛЕНИЕ ОБРАБОТКИ ЗАДАЧИ ИЗ ОЧЕРЕДИ
+    queue.task_out_of_line()     # УДАЛЕНИЕ ОБРАБОТКИ ЗАДАЧИ ИЗ ОЧЕРЕДИ
 
     # TODO: выдавать то же, что выдавалось бы без переопределения метода create
     return HttpResponse(response_text.replace('\n', '<br>'), status=200)    # <br> - новая строка в html

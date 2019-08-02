@@ -6,6 +6,9 @@ from issues_linker.my_functions import WRITE_LOG        # ведение лог�
 
 from django.core.exceptions import ObjectDoesNotExist   # обработка исключений: объект не найден
 
+# задержка
+import time
+
 
 # ======================================================= GITHUB =======================================================
 # убрал .save(), так как нет задачи сохранять на сервере резервную копию данных
@@ -423,7 +426,7 @@ class Linked_Projects(models.Model):
 
 
 ''' Класс "Tasks_In_Queue" - задачи в очереди обработки задач '''
-class Tasks_In_Queue_Manager(models.Manager):
+'''class Tasks_In_Queue_Manager(models.Manager):
 
     use_in_migrations = True
 
@@ -506,8 +509,38 @@ class Tasks_In_Queue(models.Model):
 
     class Meta:
         verbose_name = 'queue_task'
-        verbose_name_plural = 'queue_tasks'
+        verbose_name_plural = 'queue_tasks'''
+class Tasks_In_Queue():
 
+    # ПРОЕКТЫ
+    project_id_rm = int()
+    repos_id_gh = int()
+
+    # ЗАДАЧИ
+    issue_id_rm = int()
+    issue_id_gh = int()
+
+    # КОММЕНТАРИИ
+    comment_id_rm = int()
+    comment_id_gh = int()
+
+    def create(self, project_id_rm, repos_id_gh,
+               issue_id_rm, issue_id_gh,
+               comment_id_rm, comment_id_gh):
+
+        # ПРОЕКТЫ
+        self.project_id_rm = project_id_rm
+        self.repos_id_gh = repos_id_gh
+
+        # ЗАДАЧИ
+        self.issue_id_rm = issue_id_rm
+        self.issue_id_gh = issue_id_gh
+
+        # КОММЕНТАРИИ
+        self.comment_id_rm = comment_id_rm
+        self.comment_id_gh = comment_id_gh
+
+        return self
 
 ''' Класс "Queue" - очередь обработки задач '''
 class Queue_Manager(models.Manager):
@@ -546,18 +579,30 @@ class Queue_Manager(models.Manager):
 
 # ожидание очереди
 def wait(queue, task_in_queue):
+    #return 0
 
     # цикл проверки, не подошла ли очередь
     while True:
 
         # пропускаем ошибку 'database is locked'
-        try:
-        # прекращаем ожидание, если данный объект является самым левым в очереди
+        '''try:
+            # прекращаем ожидание, если данный объект является самым левым в очереди
             if (queue[0] == task_in_queue):
 
                 return 0
         except:
-            pass
+            pass'''
+
+        time.sleep(0.1)     # небольшая задержка, перед повторной попыткой (чтобы не перегружать сервер)
+
+        try:
+            # прекращаем ожидание, если данный объект является самым левым в очереди
+            if (queue[0] == task_in_queue):
+
+                return 0
+        except:
+            # прекращаем ожидание, если очередь пуста
+            return 0
 
 # TODO: исправить id проверки первой записи (начинаются с 1?)
 class Queue(models.Model):
@@ -568,10 +613,15 @@ class Queue(models.Model):
     # занесение project в очередь
     def project_in_line(self, project_id_rm, repos_id_gh):
 
-        task_in_queue = Tasks_In_Queue(project_id_rm, repos_id_gh,
+        task_in_queue = Tasks_In_Queue()
+        task_in_queue = task_in_queue.create(project_id_rm, repos_id_gh,
+                                             None, None,
+                                             None, None)
+
+        '''task_in_queue = Tasks_In_Queue(project_id_rm, repos_id_gh,
                                        None, None,
                                        None, None)
-        task_in_queue.save()
+        task_in_queue.save()'''
 
         self.queue.append(task_in_queue)    # занесение задачи в очередь
 
@@ -580,10 +630,15 @@ class Queue(models.Model):
     # занесение issue в очередь
     def issue_in_line(self, issue_id_rm, issue_id_gh):
 
-        task_in_queue = Tasks_In_Queue(None, None,
+        task_in_queue = Tasks_In_Queue()
+        task_in_queue = task_in_queue.create(None, None,
+                                             issue_id_rm, issue_id_gh,
+                                             None, None)
+
+        '''task_in_queue = Tasks_In_Queue(None, None,
                                        issue_id_rm, issue_id_gh,
                                        None, None)
-        task_in_queue.save()
+        task_in_queue.save()'''
 
         self.queue.append(task_in_queue)    # занесение задачи в очередь
 
@@ -592,10 +647,15 @@ class Queue(models.Model):
     # занесение comment в очередь
     def comment_in_line(self, comment_id_rm, comment_id_gh):
 
-        task_in_queue = Tasks_In_Queue(None, None,
+        task_in_queue = Tasks_In_Queue()
+        task_in_queue = task_in_queue.create(None, None,
+                                             None, None,
+                                             comment_id_rm, comment_id_gh)
+
+        '''task_in_queue = Tasks_In_Queue(None, None,
                                        None, None,
                                        comment_id_rm, comment_id_gh)
-        task_in_queue.save()
+        task_in_queue.save()'''
 
         self.queue.append(task_in_queue)    # занесение задачи в очередь
 
@@ -603,7 +663,7 @@ class Queue(models.Model):
     def task_out_of_line(self):
 
         task_in_queue = self.queue.popleft()    # удаление задачи из очереди
-        task_in_queue.delete()                  # удаление задачи из базы данных
+        #task_in_queue.delete()                  # удаление задачи из базы данных
 
         return 0
 
@@ -613,6 +673,7 @@ class Queue(models.Model):
     def load(self):
 
         queue = self.objects.get_all()
+        WRITE_LOG(queue)
 
         if (queue == None):
             queue = Queue.objects.creqte_queue()

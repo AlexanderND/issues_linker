@@ -10,8 +10,10 @@ from issues_linker.quickstart.models import Linked_Projects, Linked_Issues, Link
 from issues_linker.quickstart.serializers import Linked_Projects_Serializer, Linked_Issues_Serializer, Linked_Comments_Serializer
 
 # мои модели (очередь обработки задач)
-from issues_linker.quickstart.serializers import Tasks_In_Queue_Serializer, Queue_Serializer
-from issues_linker.quickstart.models import Tasks_In_Queue, Queue
+#from issues_linker.quickstart.serializers import Tasks_In_Queue_Serializer, Queue_Serializer
+#from issues_linker.quickstart.models import Tasks_In_Queue, Queue
+from issues_linker.quickstart.serializers import Queue_Serializer
+from issues_linker.quickstart.models import Queue
 
 # обработка payload-ов
 from issues_linker.process_payload_from_gh import process_payload_from_gh    # загрузка issue в Redmine
@@ -162,7 +164,7 @@ class Linked_Projects_ViewSet(viewsets.ModelViewSet):
 
 
 ''' задачи в очереди обработки задач '''
-class Tasks_In_Queue_ViewSet(viewsets.ModelViewSet):
+'''class Tasks_In_Queue_ViewSet(viewsets.ModelViewSet):
     """
     Tasks_In_Queue_ViewSet.\n
     Здесь хранится информация о том, какие проекты задачи ожидают обработку\n
@@ -173,7 +175,7 @@ class Tasks_In_Queue_ViewSet(viewsets.ModelViewSet):
         return 'no'
 
     queryset = Tasks_In_Queue.objects.all()
-    serializer_class = Tasks_In_Queue_Serializer
+    serializer_class = Tasks_In_Queue_Serializer'''
 
 ''' очередь обработки задач '''
 class Queue_ViewSet(viewsets.ModelViewSet):
