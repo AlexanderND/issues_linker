@@ -61,7 +61,13 @@ class Payload_From_GH_ViewSet(viewsets.ModelViewSet):
     # переопределение create, чтобы сразу отправлять загруженные issue на RM
     def create(self, request, *args, **kwargs):
 
+        queue = Queue.load()                                # загрузка очереди
+        last_task_in_queue_id = queue[-1].id                # peek на последний элемент в очереди
+        queue.get_in_line(3, last_task_in_queue_id + 1)     # добавление задачи в очередь
+
         process_result = process_payload_from_gh(request.data)
+
+        queue.get_out_of_line()                             # удаление задачи из очереди
 
         #return super(Payload_From_GH_ViewSet, self).create(request, *args, **kwargs)
         return process_result
@@ -80,7 +86,13 @@ class Comment_Payload_From_GH_ViewSet(viewsets.ModelViewSet):
     # переопределение create, чтобы сразу отправлять загруженные issue на RM
     def create(self, request, *args, **kwargs):
 
+        queue = Queue.load()                                # загрузка очереди
+        last_task_in_queue_id = queue[-1].id                # peek на последний элемент в очереди
+        queue.get_in_line(4, last_task_in_queue_id + 1)     # добавление задачи в очередь
+
         process_result = process_comment_payload_from_gh(request.data)
+
+        queue.get_out_of_line()                             # удаление задачи из очереди
 
         #return super(Comment_Payload_From_GH_ViewSet, self).create(request, *args, **kwargs)
         return process_result
@@ -104,7 +116,12 @@ class Payload_From_RM_ViewSet(viewsets.ModelViewSet):
     # переопределение create, чтобы сразу отправлять загруженные issue на GH
     def create(self, request, *args, **kwargs):
 
+        queue = Queue.load()        # загрузка очереди
+        queue.get_in_line(2)        # добавление задачи в очередь
+
         process_result = process_payload_from_rm(request.data)
+
+        queue.get_out_of_line()     # удаление задачи из очереди
 
         #return super(Payload_From_RM_ViewSet, self).create(request, *args, **kwargs)
         return process_result
@@ -144,14 +161,12 @@ class Linked_Projects_ViewSet(viewsets.ModelViewSet):
     # переопределение create, чтобы получить id проектов из ссылок
     def create(self, request, *args, **kwargs):
 
-        #queue_test = Queue.load()                        # загрузка очереди
-        #queue_test.get_in_line()                         # добавление задачи в очередь
-
+        queue = Queue.load()                        # загрузка очереди
+        queue.get_in_line(1)                        # добавление задачи в очередь
 
         link_result = link_projects(request.data)   # обработка запроса
 
-
-        #queue_test.get_out_of_line()                     # удаление задачи из очереди
+        queue.get_out_of_line()                     # удаление задачи из очереди
 
         #return super(Linked_Projects_ViewSet, self).create(request, *args, **kwargs)
         return link_result

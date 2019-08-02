@@ -512,7 +512,7 @@ class Tasks_In_Queue(models.Model):
         verbose_name_plural = 'queue_tasks'''
 class Tasks_In_Queue():
 
-    # ПРОЕКТЫ
+    '''# ПРОЕКТЫ
     project_id_rm = int()
     repos_id_gh = int()
 
@@ -539,6 +539,23 @@ class Tasks_In_Queue():
         # КОММЕНТАРИИ
         self.comment_id_rm = comment_id_rm
         self.comment_id_gh = comment_id_gh
+
+        return self'''
+
+
+    ''' 1 - link_projects '''
+    ''' 2 - process_payload_from_rm '''
+    ''' 3 - process_payload_from_gh '''
+    ''' 4 - process_comment_payload_from_gh '''
+    type = int()    # тип задачи (какой файл запускать)
+
+    id = int()      # id задачи
+
+    def create(self, type, id):
+
+        # ПРОЕКТЫ
+        self.type = type
+        self.id = id
 
         return self
 
@@ -593,7 +610,7 @@ def wait(queue, task_in_queue):
         except:
             pass'''
 
-        time.sleep(0.1)     # небольшая задержка, перед повторной попыткой (чтобы не перегружать сервер)
+        time.sleep(1)     # небольшая задержка, перед повторной попыткой (чтобы не перегружать сервер)
 
         try:
             # прекращаем ожидание, если данный объект является самым левым в очереди
@@ -611,7 +628,7 @@ class Queue(models.Model):
 
 
     # занесение project в очередь
-    def project_in_line(self, project_id_rm, repos_id_gh):
+    """def project_in_line(self, project_id_rm, repos_id_gh):
 
         task_in_queue = Tasks_In_Queue()
         task_in_queue = task_in_queue.create(project_id_rm, repos_id_gh,
@@ -657,7 +674,27 @@ class Queue(models.Model):
                                        comment_id_rm, comment_id_gh)
         task_in_queue.save()'''
 
+        self.queue.append(task_in_queue)    # занесение задачи в очередь"""
+    def get_in_line(self, type):
+
+        # создаём id элемента
+        if (len(self.queue) < 1):
+            last_task_in_queue_id = 0
+
+        else:
+            last_task_in_queue_id = self.queue[-1].id           # peek на последний элемент в очереди
+
+        task_in_queue = Tasks_In_Queue()
+        task_in_queue = task_in_queue.create(type, last_task_in_queue_id + 1)
+
+        '''task_in_queue = Tasks_In_Queue(project_id_rm, repos_id_gh,
+                                       None, None,
+                                       None, None)
+        task_in_queue.save()'''
+
         self.queue.append(task_in_queue)    # занесение задачи в очередь
+
+        return wait(self.queue, task_in_queue)
 
     # удаление задачи из очереди
     def task_out_of_line(self):
