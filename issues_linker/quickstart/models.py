@@ -1,9 +1,10 @@
+from collections import deque                           # двухсторонняя очередь в питоне
+
 from django.db import models
 
-from issues_linker.my_functions import WRITE_LOG                    # ведение логов
+from issues_linker.my_functions import WRITE_LOG        # ведение логов
 
-# обработка исключений: объект не найден
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist   # обработка исключений: объект не найден
 
 
 # ======================================================= GITHUB =======================================================
@@ -489,6 +490,16 @@ class Tasks_In_Queue(models.Model):
     comment_id_rm = models.BigIntegerField(blank=1, null=1)     # id комментария в редмайне
     comment_id_gh = models.BigIntegerField(blank=1, null=1)     # id комментария в гитхабе
 
+    def create_task_in_queue(self, project_id_rm, repos_id_gh,
+                             issue_id_rm, issue_id_gh,
+                             comment_id_rm, comment_id_gh):
+
+        task_in_queue = self.objects.create_task_in_queue(project_id_rm, repos_id_gh,
+                                                          issue_id_rm, issue_id_gh,
+                                                          comment_id_rm, comment_id_gh)
+
+        return task_in_queue
+
 
     db_table = 'queue_task'
     objects = Tasks_In_Queue_Manager()
@@ -507,17 +518,9 @@ class Queue_Manager(models.Manager):
     def creqte_queue(self):
 
         queue = self.model()
-        queue.save()   # сохранение queue в базе данных
+        queue.save()   # сохранение queue_test в базе данных
 
         return queue
-
-
-    '''def save(self, *args, **kwargs):
-        self.pk = 1
-        super(SingletonModel, self).save(*args, **kwargs)
-
-    def delete(self, *args, **kwargs):
-        pass'''
 
     def get_by_natural_key(self, id):
 
@@ -542,23 +545,25 @@ class Queue_Manager(models.Manager):
         return queue
 
 # ожидание очереди
-def wait(id):
-
-    # прекращаем ожидание, если объект является самым первым добавленным
-    if (id == 0):
-        return 0
+def wait(queue, task_in_queue):
 
     # цикл проверки, не подошла ли очередь
     while True:
 
-        # прекращаем ожидание, если в очереди нет задач с id меньше, чем у данной задачи (подошла очередь)
-        if (Tasks_In_Queue.objects.get_by_natural_key(id - 1) == None):
+        # прекращаем ожидание, если данный объект является самым левым в очереди
+        if (queue[0] == task_in_queue):
+
+            queue.popleft()
+            task_in_queue.delete()
+
             return 0
 
 # TODO: исправить id проверки первой записи (начинаются с 1?)
 class Queue(models.Model):
 
-    tasks = models.ManyToManyField(Tasks_In_Queue, blank=1)      # задачи в очереди на обработку
+    tasks = models.ManyToManyField(Tasks_In_Queue, blank=1)     # задачи в очереди на обработку (в базе данных)
+
+    queue = deque()                                             # очередь
 
 
     # ПРОЕКТЫ
@@ -570,26 +575,35 @@ class Queue(models.Model):
         comment_id_rm = None
         comment_id_gh = None
 
-        '''task_in_queue = self.objects.creqte_queue(project_id_rm, repos_id_gh,
-                                                  issue_id_rm, issue_id_gh,
-                                                  comment_id_rm, comment_id_gh)'''
-        WRITE_LOG('1')
-        task_in_queue = Tasks_In_Queue(project_id_rm, repos_id_gh,
+        '''task_in_queue = self.objects.create_task_in_queue(project_id_rm, repos_id_gh,
                                                   issue_id_rm, issue_id_gh,
                                                   comment_id_rm, comment_id_gh)
+        WRITE_LOG('1')
+        task_in_queue = Tasks_In_Queue(project_id_rm, repos_id_gh,
+                                       issue_id_rm, issue_id_gh,
+                                       comment_id_rm, comment_id_gh)
         task_in_queue.save()
 
         self.tasks.add(task_in_queue)
 
         id = task_in_queue.objects.get_natural_key()
 
-        return wait(id)
+        return wait(id)'''
+        WRITE_LOG('1')
+        task_in_queue = Tasks_In_Queue(project_id_rm, repos_id_gh,
+                                       issue_id_rm, issue_id_gh,
+                                       comment_id_rm, comment_id_gh)
+        task_in_queue.save()
+
+        self.queue.append(task_in_queue)    # занесение задачи в очередь
+
+        return wait(self.queue, task_in_queue)
 
     def project_out_of_line(self, linked_projects):
 
         repos_id_gh = linked_projects.repos_id_gh
-        task = Tasks_In_Queue.objects.get_by_repos_id_gh(repos_id_gh)
-        task.delete()   # удаляем задачу из базы данных
+        '''task = Tasks_In_Queue.objects.get_by_repos_id_gh(repos_id_gh)
+        task.delete()   # удаляем задачу из базы данных'''
 
         return 0
 
@@ -660,9 +674,9 @@ class Queue(models.Model):
         return queue
 
 
-    db_table = 'queue'
+    db_table = 'queue_test'
     objects = Queue_Manager()
 
     class Meta:
-        verbose_name = 'queue'
-        verbose_name_plural = 'queue'
+        verbose_name = 'queue_test'
+        verbose_name_plural = 'queue_test'

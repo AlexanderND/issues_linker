@@ -142,14 +142,14 @@ class Linked_Projects_ViewSet(viewsets.ModelViewSet):
     # переопределение create, чтобы получить id проектов из ссылок
     def create(self, request, *args, **kwargs):
 
-        #queue = Queue.load()                        # загрузка очереди
-        #queue.get_in_line()                         # добавление задачи в очередь
+        #queue_test = Queue.load()                        # загрузка очереди
+        #queue_test.get_in_line()                         # добавление задачи в очередь
 
 
         link_result = link_projects(request.data)   # обработка запроса
 
 
-        #queue.get_out_of_line()                     # удаление задачи из очереди
+        #queue_test.get_out_of_line()                     # удаление задачи из очереди
 
         #return super(Linked_Projects_ViewSet, self).create(request, *args, **kwargs)
         return link_result

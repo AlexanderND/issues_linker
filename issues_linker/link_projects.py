@@ -102,10 +102,6 @@ def link_projects(payload):
     # ============================================= СОХРАНЕНИЕ ID-ШНИКОВ ===============================================
 
 
-    # ЗАНЕСЕНИЕ ОБРАБОТКИ ЗАДАЧИ В ОЧЕРЕДЬ
-    queue = Queue.load()
-    queue.project_in_line(project_id_rm, repos_id_gh)
-
     def log_link_projects_start():
 
         if (allow_log_project_linking):
@@ -133,6 +129,9 @@ def link_projects(payload):
                           '\n' + '=' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 35 + '\n')
 
 
+    # ЗАНЕСЕНИЕ ОБРАБОТКИ ЗАДАЧИ В ОЧЕРЕДЬ
+    queue = Queue.load()
+    queue.project_in_line(project_id_rm, repos_id_gh)
     log_link_projects_start()
 
     # занесение в базу данных информацию о том, что данные проекты связаны
