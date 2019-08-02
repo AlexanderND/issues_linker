@@ -359,6 +359,7 @@ class Linked_Issues(models.Model):
         verbose_name = 'linked_issues'
         verbose_name_plural = 'linked_issues'
 
+
 # ==================================================== СВЯЗЬ PROJECTS ==================================================
 
 
@@ -386,6 +387,11 @@ class Linked_Projects_Manager(models.Manager):
 
     def get_by_repos_id_gh(self, repos_id_gh):
         return self.filter(repos_id_gh=repos_id_gh)
+
+    def get(self, project_id_rm, repos_id_gh):
+        return self.filter(project_id_rm=project_id_rm,
+                           repos_id_gh=repos_id_gh)
+
 
 class Linked_Projects(models.Model):
 

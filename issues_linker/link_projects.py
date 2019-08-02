@@ -128,8 +128,18 @@ def link_projects(payload):
                           '             | project_url:  ' + url_rm + '\n' +
                           '\n' + '=' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 35 + '\n')
 
+    # проверка, что проекты уже связаны
+    def chk_if_projects_are_linked(project_id_rm, repos_id_gh):
+
+        linked_projects = Linked_Projects.objects.get(project_id_rm, repos_id_gh)
+        return linked_projects
+
 
     log_link_projects_start()
+
+    linked_projects = chk_if_projects_are_linked(project_id_rm, repos_id_gh)
+    if (len(linked_projects) > 0):
+        linked_projects[0].delete_linked_projects()    # удаляем информацию из базы данных
 
     # занесение в базу данных информацию о том, что данные проекты связаны
     linked_projects = Linked_Projects.objects.create_linked_projects(
