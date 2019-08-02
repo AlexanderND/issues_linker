@@ -550,114 +550,60 @@ def wait(queue, task_in_queue):
     # цикл проверки, не подошла ли очередь
     while True:
 
+        # пропускаем ошибку 'database is locked'
+        try:
         # прекращаем ожидание, если данный объект является самым левым в очереди
-        if (queue[0] == task_in_queue):
+            if (queue[0] == task_in_queue):
 
-            queue.popleft()
-            task_in_queue.delete()
-
-            return 0
+                return 0
+        except:
+            pass
 
 # TODO: исправить id проверки первой записи (начинаются с 1?)
 class Queue(models.Model):
 
-    tasks = models.ManyToManyField(Tasks_In_Queue, blank=1)     # задачи в очереди на обработку (в базе данных)
-
-    queue = deque()                                             # очередь
+    queue = deque()                                             # очередь задач
 
 
-    # ПРОЕКТЫ
+    # занесение project в очередь
     def project_in_line(self, project_id_rm, repos_id_gh):
 
-        issue_id_rm = None
-        issue_id_gh = None
-
-        comment_id_rm = None
-        comment_id_gh = None
-
-        '''task_in_queue = self.objects.create_task_in_queue(project_id_rm, repos_id_gh,
-                                                  issue_id_rm, issue_id_gh,
-                                                  comment_id_rm, comment_id_gh)
-        WRITE_LOG('1')
         task_in_queue = Tasks_In_Queue(project_id_rm, repos_id_gh,
-                                       issue_id_rm, issue_id_gh,
-                                       comment_id_rm, comment_id_gh)
-        task_in_queue.save()
-
-        self.tasks.add(task_in_queue)
-
-        id = task_in_queue.objects.get_natural_key()
-
-        return wait(id)'''
-        WRITE_LOG('1')
-        task_in_queue = Tasks_In_Queue(project_id_rm, repos_id_gh,
-                                       issue_id_rm, issue_id_gh,
-                                       comment_id_rm, comment_id_gh)
+                                       None, None,
+                                       None, None)
         task_in_queue.save()
 
         self.queue.append(task_in_queue)    # занесение задачи в очередь
 
         return wait(self.queue, task_in_queue)
 
-    def project_out_of_line(self, linked_projects):
+    # занесение issue в очередь
+    def issue_in_line(self, issue_id_rm, issue_id_gh):
 
-        repos_id_gh = linked_projects.repos_id_gh
-        '''task = Tasks_In_Queue.objects.get_by_repos_id_gh(repos_id_gh)
-        task.delete()   # удаляем задачу из базы данных'''
+        task_in_queue = Tasks_In_Queue(None, None,
+                                       issue_id_rm, issue_id_gh,
+                                       None, None)
+        task_in_queue.save()
 
-        return 0
+        self.queue.append(task_in_queue)    # занесение задачи в очередь
 
+        return wait(self.queue, task_in_queue)
 
-    # ЗАДАЧИ
-    def issue_in_line(self, linked_projects, issue_id_rm, issue_id_gh):
+    # занесение comment в очередь
+    def comment_in_line(self, comment_id_rm, comment_id_gh):
 
-        project_id_rm = linked_projects.project_id_rm
-        repos_id_gh = linked_projects.repos_id_gh
+        task_in_queue = Tasks_In_Queue(None, None,
+                                       None, None,
+                                       comment_id_rm, comment_id_gh)
+        task_in_queue.save()
 
-        comment_id_rm = None
-        comment_id_gh = None
+        self.queue.append(task_in_queue)    # занесение задачи в очередь
 
-        queue_task = Tasks_In_Queue(project_id_rm, repos_id_gh,
-                                    issue_id_rm, issue_id_gh,
-                                    comment_id_rm, comment_id_gh)
+    # удаление задачи из очереди
+    def task_out_of_line(self):
 
-        self.tasks.add(queue_task)
-
-        id = queue_task.objects.get_natural_key()
-        return wait(id)
-
-    def issue_out_of_line(self, linked_issues):
-
-        issue_id_gh = linked_issues.issue_id_gh
-        task = Tasks_In_Queue.objects.get_by_issue_id_gh(issue_id_gh)
-        task.delete()   # удаляем задачу из базы данных
-
-        return 0
-
-
-    # КОММЕНТАРИИ
-    def comment_in_line(self, linked_projects, linked_issues, comment_id_rm, comment_id_gh):
-
-        project_id_rm = linked_projects.project_id_rm
-        repos_id_gh = linked_projects.repos_id_gh
-
-        issue_id_rm = linked_issues.issue_id_rm
-        issue_id_gh = linked_issues.issue_id_gh
-
-        queue_task = Tasks_In_Queue(project_id_rm, repos_id_gh,
-                                    issue_id_rm, issue_id_gh,
-                                    comment_id_rm, comment_id_gh)
-
-        self.tasks.add(queue_task)
-
-        id = queue_task.objects.get_natural_key()
-        return wait(id)
-
-    def comment_out_of_line(self, linked_comments):
-
-        comment_id_gh = linked_comments.comment_id_gh
-        task = Tasks_In_Queue.objects.get_by_comment_id_gh(comment_id_gh)
-        task.delete()   # удаляем задачу из базы данных
+        task_in_queue = self.queue.popleft()    # удаление задачи из очереди
+        task_in_queue.delete()                  # удаление задачи из базы данных
 
         return 0
 

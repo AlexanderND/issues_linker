@@ -26,7 +26,7 @@ from issues_linker.my_functions import prevent_cyclic_comment_rm    # предо
 
 from issues_linker.my_functions import del_bot_phrase               # удаление фразы бота
 
-from issues_linker.my_functions import align_request_result        # создание корректного ответа серверу
+from issues_linker.my_functions import align_request_result         # создание корректного ответа серверу
 
 from issues_linker.my_functions import match_tracker_to_gh          # сопоставление label-ов
 from issues_linker.my_functions import match_status_to_gh           # сопоставление label-ов
@@ -36,6 +36,9 @@ from issues_linker.my_functions import tracker_ids_rm               # ids тре
 from issues_linker.my_functions import status_ids_rm                # ids статусов задачи в редмайне
 from issues_linker.my_functions import priority_ids_rm              # ids приоритетов задачи в редмайне
 from issues_linker.my_functions import url_rm                       # ссылка на сервер редмайна
+
+# очередь обработки задач
+from issues_linker.quickstart.models import Queue
 
 
 def process_payload_from_rm(payload):
@@ -520,7 +523,11 @@ def process_payload_from_rm(payload):
     block_action_opened = True  # запрет копирования задач: RM -> GH
 
     linked_projects = Linked_Projects.objects.get_by_project_id_rm(issue['project_id'])
+    queue = Queue.load()# загрузка очереди
+
     if (issue['action'] == 'opened'):
+
+        queue.issue_in_line(issue['issue_id'], None)    # ЗАНЕСЕНИЕ ОБРАБОТКИ ЗАДАЧИ В ОЧЕРЕДЬ
 
         if (chk_if_rm_user_is_our_bot(issue['issue_author_id'])):
 
@@ -542,6 +549,8 @@ def process_payload_from_rm(payload):
 
     elif (issue['action'] == 'updated'):
 
+        queue.comment_in_line(issue['comment_id'], None)    # ЗАНЕСЕНИЕ ОБРАБОТКИ ЗАДАЧИ В ОЧЕРЕДЬ
+
         if (chk_if_rm_user_is_our_bot(issue['comment_author_id'])):
 
             # попытка связать комментарий на редмайне с гитхабом
@@ -558,4 +567,5 @@ def process_payload_from_rm(payload):
         return LOGICAL_ERR(error_text)
 
 
+    queue.task_out_of_line()
     return align_request_result(request_result)

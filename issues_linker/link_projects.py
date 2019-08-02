@@ -129,9 +129,8 @@ def link_projects(payload):
                           '\n' + '=' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 35 + '\n')
 
 
-    # ЗАНЕСЕНИЕ ОБРАБОТКИ ЗАДАЧИ В ОЧЕРЕДЬ
-    queue = Queue.load()
-    queue.project_in_line(project_id_rm, repos_id_gh)
+    queue = Queue.load()                                # загрузка очереди
+    queue.project_in_line(project_id_rm, repos_id_gh)   # ЗАНЕСЕНИЕ ОБРАБОТКИ ЗАДАЧИ В ОЧЕРЕДЬ
     log_link_projects_start()
 
     # занесение в базу данных информацию о том, что данные проекты связаны
@@ -234,7 +233,7 @@ def link_projects(payload):
     query_data_gh_to_rm(linked_projects)
 
     log_link_projects_finish()
-    queue.project_out_of_line(linked_projects)
+    queue.task_out_of_line(linked_projects)     # УДАЛЕНИЕ ОБРАБОТКИ ЗАДАЧИ ИЗ ОЧЕРЕДИ
 
     # TODO: выдавать то же, что выдавалось бы без переопределения метода create
     return HttpResponse(response_text.replace('\n', '<br>'), status=200)    # <br> - новая строка в html

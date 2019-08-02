@@ -46,7 +46,7 @@ router.register(r'linked_comments', Linked_Comments_ViewSet)
 
 # ОЧЕРЕДЬ ОБРАБОТКИ ЗАДАЧ
 router.register(r'queue_tasks', Tasks_In_Queue_ViewSet)
-router.register(r'queue_test', Queue_ViewSet)
+router.register(r'queue', Queue_ViewSet)
 
 
 # Wire up our API using automatic URL routing.

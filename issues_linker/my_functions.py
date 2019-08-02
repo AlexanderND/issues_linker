@@ -10,10 +10,10 @@ from django.http import HttpResponse    # ответы серверу
 # константы запрета ведения логов
 allow_log = True
 allow_log_file = False
-allow_log_cyclic = False
+allow_log_cyclic = True
 
 allow_log_project_linking = True
-detailed_log_project_linking = False
+detailed_log_project_linking = True
 
 # TODO: не транслировать в редмайн и не сохранять на сервере изменения трекера
 allow_correct_github_labels = True

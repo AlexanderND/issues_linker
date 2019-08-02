@@ -25,7 +25,7 @@ from issues_linker.my_functions import match_label_to_rm            # сопос
 
 from issues_linker.my_functions import del_bot_phrase               # удаление фразы бота
 
-from issues_linker.my_functions import align_request_result        # создание корректного ответа серверу
+from issues_linker.my_functions import align_request_result         # создание корректного ответа серверу
 
 from issues_linker.my_functions import match_tracker_to_gh          # сопоставление label-ов
 from issues_linker.my_functions import match_status_to_gh           # сопоставление label-ов
@@ -34,6 +34,9 @@ from issues_linker.my_functions import match_priority_to_gh         # сопос
 from issues_linker.my_functions import make_gh_repos_url            # ссылка на гитхаб
 
 from issues_linker.my_functions import allow_correct_github_labels
+
+# очередь обработки задач
+from issues_linker.quickstart.models import Queue
 
 
 def process_payload_from_gh(payload):
