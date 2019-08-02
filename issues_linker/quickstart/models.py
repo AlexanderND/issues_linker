@@ -560,7 +560,7 @@ class Tasks_In_Queue():
         return self
 
 ''' Класс "Queue" - очередь обработки задач '''
-class Queue_Manager(models.Manager):
+'''class Queue_Manager(models.Manager):
 
     use_in_migrations = True
 
@@ -592,7 +592,7 @@ class Queue_Manager(models.Manager):
         else:
             queue = queue[0]
 
-        return queue
+        return queue'''
 
 # ожидание очереди
 def wait(queue, task_in_queue):
@@ -622,59 +622,12 @@ def wait(queue, task_in_queue):
             return 0
 
 # TODO: исправить id проверки первой записи (начинаются с 1?)
-class Queue(models.Model):
+'''class Queue(models.Model):
 
     queue = deque()                                             # очередь задач
 
 
-    # занесение project в очередь
-    """def project_in_line(self, project_id_rm, repos_id_gh):
-
-        task_in_queue = Tasks_In_Queue()
-        task_in_queue = task_in_queue.create(project_id_rm, repos_id_gh,
-                                             None, None,
-                                             None, None)
-
-        '''task_in_queue = Tasks_In_Queue(project_id_rm, repos_id_gh,
-                                       None, None,
-                                       None, None)
-        task_in_queue.save()'''
-
-        self.queue.append(task_in_queue)    # занесение задачи в очередь
-
-        return wait(self.queue, task_in_queue)
-
-    # занесение issue в очередь
-    def issue_in_line(self, issue_id_rm, issue_id_gh):
-
-        task_in_queue = Tasks_In_Queue()
-        task_in_queue = task_in_queue.create(None, None,
-                                             issue_id_rm, issue_id_gh,
-                                             None, None)
-
-        '''task_in_queue = Tasks_In_Queue(None, None,
-                                       issue_id_rm, issue_id_gh,
-                                       None, None)
-        task_in_queue.save()'''
-
-        self.queue.append(task_in_queue)    # занесение задачи в очередь
-
-        return wait(self.queue, task_in_queue)
-
-    # занесение comment в очередь
-    def comment_in_line(self, comment_id_rm, comment_id_gh):
-
-        task_in_queue = Tasks_In_Queue()
-        task_in_queue = task_in_queue.create(None, None,
-                                             None, None,
-                                             comment_id_rm, comment_id_gh)
-
-        '''task_in_queue = Tasks_In_Queue(None, None,
-                                       None, None,
-                                       comment_id_rm, comment_id_gh)
-        task_in_queue.save()'''
-
-        self.queue.append(task_in_queue)    # занесение задачи в очередь"""
+    # занесение задачи на обработку в очередь
     def get_in_line(self, type):
 
         # создаём id элемента
@@ -686,11 +639,6 @@ class Queue(models.Model):
 
         task_in_queue = Tasks_In_Queue()
         task_in_queue = task_in_queue.create(type, last_task_in_queue_id + 1)
-
-        '''task_in_queue = Tasks_In_Queue(project_id_rm, repos_id_gh,
-                                       None, None,
-                                       None, None)
-        task_in_queue.save()'''
 
         self.queue.append(task_in_queue)    # занесение задачи в очередь
 
@@ -724,3 +672,4 @@ class Queue(models.Model):
     class Meta:
         verbose_name = 'queue_test'
         verbose_name_plural = 'queue_test'
+        '''

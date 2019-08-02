@@ -36,7 +36,7 @@ from issues_linker.my_functions import make_gh_repos_url            # ссылк
 from issues_linker.my_functions import allow_correct_github_labels
 
 # очередь обработки задач
-from issues_linker.quickstart.models import Queue
+#from issues_linker.quickstart.models import Queue
 
 
 def process_payload_from_gh(payload):

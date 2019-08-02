@@ -27,7 +27,7 @@ from issues_linker.my_functions import del_bot_phrase               # удале
 from issues_linker.my_functions import align_request_result         # создание корректного ответа серверу
 
 # очередь обработки задач
-from issues_linker.quickstart.models import Queue
+#from issues_linker.quickstart.models import Queue
 
 
 def process_comment_payload_from_gh(payload):

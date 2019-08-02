@@ -12,8 +12,8 @@ from issues_linker.quickstart.serializers import Linked_Projects_Serializer, Lin
 # мои модели (очередь обработки задач)
 #from issues_linker.quickstart.serializers import Tasks_In_Queue_Serializer, Queue_Serializer
 #from issues_linker.quickstart.models import Tasks_In_Queue, Queue
-from issues_linker.quickstart.serializers import Queue_Serializer
-from issues_linker.quickstart.models import Queue
+#from issues_linker.quickstart.serializers import Queue_Serializer
+#from issues_linker.quickstart.models import Queue
 
 # обработка payload-ов
 from issues_linker.process_payload_from_gh import process_payload_from_gh    # загрузка issue в Redmine
@@ -61,13 +61,12 @@ class Payload_From_GH_ViewSet(viewsets.ModelViewSet):
     # переопределение create, чтобы сразу отправлять загруженные issue на RM
     def create(self, request, *args, **kwargs):
 
-        queue = Queue.load()                                # загрузка очереди
-        last_task_in_queue_id = queue[-1].id                # peek на последний элемент в очереди
-        queue.get_in_line(3, last_task_in_queue_id + 1)     # добавление задачи в очередь
+        #queue = Queue.load()                                # загрузка очереди
+        #queue.get_in_line(3)     # добавление задачи в очередь
 
         process_result = process_payload_from_gh(request.data)
 
-        queue.get_out_of_line()                             # удаление задачи из очереди
+        #queue.get_out_of_line()                             # удаление задачи из очереди
 
         #return super(Payload_From_GH_ViewSet, self).create(request, *args, **kwargs)
         return process_result
@@ -86,13 +85,12 @@ class Comment_Payload_From_GH_ViewSet(viewsets.ModelViewSet):
     # переопределение create, чтобы сразу отправлять загруженные issue на RM
     def create(self, request, *args, **kwargs):
 
-        queue = Queue.load()                                # загрузка очереди
-        last_task_in_queue_id = queue[-1].id                # peek на последний элемент в очереди
-        queue.get_in_line(4, last_task_in_queue_id + 1)     # добавление задачи в очередь
+        #queue = Queue.load()                                # загрузка очереди
+        #queue.get_in_line(4)     # добавление задачи в очередь
 
         process_result = process_comment_payload_from_gh(request.data)
 
-        queue.get_out_of_line()                             # удаление задачи из очереди
+        #queue.get_out_of_line()                             # удаление задачи из очереди
 
         #return super(Comment_Payload_From_GH_ViewSet, self).create(request, *args, **kwargs)
         return process_result
@@ -116,12 +114,12 @@ class Payload_From_RM_ViewSet(viewsets.ModelViewSet):
     # переопределение create, чтобы сразу отправлять загруженные issue на GH
     def create(self, request, *args, **kwargs):
 
-        queue = Queue.load()        # загрузка очереди
-        queue.get_in_line(2)        # добавление задачи в очередь
+        #queue = Queue.load()        # загрузка очереди
+        #queue.get_in_line(2)        # добавление задачи в очередь
 
         process_result = process_payload_from_rm(request.data)
 
-        queue.get_out_of_line()     # удаление задачи из очереди
+        #queue.get_out_of_line()     # удаление задачи из очереди
 
         #return super(Payload_From_RM_ViewSet, self).create(request, *args, **kwargs)
         return process_result
@@ -161,12 +159,12 @@ class Linked_Projects_ViewSet(viewsets.ModelViewSet):
     # переопределение create, чтобы получить id проектов из ссылок
     def create(self, request, *args, **kwargs):
 
-        queue = Queue.load()                        # загрузка очереди
-        queue.get_in_line(1)                        # добавление задачи в очередь
+        #queue = Queue.load()                        # загрузка очереди
+        #queue.get_in_line(1)                        # добавление задачи в очередь
 
         link_result = link_projects(request.data)   # обработка запроса
 
-        queue.get_out_of_line()                     # удаление задачи из очереди
+        #queue.get_out_of_line()                     # удаление задачи из очереди
 
         #return super(Linked_Projects_ViewSet, self).create(request, *args, **kwargs)
         return link_result
@@ -193,7 +191,7 @@ class Linked_Projects_ViewSet(viewsets.ModelViewSet):
     serializer_class = Tasks_In_Queue_Serializer'''
 
 ''' очередь обработки задач '''
-class Queue_ViewSet(viewsets.ModelViewSet):
+'''class Queue_ViewSet(viewsets.ModelViewSet):
     """
     Queue_ViewSet.\n
     Здесь хранится информация о том, какие проекты задачи ожидают обработку\n
@@ -204,4 +202,4 @@ class Queue_ViewSet(viewsets.ModelViewSet):
         return 'no'
 
     queryset = Queue.objects.all()
-    serializer_class = Queue_Serializer
+    serializer_class = Queue_Serializer'''

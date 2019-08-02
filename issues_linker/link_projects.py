@@ -18,7 +18,7 @@ from issues_linker.my_functions import detailed_log_project_linking # подро
 from issues_linker.query_data_gh_to_rm import query_data_gh_to_rm   # запрос всех issues и комментариев к ним с гитхаба
 
 # очередь обработки задач
-from issues_linker.quickstart.models import Queue
+#from issues_linker.quickstart.models import Queue
 
 
 # TODO: при связи проектов, проверять: а не связани ли они уже

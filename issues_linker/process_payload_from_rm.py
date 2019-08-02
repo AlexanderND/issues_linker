@@ -38,7 +38,7 @@ from issues_linker.my_functions import priority_ids_rm              # ids при
 from issues_linker.my_functions import url_rm                       # ссылка на сервер редмайна
 
 # очередь обработки задач
-from issues_linker.quickstart.models import Queue
+#from issues_linker.quickstart.models import Queue
 
 
 def process_payload_from_rm(payload):
