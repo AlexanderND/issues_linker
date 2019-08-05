@@ -253,3 +253,77 @@ def link_projects(payload):
 
     # TODO: выдавать то же, что выдавалось бы без переопределения метода create
     return HttpResponse(response_text.replace('\n', '<br>'), status=200)    # <br> - новая строка в html
+
+
+# TODO: добавить в linked_projects поле "last_linking_time" - запрашивать issues старше этого времени (изначально ставим минимальную дату)
+def relink_projects(linked_projects):
+
+
+    # =================================================== ПОДГОТОВКА ===================================================
+
+
+    # авторизация в redmine по токену (локальный сервер)
+    api_key_redmime = read_file('api_keys/api_key_redmime_local.txt')   # загрузка ключа для redmine api
+    #api_key_redmime = read_file('api_keys/api_key_redmime.txt')        # загрузка ключа для redmine api
+    api_key_redmime = api_key_redmime.replace('\n', '')                 # избавляемся от \n в конце строки
+
+    '''
+    # авторизация в redmine по токену (реальный сервер)
+    api_key_redmime = read_file('api_keys/api_key_redmime_local.txt')   # загрузка ключа для redmine api
+    api_key_redmime = api_key_redmime.replace('\n', '')                 # избавляемся от \n в конце строки
+    '''
+
+    # авторизация в гитхабе по токену
+    api_key_github = read_file('api_keys/api_key_github.txt')           # загрузка ключа для github api
+    api_key_github = api_key_github.replace('\n', '')                   # избавляемся от \n в конце строки
+
+
+    repos_id_gh = linked_projects.repos_id_gh
+    url_gh = linked_projects.url_gh
+
+    project_id_rm = linked_projects.project_id_rm
+    url_rm = linked_projects.url_rm
+
+
+    def log_link_projects_start():
+
+        if (not allow_log_project_linking):
+            return 0
+
+        WRITE_LOG_GRN('\n' + '=' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 35 + '\n' +
+                      'RELINKING PROJECTS IN PROGRESS' + '\n' +
+                      'GITHUB       | ---------------------------------------' + '\n' +
+                      '             | repos_id:     ' + str(repos_id_gh) + '\n' +
+                      '             | repos_url:    ' + url_gh + '\n' +
+                      'REDMINE      | ---------------------------------------' + '\n' +
+                      '             | project_id:   ' + str(project_id_rm) + '\n' +
+                      '             | project_url:  ' + url_rm)
+
+    def log_link_projects_finish():
+
+        if (not allow_log_project_linking):
+            return 0
+
+        WRITE_LOG_GRN('FINISHED RELINKING PROJECTS' + '\n' +
+                      'GITHUB       | ---------------------------------------' + '\n' +
+                      '             | repos_id:     ' + str(repos_id_gh) + '\n' +
+                      '             | repos_url:    ' + url_gh + '\n' +
+                      'REDMINE      | ---------------------------------------' + '\n' +
+                      '             | project_id:   ' + str(project_id_rm) + '\n' +
+                      '             | project_url:  ' + url_rm + '\n' +
+                      '\n' + '=' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 35 + '\n')
+
+    log_link_projects_start()
+
+
+    # ================================ ЗАГРУЗКА ВСЕХ НОВЫХ ISSUE ИЗ ГИТХАБА В РЕДМАЙН ==================================
+
+
+    # запрос issues и комментариев к ним из гитхаба и отправка в редмайн
+    query_data_gh_to_rm(linked_projects)
+
+    log_link_projects_finish()
+
+    response_text = "re-linking projects successfully!"
+
+    return HttpResponse(response_text, status=200)    # <br> - новая строка в html
