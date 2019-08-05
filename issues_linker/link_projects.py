@@ -139,7 +139,7 @@ def link_projects(payload):
             return 0
 
         for i in range(len(linked_projects)):
-            linked_projects[i].delete_linked_projects()    # удаляем информацию из базы данных
+            linked_projects[i].delete()     # удаляем информацию из базы данных
 
 
     log_link_projects_start()

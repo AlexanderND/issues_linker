@@ -43,6 +43,14 @@ class GroupViewSet(viewsets.ModelViewSet):
     serializer_class = GroupSerializer'''
 
 
+def standard_server_response(sender):
+
+    response_text = 'The linker server has successfully received the payload from ' + sender
+    response = HttpResponse(response_text, status=200)
+
+    return response
+
+
 # ======================================================= GITHUB =======================================================
 
 
@@ -68,7 +76,7 @@ class Payload_From_GH_ViewSet(viewsets.ModelViewSet):
         #queue.get_out_of_line()                             # удаление задачи из очереди
 
         #return super(Payload_From_GH_ViewSet, self).create(request, *args, **kwargs)
-        return process_result
+        return standard_server_response('Github')
 
 # TODO: добавлять в очередь
 ''' payloads от гитхаба (комментарии) '''
@@ -92,7 +100,7 @@ class Comment_Payload_From_GH_ViewSet(viewsets.ModelViewSet):
         #queue.get_out_of_line()                             # удаление задачи из очереди
 
         #return super(Comment_Payload_From_GH_ViewSet, self).create(request, *args, **kwargs)
-        return process_result
+        return standard_server_response('Github')
 
 
 # ======================================================= REDMINE ======================================================
@@ -121,7 +129,7 @@ class Payload_From_RM_ViewSet(viewsets.ModelViewSet):
         #queue.get_out_of_line()     # удаление задачи из очереди
 
         #return super(Payload_From_RM_ViewSet, self).create(request, *args, **kwargs)
-        return process_result
+        return standard_server_response('Redmine')
 
 
 # ======================================================== СВЯЗЬ =======================================================

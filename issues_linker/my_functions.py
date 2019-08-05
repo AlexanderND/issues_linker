@@ -3,6 +3,12 @@ import datetime
 
 from django.http import HttpResponse    # ответы серверу
 
+from collections import deque           # двухсторонняя очередь в питоне
+
+
+# ОЧЕРЕДЬ ЗАДАЧ
+tasks_queue = deque()
+
 
 # =================================================== КОНСТАНТЫ СЕРВЕРА ================================================
 
