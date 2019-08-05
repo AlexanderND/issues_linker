@@ -516,7 +516,7 @@ class Tasks_In_Queue(models.Model):
     class Meta:
         verbose_name = 'queue_task'
         verbose_name_plural = 'queue_tasks'''
-class Tasks_In_Queue():
+class Task_In_Queue():
 
     '''# ПРОЕКТЫ
     project_id_rm = int()
@@ -566,7 +566,7 @@ class Tasks_In_Queue():
         return self
 
 ''' Класс "Queue" - очередь обработки задач '''
-'''class Queue_Manager(models.Manager):
+class Tasks_Queue_Manager(models.Manager):
 
     use_in_migrations = True
 
@@ -598,7 +598,7 @@ class Tasks_In_Queue():
         else:
             queue = queue[0]
 
-        return queue'''
+        return queue
 
 # ожидание очереди
 def wait(queue, task_in_queue):
@@ -616,22 +616,21 @@ def wait(queue, task_in_queue):
         except:
             pass'''
 
-        time.sleep(1)     # небольшая задержка, перед повторной попыткой (чтобы не перегружать сервер)
-
         try:
             # прекращаем ожидание, если данный объект является самым левым в очереди
             if (queue[0] == task_in_queue):
-
                 return 0
+
         except:
             # прекращаем ожидание, если очередь пуста
             return 0
 
+        time.sleep(1)     # небольшая задержка, перед повторной попыткой (чтобы не перегружать сервер)
+
 # TODO: исправить id проверки первой записи (начинаются с 1?)
-'''class Queue(models.Model):
+class Tasks_Queue(models.Model):
 
     queue = deque()                                             # очередь задач
-
 
     # занесение задачи на обработку в очередь
     def get_in_line(self, type):
@@ -643,7 +642,7 @@ def wait(queue, task_in_queue):
         else:
             last_task_in_queue_id = self.queue[-1].id           # peek на последний элемент в очереди
 
-        task_in_queue = Tasks_In_Queue()
+        task_in_queue = Task_In_Queue()
         task_in_queue = task_in_queue.create(type, last_task_in_queue_id + 1)
 
         self.queue.append(task_in_queue)    # занесение задачи в очередь
@@ -652,11 +651,8 @@ def wait(queue, task_in_queue):
 
     # удаление задачи из очереди
     def task_out_of_line(self):
-
         task_in_queue = self.queue.popleft()    # удаление задачи из очереди
-        #task_in_queue.delete()                  # удаление задачи из базы данных
-
-        return 0
+        return task_in_queue
 
 
     # ЗАГРУЗКА ОЧЕРЕДИ (если не создана - создаём, если создана - отправляем)
@@ -664,18 +660,16 @@ def wait(queue, task_in_queue):
     def load(self):
 
         queue = self.objects.get_all()
-        WRITE_LOG(queue)
 
         if (queue == None):
-            queue = Queue.objects.creqte_queue()
+            queue = Tasks_Queue.objects.creqte_queue()
 
         return queue
 
 
-    db_table = 'queue_test'
-    objects = Queue_Manager()
+    db_table = 'tasks_queue'
+    objects = Tasks_Queue_Manager()
 
     class Meta:
-        verbose_name = 'queue_test'
-        verbose_name_plural = 'queue_test'
-        '''
+        verbose_name = 'tasks_queues'
+        verbose_name_plural = 'tasks_queue'

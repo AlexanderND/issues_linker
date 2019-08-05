@@ -6,10 +6,6 @@ from django.http import HttpResponse    # ответы серверу
 from collections import deque           # двухсторонняя очередь в питоне
 
 
-# ОЧЕРЕДЬ ЗАДАЧ
-tasks_queue = deque()
-
-
 # =================================================== КОНСТАНТЫ СЕРВЕРА ================================================
 
 
@@ -268,6 +264,11 @@ def match_priority_to_gh(priority_id_rm):
 
     return label_gh
 
+
+# ОЧЕРЕДЬ ЗАДАЧ
+tasks_queue = [deque()]
+def get_tasks_queue():
+    return tasks_queue
 
 
 # ======================================================== REDMINE =====================================================
