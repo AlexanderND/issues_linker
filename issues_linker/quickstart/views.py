@@ -74,6 +74,7 @@ class Task_In_Queue():
         ''' 4 - process_comment_payload_from_gh '''
         self.type = type
 
+# TODO: рефакторинг
 def tasks_queue_daemon(sleep_retry):
     retry_wait = sleep_retry
 
@@ -85,26 +86,66 @@ def tasks_queue_daemon(sleep_retry):
 
         # определяем тип обработки
         if (type == 1):
-            process_result = link_projects(payload)
+            try:
+                process_result = link_projects(payload)
+
+                # определяем результат обработки
+                if (process_result.status_code == 200 or process_result.status_code == 201):
+                    retry_wait = sleep_retry    # сброс времени ожидания перед повторным запуском
+                    tasks_queue.popleft()       # удаляем задачу из очереди
+
+                else:
+                    retry_wait += sleep_retry   # увеличение времени ожидания (чтобы не перегружать сервер)
+            except:
+                retry_wait += sleep_retry   # увеличение времени ожидания (чтобы не перегружать сервер)
+                pass
 
         elif (type == 2):
-            process_result = process_payload_from_rm(payload)
+            try:
+                process_result = process_payload_from_rm(payload)
+
+                # определяем результат обработки
+                if (process_result.status_code == 200 or process_result.status_code == 201):
+                    retry_wait = sleep_retry    # сброс времени ожидания перед повторным запуском
+                    tasks_queue.popleft()       # удаляем задачу из очереди
+
+                else:
+                    retry_wait += sleep_retry   # увеличение времени ожидания (чтобы не перегружать сервер)
+            except:
+                retry_wait += sleep_retry   # увеличение времени ожидания (чтобы не перегружать сервер)
+                pass
 
         elif (type == 3):
-            process_result = process_payload_from_gh(payload)
+            try:
+                process_result = process_payload_from_gh(payload)
+
+                # определяем результат обработки
+                if (process_result.status_code == 200 or process_result.status_code == 201):
+                    retry_wait = sleep_retry    # сброс времени ожидания перед повторным запуском
+                    tasks_queue.popleft()       # удаляем задачу из очереди
+
+                else:
+                    retry_wait += sleep_retry   # увеличение времени ожидания (чтобы не перегружать сервер)
+            except:
+                retry_wait += sleep_retry   # увеличение времени ожидания (чтобы не перегружать сервер)
+                pass
 
         else: # type == 4
-            process_result = process_comment_payload_from_gh(payload)
+            try:
+                process_result = process_comment_payload_from_gh(payload)
 
-        # определяем результат обработки
-        if (process_result.status_code == 200 or process_result.status_code == 201):
-            retry_wait = sleep_retry    # сброс времени ожидания перед повторным запуском
-            tasks_queue.popleft()       # удаляем задачу из очереди
+                # определяем результат обработки
+                if (process_result.status_code == 200 or process_result.status_code == 201):
+                    retry_wait = sleep_retry    # сброс времени ожидания перед повторным запуском
+                    tasks_queue.popleft()       # удаляем задачу из очереди
 
-        else:
-            time.sleep(retry_wait)      # ждём перед следующим запуском
-            retry_wait += sleep_retry   # увеличение времени ожидания (чтобы не перегружать сервер)
+                else:
+                    retry_wait += sleep_retry   # увеличение времени ожидания (чтобы не перегружать сервер)
+            except:
+                retry_wait += sleep_retry   # увеличение времени ожидания (чтобы не перегружать сервер)
+                pass
 
+        time.sleep(retry_wait)      # ждём перед следующим запуском
         # остановка цикла, как только задачи кончились
         if (len(tasks_queue) < 1):
             break
