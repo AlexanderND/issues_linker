@@ -22,6 +22,8 @@ from issues_linker.process_payload_from_rm import process_payload_from_rm    # �
 # загрузка комментариев к issue в Github
 from issues_linker.process_comment_payload_from_gh import process_comment_payload_from_gh
 
+from django.http import HttpResponse    # ответы серверу
+
 # связь проектов
 from issues_linker.link_projects import link_projects
 
