@@ -23,6 +23,7 @@ from issues_linker.my_functions import log_issue_edit_rm            # лог с�
 from issues_linker.my_functions import log_comment_rm               # лог связи issues (комментарий)
 from issues_linker.my_functions import prevent_cyclic_issue_rm      # предотвращение зацикливания issue
 from issues_linker.my_functions import prevent_cyclic_comment_rm    # предотвращение зацикливания комментариев
+from issues_linker.my_functions import log_link_comment_crutch      # костыль связи комментариев
 
 from issues_linker.my_functions import del_bot_phrase               # удаление фразы бота
 
@@ -211,7 +212,7 @@ def process_payload_from_rm(payload):
                   'received webhook from REDMINE: issues | ' + 'action: ' + str(issue['action']) + '\n' +
                   error_text)
 
-        return HttpResponse(error_text, status=404)
+        return HttpResponse(error_text, status=200)
 
     # логическая ошибка: неизвестное действие, неправильные label-ы в гитхабе и т.п.
     def LOGICAL_ERR(error_text):
@@ -223,7 +224,7 @@ def process_payload_from_rm(payload):
                   'received webhook from REDMINE: issues | ' + 'action: ' + str(issue['action']) + '\n' +
                   error_text)
 
-        return HttpResponse(error_text, status=422)
+        return HttpResponse(error_text, status=200)
 
 
     # ============================================= КОМАНДЫ ДЛЯ ЗАГРУЗКИ ===============================================
@@ -508,7 +509,7 @@ def process_payload_from_rm(payload):
             linked_comments = linked_issues.add_comment(issue['comment_id'],
                                                         comment_id_gh)
 
-            responce_text = "Comment linked to GITHUB successfully."
+            responce_text = log_link_comment_crutch(issue, linked_comments)
             return HttpResponse(responce_text, status=201)
 
         else:
@@ -540,7 +541,7 @@ def process_payload_from_rm(payload):
                       'received webhook from REDMINE: issues | ' + 'action: ' + str(issue['action']) + '\n' +
                       error_text)
 
-            return HttpResponse(error_text, status=403)
+            return HttpResponse(error_text, status=200)
 
         request_result = post_issue(linked_projects, issue)
 

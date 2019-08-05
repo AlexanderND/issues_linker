@@ -232,7 +232,7 @@ def process_payload_from_gh(payload):
                   'received webhook from GITHUB: issues | ' + 'action: ' + str(issue['action']) + '\n' +
                   error_text)
 
-        return HttpResponse(error_text, status=404)
+        return HttpResponse(error_text, status=200)
 
     # логическая ошибка: неизвестное действие, неправильные label-ы в гитхабе и т.п.
     def LOGICAL_ERR(error_text):
@@ -244,7 +244,7 @@ def process_payload_from_gh(payload):
                   'received webhook from GITHUB: issues | ' + 'action: ' + str(issue['action']) + '\n' +
                   error_text)
 
-        return HttpResponse(error_text, status=422)
+        return HttpResponse(error_text, status=200)
 
 
     # ============================================= КОМАНДЫ ДЛЯ ЗАГРУЗКИ ===============================================

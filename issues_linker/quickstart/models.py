@@ -516,38 +516,7 @@ class Tasks_In_Queue(models.Model):
     class Meta:
         verbose_name = 'queue_task'
         verbose_name_plural = 'queue_tasks'''
-class Task_In_Queue():
-
-    '''# ПРОЕКТЫ
-    project_id_rm = int()
-    repos_id_gh = int()
-
-    # ЗАДАЧИ
-    issue_id_rm = int()
-    issue_id_gh = int()
-
-    # КОММЕНТАРИИ
-    comment_id_rm = int()
-    comment_id_gh = int()
-
-    def create(self, project_id_rm, repos_id_gh,
-               issue_id_rm, issue_id_gh,
-               comment_id_rm, comment_id_gh):
-
-        # ПРОЕКТЫ
-        self.project_id_rm = project_id_rm
-        self.repos_id_gh = repos_id_gh
-
-        # ЗАДАЧИ
-        self.issue_id_rm = issue_id_rm
-        self.issue_id_gh = issue_id_gh
-
-        # КОММЕНТАРИИ
-        self.comment_id_rm = comment_id_rm
-        self.comment_id_gh = comment_id_gh
-
-        return self'''
-
+"""class Task_In_Queue():
 
     ''' 1 - link_projects '''
     ''' 2 - process_payload_from_rm '''
@@ -630,7 +599,7 @@ def wait(queue, task_in_queue):
 # TODO: исправить id проверки первой записи (начинаются с 1?)
 class Tasks_Queue(models.Model):
 
-    queue = deque()                                             # очередь задач
+    queue = deque()                                     # очередь задач
 
     # занесение задачи на обработку в очередь
     def get_in_line(self, type):
@@ -640,12 +609,12 @@ class Tasks_Queue(models.Model):
             last_task_in_queue_id = 0
 
         else:
-            last_task_in_queue_id = self.queue[-1].id           # peek на последний элемент в очереди
+            last_task_in_queue_id = self.queue[-1].id   # peek на последний элемент в очереди
 
         task_in_queue = Task_In_Queue()
         task_in_queue = task_in_queue.create(type, last_task_in_queue_id + 1)
 
-        self.queue.append(task_in_queue)    # занесение задачи в очередь
+        self.queue.append(task_in_queue)                # занесение задачи в очередь
 
         return wait(self.queue, task_in_queue)
 
@@ -672,4 +641,4 @@ class Tasks_Queue(models.Model):
 
     class Meta:
         verbose_name = 'tasks_queues'
-        verbose_name_plural = 'tasks_queue'
+        verbose_name_plural = 'tasks_queue'"""

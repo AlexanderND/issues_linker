@@ -127,3 +127,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
 STATIC_URL = '/static/'
+
+from collections import deque   # двухсторонняя очередь в питоне
+tasks_queue = deque()           # очередь обработки задач
+global tasks_queue

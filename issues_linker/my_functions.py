@@ -12,7 +12,7 @@ from collections import deque           # двухсторонняя очере�
 # константы запрета ведения логов
 allow_log = True
 allow_log_file = False
-allow_log_cyclic = True
+allow_log_cyclic = False
 
 allow_log_project_linking = True
 detailed_log_project_linking = True
@@ -466,6 +466,26 @@ def prevent_cyclic_comment_rm(issue):
               error_text)
 
     return error_text
+
+def log_link_comment_crutch(issue, linked_comments):
+
+    response_text = 'The user, who edited/commented the issue: ' + issue['comment_author_login'] +\
+                    ' | user id: ' + str(issue['comment_author_id']) + ' (our bot)\n' +\
+                    'Comment linked to GITHUB successfully.'
+    if (linked_comments == None):
+        response_text += 'ERROR: Comment link to GITHUB was unsuccessfull'
+
+    else:
+        response_text += 'Comment linked to GITHUB successfully'
+
+    if (not allow_log_cyclic):
+        return response_text
+
+    WRITE_LOG('\n' + '=' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 35 + '\n' +
+              'received webhook from REDMINE: issues | ' + 'action: ' + str(issue['action']) + '\n' +
+              response_text)
+
+    return response_text
 
 
 # ======================================================== GITHUB ======================================================

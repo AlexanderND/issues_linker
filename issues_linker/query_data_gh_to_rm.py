@@ -9,6 +9,7 @@ from issues_linker.quickstart.models import Linked_Issues           # связа
 
 from issues_linker.my_functions import WRITE_LOG                    # ведение логов
 from issues_linker.my_functions import WRITE_LOG_GRN                # ведение логов (многократные действия)
+from issues_linker.my_functions import WRITE_LOG_ERR                # ведение логов (ошибки)
 from issues_linker.my_functions import align_special_symbols        # обработка спец. символов (\ -> \\)
 from issues_linker.my_functions import read_file                    # загрузка файла (возвращает строку)
 
@@ -532,14 +533,19 @@ def query_data_gh_to_rm(linked_projects):
         issue_comments_url = 'https://api.github.com/repos/' + repos_url_gh + '/issues/' + str(linked_issues.issue_num_gh) + '/comments'
         request_result = requests.get(issue_comments_url)  # запрос всех комментариев
 
-        comments_ = json.loads(request_result.text)
+        requested_comments = json.loads(request_result.text)
 
 
         # ------------------------------ ЗАПРОС ВСЕХ КОММЕНТАРИЕВ С ЗАДАЧИ В ГИТХАБЕ ------------------------------
 
 
+        if (request_result.status_code != 200):
+            error_text = '    ERROR WHILE LINKING COMMENTS: ' + str(request_result) + '\n    ' + str(request_result.text)
+            WRITE_LOG_ERR(error_text)
+            return 0
+
         # цикл перебора всех комментариев в задаче
-        for comment in comments_:
+        for comment in requested_comments:
 
             comment_parsed = parse_comment(issue, comment)
 
@@ -582,7 +588,6 @@ def query_data_gh_to_rm(linked_projects):
         while True:
 
             WRITE_LOG('  per_page: ' + str(per_page) + ' page: ' + str(page) +
-                      #' | 1 + num_issues / per_page : ' + str(1 + num_issues / per_page) +
                       ' | status: ' + str(request_result.status_code) + ' ' + str(request_result.reason))
 
             ''' https://api.github.com/search/issues?q=repo:AlexanderND/issues_linker_auto_labels_test/issues&per_page=5&page=1 '''
@@ -620,6 +625,12 @@ def query_data_gh_to_rm(linked_projects):
             if (post_result['request_result'].status_code == 201):
 
                 link_comments(post_result['linked_issues'], issue)
+
+            else:
+                error_text = '  ERROR WHILE LINKING ISSUES: ' + str(request_result) + '\n  ' + str(
+                    request_result.text)
+                WRITE_LOG_ERR(error_text)
+                return 0
 
         log_link_issues_finish()
 
