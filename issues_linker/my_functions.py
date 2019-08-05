@@ -36,22 +36,23 @@ UNDERLINE = '\033[4m'
 
 def WRITE_LOG_COLOUR(string, colour):
 
-    if (allow_log):
+    if (not allow_log):
+        return 0
 
-        if (allow_log_file):
+    if (not allow_log_file):
+        print(colour + string + '\033[0m')  # лог в консоли
 
-            # получение абсолютного пути до файла
-            script_dir = os.path.dirname(__file__)  # <-- absolute dir the script is in
-            log_file_name = os.path.join(script_dir, 'logs/server_log.txt')
-            log = open(log_file_name, 'a')
+    else:
 
-            print(colour + string + '\033[0m')  # лог в консоли
-            log.write(string + '\n')            # лог в файл
+        # получение абсолютного пути до файла
+        script_dir = os.path.dirname(__file__)  # <-- absolute dir the script is in
+        log_file_name = os.path.join(script_dir, 'logs/server_log.txt')
+        log = open(log_file_name, 'a')
 
-            log.close()
+        print(colour + string + '\033[0m')  # лог в консоли
+        log.write(string + '\n')            # лог в файл
 
-        else:
-            print(colour + string + '\033[0m')  # лог в консоли
+        log.close()
 
 # выбирает цвет автоматически
 # TODO: заменить .find на использование разных функций логов (после завершиния разработки?)
@@ -437,11 +438,12 @@ def prevent_cyclic_issue_rm(issue):
                  ' | user id: ' + str(issue['issue_author_id']) + ' (our bot)\n' +\
                  'Aborting action, in order to prevent cyclic: GH -> S -> RM -> S -> GH -> ...'
 
-    if (allow_log_cyclic):
+    if (not allow_log_cyclic):
+        return error_text
 
-        WRITE_LOG('\n' + '=' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 35 + '\n' +
-                  'received webhook from REDMINE: issues | ' + 'action: ' + str(issue['action']) + '\n' +
-                  error_text)
+    WRITE_LOG('\n' + '=' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 35 + '\n' +
+              'received webhook from REDMINE: issues | ' + 'action: ' + str(issue['action']) + '\n' +
+              error_text)
 
 def prevent_cyclic_comment_rm(issue):
 
@@ -449,11 +451,12 @@ def prevent_cyclic_comment_rm(issue):
                  ' | user id: ' + str(issue['comment_author_id']) + ' (our bot)\n' +\
                  'Aborting action, in order to prevent cyclic: GH -> S -> RM -> S -> GH -> ...'
 
-    if (allow_log_cyclic):
+    if (not allow_log_cyclic):
+        return error_text
 
-        WRITE_LOG('\n' + '=' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 35 + '\n' +
-                  'received webhook from REDMINE: issues | ' + 'action: ' + str(issue['action']) + '\n' +
-                  error_text)
+    WRITE_LOG('\n' + '=' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 35 + '\n' +
+              'received webhook from REDMINE: issues | ' + 'action: ' + str(issue['action']) + '\n' +
+              error_text)
 
     return error_text
 
@@ -566,11 +569,12 @@ def prevent_cyclic_issue_gh(issue):
                  ' | user id: ' + str(issue['sender_id']) + ' (our bot)\n' + \
                  'Aborting action, in order to prevent cyclic: GH -> S -> RM -> S -> GH -> ...'
 
-    if (allow_log_cyclic):
+    if (not allow_log_cyclic):
+        return error_text
 
-        WRITE_LOG('\n' + '=' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 35 + '\n' +
-                  'received webhook from GITHUB: issues | ' + 'action: ' + str(issue['action']) + '\n' +
-                  error_text)
+    WRITE_LOG('\n' + '=' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 35 + '\n' +
+              'received webhook from GITHUB: issues | ' + 'action: ' + str(issue['action']) + '\n' +
+              error_text)
 
     return error_text
 
@@ -580,10 +584,11 @@ def prevent_cyclic_comment_gh(issue):
                  ' | user id: ' + str(issue['sender_id']) + ' (our bot)\n' + \
                  'Aborting action, in order to prevent cyclic: GH -> S -> RM -> S -> GH -> ...'
 
-    if (allow_log_cyclic):
+    if (not allow_log_cyclic):
+        return error_text
 
-        WRITE_LOG('\n' + '=' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 35 + '\n' +
-                  'received webhook from GITHUB: issue_comment | ' + 'action: ' + str(issue['action']) + '\n' +
-                  error_text)
+    WRITE_LOG('\n' + '=' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 35 + '\n' +
+              'received webhook from GITHUB: issue_comment | ' + 'action: ' + str(issue['action']) + '\n' +
+              error_text)
 
     return error_text

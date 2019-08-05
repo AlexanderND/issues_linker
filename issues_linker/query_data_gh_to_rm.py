@@ -80,108 +80,118 @@ def query_data_gh_to_rm(linked_projects):
     # лог связи комментариев
     def log_link_comments_start():
 
-        if (allow_log_project_linking):
+        if (not allow_log_project_linking):
+            return 0
 
-            WRITE_LOG_GRN('\n    ' + '=' * 33 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 33 + '\n' +
-                          "    LINKING COMMENTS BETWEEN ISSUES" + '\n' +
-                          '    GITHUB       | ---------------------------------------' + '\n' +
-                          '                 | repos_id:     ' + str(linked_projects.repos_id_gh) + '\n' +
-                          '                 | repos_url:    ' + linked_projects.url_gh + '\n' +
-                          '    REDMINE      | ---------------------------------------' + '\n' +
-                          '                 | project_id:   ' + str(linked_projects.project_id_rm) + '\n' +
-                          '                 | project_url:  ' + linked_projects.url_rm)
+        WRITE_LOG_GRN('\n    ' + '=' * 33 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 33 + '\n' +
+                      "    LINKING COMMENTS BETWEEN ISSUES" + '\n' +
+                      '    GITHUB       | ---------------------------------------' + '\n' +
+                      '                 | repos_id:     ' + str(linked_projects.repos_id_gh) + '\n' +
+                      '                 | repos_url:    ' + linked_projects.url_gh + '\n' +
+                      '    REDMINE      | ---------------------------------------' + '\n' +
+                      '                 | project_id:   ' + str(linked_projects.project_id_rm) + '\n' +
+                      '                 | project_url:  ' + linked_projects.url_rm)
 
     def log_link_comments_finish():
 
-        if (allow_log_project_linking):
+        if (not allow_log_project_linking):
+            return 0
 
-            WRITE_LOG_GRN("    FINISHED LINKING COMMENTS BETWEEN ISSUES" + '\n' +
-                          '    GITHUB       | ---------------------------------------' + '\n' +
-                          '                 | repos_id:     ' + str(linked_projects.repos_id_gh) + '\n' +
-                          '                 | repos_url:    ' + linked_projects.url_gh + '\n' +
-                          '    REDMINE      | ---------------------------------------' + '\n' +
-                          '                 | project_id:   ' + str(linked_projects.project_id_rm) + '\n' +
-                          '                 | project_url:  ' + linked_projects.url_rm + '\n' +
-                          '\n    ' + '=' * 33 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 33 + '\n')
+        WRITE_LOG_GRN("    FINISHED LINKING COMMENTS BETWEEN ISSUES" + '\n' +
+                      '    GITHUB       | ---------------------------------------' + '\n' +
+                      '                 | repos_id:     ' + str(linked_projects.repos_id_gh) + '\n' +
+                      '                 | repos_url:    ' + linked_projects.url_gh + '\n' +
+                      '    REDMINE      | ---------------------------------------' + '\n' +
+                      '                 | project_id:   ' + str(linked_projects.project_id_rm) + '\n' +
+                      '                 | project_url:  ' + linked_projects.url_rm + '\n' +
+                      '\n    ' + '=' * 33 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 33 + '\n')
 
     # лог связи задач
     def log_link_issues_start():
 
-        if (allow_log_project_linking):
+        if (not allow_log_project_linking):
+            return 0
 
-            WRITE_LOG_GRN('\n  ' + '=' * 34 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 34 + '\n' +
-                          "  LINKING ISSUES BETWEEN PROJECTS" + '\n' +
-                          '  GITHUB       | ---------------------------------------' + '\n' +
-                          '               | repos_id:     ' + str(linked_projects.repos_id_gh) + '\n' +
-                          '               | repos_url:    ' + linked_projects.url_gh + '\n' +
-                          '  REDMINE      | ---------------------------------------' + '\n' +
-                          '               | project_id:   ' + str(linked_projects.project_id_rm) + '\n' +
-                          '               | project_url:  ' + linked_projects.url_rm)
+        WRITE_LOG_GRN('\n  ' + '=' * 34 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 34 + '\n' +
+                      "  LINKING ISSUES BETWEEN PROJECTS" + '\n' +
+                      '  GITHUB       | ---------------------------------------' + '\n' +
+                      '               | repos_id:     ' + str(linked_projects.repos_id_gh) + '\n' +
+                      '               | repos_url:    ' + linked_projects.url_gh + '\n' +
+                      '  REDMINE      | ---------------------------------------' + '\n' +
+                      '               | project_id:   ' + str(linked_projects.project_id_rm) + '\n' +
+                      '               | project_url:  ' + linked_projects.url_rm)
 
     def log_link_issues_finish():
 
-        if (allow_log_project_linking):
+        if (not allow_log_project_linking):
+            return 0
 
-            WRITE_LOG_GRN("  FINISHED LINKING ISSUES BETWEEN PROJECTS" + '\n' +
-                          '  GITHUB       | ---------------------------------------' + '\n' +
-                          '               | repos_id:     ' + str(linked_projects.repos_id_gh) + '\n' +
-                          '               | repos_url:    ' + linked_projects.url_gh + '\n' +
-                          '  REDMINE      | ---------------------------------------' + '\n' +
-                          '               | project_id:   ' + str(linked_projects.project_id_rm) + '\n' +
-                          '               | project_url:  ' + linked_projects.url_rm + '\n' +
-                          '\n  ' + '=' * 34 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 34 + '\n')
+        WRITE_LOG_GRN("  FINISHED LINKING ISSUES BETWEEN PROJECTS" + '\n' +
+                      '  GITHUB       | ---------------------------------------' + '\n' +
+                      '               | repos_id:     ' + str(linked_projects.repos_id_gh) + '\n' +
+                      '               | repos_url:    ' + linked_projects.url_gh + '\n' +
+                      '  REDMINE      | ---------------------------------------' + '\n' +
+                      '               | project_id:   ' + str(linked_projects.project_id_rm) + '\n' +
+                      '               | project_url:  ' + linked_projects.url_rm + '\n' +
+                      '\n  ' + '=' * 34 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 34 + '\n')
 
 
     def log_issue_gh(result, issue, linked_issues, project_id_rm):
 
-        if (allow_log_project_linking and detailed_log_project_linking):
+        if (not allow_log_project_linking):
+            return 0
+        if (not detailed_log_project_linking):
+            return 0
 
-            action_rm = 'POST'
+        action_rm = 'POST'
 
-            WRITE_LOG('\n  ' + '-' * 34 + ' ' + str(datetime.datetime.today()) + ' ' + '-' * 34 + '\n' +
-                      '  linking issue from GITHUB to REDMINE\n' +
-                      '  ' + action_rm + ' result in REDMINE: ' + str(result.status_code) + ' ' + str(result.reason) + '\n' +
-                      '  GITHUB  | ---------------- issue ----------------' + '\n' +
-                      '          | author_id:     ' + str(issue['issue_author_id']) + '\n' +
-                      '          | author_login:  ' + str(issue['issue_author_login']) + '\n' +
-                      '          | issue_url:     ' + issue['issue_url'] + '\n' +
-                      '          | issue_title:   ' + issue['issue_title'] + '\n' +
-                      '          | issue_id:      ' + str(issue['issue_id']) + '\n' +
-                      '          | repos_id:      ' + str(issue['repos_id']) + '\n' +
-                      '          | issue_number:  ' + str(issue['issue_number']) + '\n' +
-                      '          |\n' +
-                      '  REDMINE | ---------------- issue ----------------' + '\n' +
-                      '          | url_rm:        ' + url_rm + '\n' +
-                      '          | issue_id:      ' + str(linked_issues.issue_id_rm) + '\n' +
-                      '          | project_id:    ' + str(
-                project_id_rm))
+        WRITE_LOG('\n  ' + '-' * 34 + ' ' + str(datetime.datetime.today()) + ' ' + '-' * 34 + '\n' +
+                  '  linking issue from GITHUB to REDMINE\n' +
+                  '  ' + action_rm + ' result in REDMINE: ' + str(result.status_code) + ' ' + str(result.reason) + '\n' +
+                  '  GITHUB  | ---------------- issue ----------------' + '\n' +
+                  '          | author_id:     ' + str(issue['issue_author_id']) + '\n' +
+                  '          | author_login:  ' + str(issue['issue_author_login']) + '\n' +
+                  '          | issue_url:     ' + issue['issue_url'] + '\n' +
+                  '          | issue_title:   ' + issue['issue_title'] + '\n' +
+                  '          | issue_id:      ' + str(issue['issue_id']) + '\n' +
+                  '          | repos_id:      ' + str(issue['repos_id']) + '\n' +
+                  '          | issue_number:  ' + str(issue['issue_number']) + '\n' +
+                  '          |\n' +
+                  '  REDMINE | ---------------- issue ----------------' + '\n' +
+                  '          | url_rm:        ' + url_rm + '\n' +
+                  '          | issue_id:      ' + str(linked_issues.issue_id_rm) + '\n' +
+                  '          | project_id:    ' + str(
+            project_id_rm))
 
     def log_comment_gh(result, issue, linked_issues, project_id_rm):
 
-        if (allow_log_project_linking and detailed_log_project_linking):
+        if (not allow_log_project_linking):
+            return 0
+        if (not detailed_log_project_linking):
+            return 0
 
-            action_rm = 'EDIT'
+        action_rm = 'EDIT'
 
-            WRITE_LOG('\n    ' + '-' * 33 + ' ' + str(datetime.datetime.today()) + ' ' + '-' * 33 + '\n' +
-                      '    linking comment from GITHUB to REDMINE\n' +
-                      '    ' + action_rm + ' result in REDMINE: ' + str(result.status_code) + ' ' + str(result.reason) + '\n' +
-                      '    GITHUB  | ---------------- issue ----------------' + '\n' +
-                      '            | author_id:     ' + str(issue['issue_author_id']) + '\n' +
-                      '            | author_login:  ' + str(issue['issue_author_login']) + '\n' +
-                      '            | issue_url:     ' + issue['issue_url'] + '\n' +
-                      '            | issue_title:   ' + issue['issue_title'] + '\n' +
-                      '            | issue_id:      ' + str(issue['issue_id']) + '\n' +
-                      '            | repos_id:      ' + str(issue['repos_id']) + '\n' +
-                      '            | issue_number:  ' + str(issue['issue_number']) + '\n' +
-                      '            | --------------- comment ---------------' + '\n' +
-                      '            | author_id:     ' + str(issue['comment_author_id']) + '\n' +
-                      '            | author_login:  ' + str(issue['comment_author_login']) + '\n' +
-                      '            | comment_id:    ' + str(issue['comment_id']) + '\n' +
-                      '            |\n' +
-                      '    REDMINE | ---------------- issue ----------------' + '\n' +
-                      '            | url_rm:        ' + url_rm + '\n' +
-                      '            | issue_id:      ' + str(linked_issues.issue_id_rm) + '\n' +
-                      '            | project_id:    ' + str(project_id_rm) + '\n')
+        WRITE_LOG('\n    ' + '-' * 33 + ' ' + str(datetime.datetime.today()) + ' ' + '-' * 33 + '\n' +
+                  '    linking comment from GITHUB to REDMINE\n' +
+                  '    ' + action_rm + ' result in REDMINE: ' + str(result.status_code) + ' ' + str(result.reason) + '\n' +
+                  '    GITHUB  | ---------------- issue ----------------' + '\n' +
+                  '            | author_id:     ' + str(issue['issue_author_id']) + '\n' +
+                  '            | author_login:  ' + str(issue['issue_author_login']) + '\n' +
+                  '            | issue_url:     ' + issue['issue_url'] + '\n' +
+                  '            | issue_title:   ' + issue['issue_title'] + '\n' +
+                  '            | issue_id:      ' + str(issue['issue_id']) + '\n' +
+                  '            | repos_id:      ' + str(issue['repos_id']) + '\n' +
+                  '            | issue_number:  ' + str(issue['issue_number']) + '\n' +
+                  '            | --------------- comment ---------------' + '\n' +
+                  '            | author_id:     ' + str(issue['comment_author_id']) + '\n' +
+                  '            | author_login:  ' + str(issue['comment_author_login']) + '\n' +
+                  '            | comment_id:    ' + str(issue['comment_id']) + '\n' +
+                  '            |\n' +
+                  '    REDMINE | ---------------- issue ----------------' + '\n' +
+                  '            | url_rm:        ' + url_rm + '\n' +
+                  '            | issue_id:      ' + str(linked_issues.issue_id_rm) + '\n' +
+                  '            | project_id:    ' + str(project_id_rm) + '\n')
 
     #def log_correct_gh_labels(issue, tracker, linked_issues):
 
@@ -241,37 +251,38 @@ def query_data_gh_to_rm(linked_projects):
     # исправление label-ов в гитхабе
     def correct_gh_labels(issue, tracker, linked_issues):
 
-        if (allow_correct_github_labels):
+        if (not allow_correct_github_labels):
+            return 0
 
-            # добавление label-ов
-            priority = match_priority_to_gh(linked_issues.priority_id_rm)
-            status = match_status_to_gh(linked_issues.status_id_rm)
-
-
-            # ---------------------------------------- ЗАГРУЗКА ДАННЫХ В ГИТХАБ ----------------------------------------
+        # добавление label-ов
+        priority = match_priority_to_gh(linked_issues.priority_id_rm)
+        status = match_status_to_gh(linked_issues.status_id_rm)
 
 
-            issue_title = align_special_symbols(issue['issue_title'])
-            issue_body = align_special_symbols(issue['issue_body'])
+        # ---------------------------------------- ЗАГРУЗКА ДАННЫХ В ГИТХАБ ----------------------------------------
 
-            issue_templated = issue_github_template.render(
-                title=issue_title,
-                body=issue_body,
-                priority=priority,
-                status=status,
-                tracker=tracker)
-            # кодировка Latin-1 на некоторых задачах приводит к ошибке кодировки в питоне
-            issue_templated = issue_templated.encode('utf-8')
 
-            url_gh = make_gh_repos_url(linked_issues.repos_id_gh)
+        issue_title = align_special_symbols(issue['issue_title'])
+        issue_body = align_special_symbols(issue['issue_body'])
 
-            # добавление issue_id к ссылке
-            issue_url_gh = url_gh + '/' + str(linked_issues.issue_num_gh)
-            request_result = requests.patch(issue_url_gh,
-                                            data=issue_templated,
-                                            headers=headers_gh)
+        issue_templated = issue_github_template.render(
+            title=issue_title,
+            body=issue_body,
+            priority=priority,
+            status=status,
+            tracker=tracker)
+        # кодировка Latin-1 на некоторых задачах приводит к ошибке кодировки в питоне
+        issue_templated = issue_templated.encode('utf-8')
 
-            return request_result
+        url_gh = make_gh_repos_url(linked_issues.repos_id_gh)
+
+        # добавление issue_id к ссылке
+        issue_url_gh = url_gh + '/' + str(linked_issues.issue_num_gh)
+        request_result = requests.patch(issue_url_gh,
+                                        data=issue_templated,
+                                        headers=headers_gh)
+
+        return request_result
 
 
     # парсинг комментария

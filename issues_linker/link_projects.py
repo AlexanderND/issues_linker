@@ -104,42 +104,48 @@ def link_projects(payload):
 
     def log_link_projects_start():
 
-        if (allow_log_project_linking):
+        if (not allow_log_project_linking):
+            return 0
 
-            WRITE_LOG_GRN('\n' + '=' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 35 + '\n' +
-                          'LINKING PROJECTS IN PROGRESS' + '\n' +
-                          'GITHUB       | ---------------------------------------' + '\n' +
-                          '             | repos_id:     ' + str(repos_id_gh) + '\n' +
-                          '             | repos_url:    ' + url_gh + '\n' +
-                          'REDMINE      | ---------------------------------------' + '\n' +
-                          '             | project_id:   ' + str(project_id_rm) + '\n' +
-                          '             | project_url:  ' + url_rm)
+        WRITE_LOG_GRN('\n' + '=' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 35 + '\n' +
+                      'LINKING PROJECTS IN PROGRESS' + '\n' +
+                      'GITHUB       | ---------------------------------------' + '\n' +
+                      '             | repos_id:     ' + str(repos_id_gh) + '\n' +
+                      '             | repos_url:    ' + url_gh + '\n' +
+                      'REDMINE      | ---------------------------------------' + '\n' +
+                      '             | project_id:   ' + str(project_id_rm) + '\n' +
+                      '             | project_url:  ' + url_rm)
 
     def log_link_projects_finish():
 
-        if (allow_log_project_linking):
+        if (not allow_log_project_linking):
+            return 0
 
-            WRITE_LOG_GRN('FINISHED LINKING PROJECTS' + '\n' +
-                          'GITHUB       | ---------------------------------------' + '\n' +
-                          '             | repos_id:     ' + str(repos_id_gh) + '\n' +
-                          '             | repos_url:    ' + url_gh + '\n' +
-                          'REDMINE      | ---------------------------------------' + '\n' +
-                          '             | project_id:   ' + str(project_id_rm) + '\n' +
-                          '             | project_url:  ' + url_rm + '\n' +
-                          '\n' + '=' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 35 + '\n')
+        WRITE_LOG_GRN('FINISHED LINKING PROJECTS' + '\n' +
+                      'GITHUB       | ---------------------------------------' + '\n' +
+                      '             | repos_id:     ' + str(repos_id_gh) + '\n' +
+                      '             | repos_url:    ' + url_gh + '\n' +
+                      'REDMINE      | ---------------------------------------' + '\n' +
+                      '             | project_id:   ' + str(project_id_rm) + '\n' +
+                      '             | project_url:  ' + url_rm + '\n' +
+                      '\n' + '=' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 35 + '\n')
 
     # проверка, что проекты уже связаны
-    def chk_if_projects_are_linked(project_id_rm, repos_id_gh):
+    def clear_linked_projects(project_id_rm, repos_id_gh):
 
-        linked_projects = Linked_Projects.objects.get(project_id_rm, repos_id_gh)
-        return linked_projects
+        linked_projects = Linked_Projects.objects.get_linked_projects(project_id_rm, repos_id_gh)
+
+        if (len(linked_projects) < 1):
+            return 0
+
+        for i in range(len(linked_projects)):
+            linked_projects[i].delete_linked_projects()    # удаляем информацию из базы данных
 
 
     log_link_projects_start()
 
-    linked_projects = chk_if_projects_are_linked(project_id_rm, repos_id_gh)
-    if (len(linked_projects) > 0):
-        linked_projects[0].delete_linked_projects()    # удаляем информацию из базы данных
+    # удаляем информацию о связи из базы данных, если проекты уже связаны
+    clear_linked_projects(project_id_rm, repos_id_gh)
 
     # занесение в базу данных информацию о том, что данные проекты связаны
     linked_projects = Linked_Projects.objects.create_linked_projects(
@@ -172,37 +178,40 @@ def link_projects(payload):
     # загрузка label-ов в гитхаб
     def log_label_post(label, post_result):
 
-        if (allow_log_project_linking and detailed_log_project_linking):
+        if (not allow_log_project_linking):
+            return 0
+        if (not detailed_log_project_linking):
+            return 0
 
-            post_result_text = str(post_result.text)
+        post_result_text = str(post_result.text)
 
-            log_text = '\n' + '-' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '-' * 35 + '\n' +\
-                       'POSTing new label to GITHUB:' + '\n' +\
-                       'GITHUB       | ---------------------------------------' + '\n' +\
-                       '             | repos_id:     ' + str(repos_id_gh) + '\n' +\
-                       '             | repos_url:    ' + url_gh + '\n' +\
-                       'REDMINE      | ---------------------------------------' + '\n' +\
-                       '             | project_id:   ' + str(project_id_rm) + '\n' +\
-                       '             | project_url:  ' + url_rm + '\n' +\
-                       'LABEL        | ---------------------------------------' + '\n' +\
-                       '             | name:         ' + label['name'] + '\n' +\
-                       '             | description:  ' + label['description'] + '\n' +\
-                       '             | color:        ' + label['color'] + '\n' +\
-                       '             | default:      ' + label['default'] + '\n' +\
-                       'POST RESULT  | ---------------------------------------' + '\n' +\
-                       '             | status:       ' + str(post_result) + '\n' +\
-                       '             | text:         ' + post_result_text + '\n'
-                       #'-' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '-' * 35 + '\n'
+        log_text = '\n' + '-' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '-' * 35 + '\n' +\
+                   'POSTing new label to GITHUB:' + '\n' +\
+                   'GITHUB       | ---------------------------------------' + '\n' +\
+                   '             | repos_id:     ' + str(repos_id_gh) + '\n' +\
+                   '             | repos_url:    ' + url_gh + '\n' +\
+                   'REDMINE      | ---------------------------------------' + '\n' +\
+                   '             | project_id:   ' + str(project_id_rm) + '\n' +\
+                   '             | project_url:  ' + url_rm + '\n' +\
+                   'LABEL        | ---------------------------------------' + '\n' +\
+                   '             | name:         ' + label['name'] + '\n' +\
+                   '             | description:  ' + label['description'] + '\n' +\
+                   '             | color:        ' + label['color'] + '\n' +\
+                   '             | default:      ' + label['default'] + '\n' +\
+                   'POST RESULT  | ---------------------------------------' + '\n' +\
+                   '             | status:       ' + str(post_result) + '\n' +\
+                   '             | text:         ' + post_result_text + '\n'
+                   #'-' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '-' * 35 + '\n'
 
-            if (post_result.status_code == 201):
-                WRITE_LOG(log_text)
+        if (post_result.status_code == 201):
+            WRITE_LOG(log_text)
 
-            # скорее всего, label просто уже существует
-            elif (post_result.status_code == 422):
-                WRITE_LOG_WAR(log_text)
+        # скорее всего, label просто уже существует
+        elif (post_result.status_code == 422):
+            WRITE_LOG_WAR(log_text)
 
-            else:
-                WRITE_LOG_ERR(log_text)
+        else:
+            WRITE_LOG_ERR(log_text)
 
     # TODO: исправить постинг label-ов (не приходит description)
     # TODO: исправить постинг label-ов (не приходит default)
@@ -223,7 +232,7 @@ def link_projects(payload):
                                     data=label_templated,
                                     headers=headers_gh)
 
-        log_text= ''
+        log_text = ''
         log_text += label['name'] + '\n'
         log_text += str(request_result) + '\n'
         log_text += str(request_result.text) + '\n'
