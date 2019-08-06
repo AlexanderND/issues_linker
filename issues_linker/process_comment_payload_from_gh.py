@@ -32,6 +32,7 @@ from issues_linker.my_functions import align_request_result         # созда
 
 def process_comment_payload_from_gh(payload):
 
+    payload.replace("'", '"')
     payload = json.loads(payload)   # превращаем payload в JSON
 
 

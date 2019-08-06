@@ -17,6 +17,7 @@ from issues_linker.link_projects import link_projects
 import threading    # многопоточность
 import time         # задержка
 
+from django.db.utils import OperationalError
 
 # ================================================ ОЧЕРЕДЬ ОБРАБОТКИ ЗАДАЧ =============================================
 
@@ -105,6 +106,45 @@ class Tasks_Queue(models.Model):
 
     tasks_in_queue = models.ManyToManyField(Task_In_Queue, blank=1)
 
+    def tasks_queue_daemon(self, sleep_retry):
+        retry_wait = 0
+
+        # продолжаем брать задачи из очереди, пока есть задачи
+        tasks = Task_In_Queue.objects.get_all()
+        while (tasks != None):
+
+            payload = tasks[0].payload
+            type = tasks[0].type
+
+            try:
+                process_result = self.process_payload(payload, type)
+
+                # определяем результат обработки
+                if (process_result.status_code == 200 or process_result.status_code == 201):
+
+                    retry_wait = 0      # сброс времени ожидания перед повторным запуском
+
+                    tasks[0].delete()   # удаляем задачу из очереди
+
+                else:
+                    retry_wait += sleep_retry   # увеличение времени ожидания (чтобы не перегружать сервер)
+
+            # пропускаем ошибку 'database is locked'
+            except OperationalError:
+                retry_wait += sleep_retry       # увеличение времени ожидания (чтобы не перегружать сервер)
+                pass
+
+            tasks = Task_In_Queue.objects.get_all()
+            time.sleep(retry_wait)  # ждём перед следующим запуском
+
+    def start_queue_daemon(self):
+        sleep_retry = 2
+        daemon = threading.Thread(target=self.tasks_queue_daemon,
+                                  args=(sleep_retry,),
+                                  daemon=True)
+        daemon.start()
+
+
     def process_payload(self, payload, type):
 
         # определяем тип обработки
@@ -122,47 +162,6 @@ class Tasks_Queue(models.Model):
 
         return process_result
 
-    def tasks_queue_daemon(self, sleep_retry):
-        retry_wait = 0
-
-        # продолжаем брать задачи из очереди, пока есть задачи
-        tasks = Task_In_Queue.objects.get_all()
-        while (tasks != None):
-
-            payload = tasks[0].payload
-            type = tasks[0].type
-
-            process_result = self.process_payload(payload, type)
-
-            # определяем результат обработки
-            if (process_result.status_code == 200 or process_result.status_code == 201):
-
-                retry_wait = 0  # сброс времени ожидания перед повторным запуском
-
-                tasks[0].delete()  # удаляем задачу из очереди
-
-            else:
-                retry_wait += sleep_retry  # увеличение времени ожидания (чтобы не перегружать сервер)
-
-            '''try:
-                process_result = self.process_payload(payload, type)
-
-                # определяем результат обработки
-                if (process_result.status_code == 200 or process_result.status_code == 201):
-
-                    retry_wait = 0      # сброс времени ожидания перед повторным запуском
-
-                    tasks[0].delete()   # удаляем задачу из очереди
-
-                else:
-                    retry_wait += sleep_retry   # увеличение времени ожидания (чтобы не перегружать сервер)
-            except:
-                retry_wait += sleep_retry       # увеличение времени ожидания (чтобы не перегружать сервер)
-                pass'''
-
-            tasks = Task_In_Queue.objects.get_all()
-            time.sleep(retry_wait)  # ждём перед следующим запуском
-
     def put_in_queue(self, payload, type):
 
         # создаём задачу на обработку в базе данных
@@ -170,18 +169,24 @@ class Tasks_Queue(models.Model):
             payload,
             type)
 
-        self.tasks_in_queue.add(task_in_queue)
+        while True:
+            try:
+                self.tasks_in_queue.add(task_in_queue)
 
-        # запускаем демона, отчищающего очередь, если в очереди только 1 элемент (только что добавили)
-        tasks = Task_In_Queue.objects.get_all()
-        if (len(tasks) == 1):
-            sleep_retry = 2
-            daemon = threading.Thread(target=self.tasks_queue_daemon,
-                                      args=(sleep_retry,),
-                                      daemon=True)
-            daemon.start()
+                # запускаем демона, отчищающего очередь, если в очереди только 1 элемент (только что добавили)
+                tasks = Task_In_Queue.objects.get_all()
+                if (len(tasks) == 1):
+                    self.start_queue_daemon()
+
+                break   # выходим из цикла
+
+            # пропускаем ошибку 'database is locked'
+            except OperationalError:
+                #time.sleep(0.02)
+                pass
 
         return task_in_queue
+
 
     # ЗАГРУЗКА ОЧЕРЕДИ (если не создана - создаём, если создана - отправляем)
     @classmethod

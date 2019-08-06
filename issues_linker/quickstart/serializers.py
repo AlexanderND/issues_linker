@@ -143,7 +143,7 @@ class Linked_Projects_Serializer(serializers.HyperlinkedModelSerializer):
 class Task_In_Queue_Serializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Task_In_Queue
-        fields = (['type'])
+        fields = ('type', 'payload')
 
 ''' очередь обработки задач '''
 class Tasks_Queue_Serializer(serializers.HyperlinkedModelSerializer):

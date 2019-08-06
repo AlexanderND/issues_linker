@@ -41,9 +41,8 @@ from issues_linker.my_functions import allow_correct_github_labels
 
 def process_payload_from_gh(payload):
 
-    #WRITE_LOG(payload)
+    payload.replace("'", '"')
     payload = json.loads(payload)   # превращаем payload в JSON
-    #WRITE_LOG(payload)
 
 
     # =================================================== ПОДГОТОВКА ===================================================

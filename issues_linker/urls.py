@@ -45,7 +45,7 @@ router.register(r'linked_comments', Linked_Comments_ViewSet)
 
 
 # ОЧЕРЕДЬ ОБРАБОТКИ ЗАДАЧ
-#router.register(r'queue_task', Task_In_Queue_ViewSet)
+router.register(r'queue_task', Task_In_Queue_ViewSet)
 router.register(r'tasks_queue', Tasks_Queue_ViewSet)
 
 

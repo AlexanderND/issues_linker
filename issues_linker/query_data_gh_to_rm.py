@@ -4,8 +4,8 @@ from jinja2 import Template
 import json
 from django.http import HttpResponse                                # ответы серверу (гитхабу)
 
-from issues_linker.quickstart.models import Linked_Projects         # связанные проекты
-from issues_linker.quickstart.models import Linked_Issues           # связанные issues
+# связанные проекты, задачи, комментарии
+from issues_linker.quickstart.models import Linked_Projects, Linked_Issues, Linked_Comments
 
 from issues_linker.my_functions import WRITE_LOG                    # ведение логов
 from issues_linker.my_functions import WRITE_LOG_GRN                # ведение логов (многократные действия)
@@ -350,18 +350,19 @@ def query_data_gh_to_rm(linked_projects):
 
         return error_text
 
+
     def chk_if_issues_are_linked(issue_id_gh):
 
         linked_issues = Linked_Issues.objects.get_by_issue_id_gh(issue_id_gh)
-        if (linked_issues == None):
+        if (len(linked_issues) == 0):
             return False
         else:
             return True
 
     def chk_if_comments_are_linked(comment_id_gh):
 
-        linked_comments = Linked_Issues.objects.get_by_comment_id_gh(comment_id_gh)
-        if (linked_comments == None):
+        linked_comments = Linked_Comments.objects.get_by_comment_id_gh(comment_id_gh)
+        if (len(linked_comments) == 0):
             return False
         else:
             return True
@@ -432,6 +433,8 @@ def query_data_gh_to_rm(linked_projects):
         # ДЕБАГГИНГ
         log_comment_gh(request_result, comment, linked_issues, linked_projects.project_id_rm)
 
+        if (request_result.status_code == 200):
+            request_result.status_code = 201
 
         return request_result
 
@@ -576,13 +579,17 @@ def query_data_gh_to_rm(linked_projects):
             comment_parsed = parse_comment(issue, comment)
             if (chk_if_comments_are_linked(comment_parsed['comment_id'])):
                 # задачи уже связаны
-                pass
+                continue
 
             # отправляем комментарий в редмайн
             post_result = post_comment(linked_projects, linked_issues, comment_parsed)
 
-            # если успешно создали новую задачу в редмайне, осуществляем привязку комментариев
-            if (post_result['request_result'].status_code != 201):
+            # пропускаем коментарии бота
+            if (post_result.status_code == 200):
+                continue
+
+            # ошибка при отправке комментария в редмайн
+            if (post_result.status_code != 201):
 
                 error_text = '    ERROR WHILE LINKING COMMENTS: ' + str(request_result) + '\n  ' + str(
                     request_result.text)
@@ -657,7 +664,8 @@ def query_data_gh_to_rm(linked_projects):
 
             if (chk_if_issues_are_linked(issue['issue_id'])):
                 # задачи уже связаны
-                pass
+                WRITE_LOG('  ISSUES ARE ALREADY LINKED')
+                continue
 
             # TODO: обработка ошибок
             post_result = post_issue(linked_projects, issue)
