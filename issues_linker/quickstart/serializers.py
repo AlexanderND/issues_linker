@@ -2,8 +2,7 @@
 from rest_framework import serializers
 
 # мои модели (хранение на сервере)
-from issues_linker.quickstart.models import Issue_GH, Repository_GH, Payload_GH,\
-    Project_RM, Issue_RM, Payload_RM_Field, Payload_RM
+from issues_linker.quickstart.models import Comment_Payload_GH, Payload_GH, Payload_RM
 
 # мои модели (связь)
 from issues_linker.quickstart.models import Linked_Projects, Linked_Issues, Linked_Comments
@@ -28,88 +27,49 @@ class GroupSerializer(serializers.HyperlinkedModelSerializer):
 # ======================================================= GITHUB =======================================================
 
 
-''' issues в гитхабе '''
-class Issue_GH_Serializer(serializers.HyperlinkedModelSerializer):
-    # изменяем название поля id (так как прилетает 'id' а не 'id_gh')
-    id = serializers.IntegerField(source='id_gh')
-
-    class Meta:
-        model = Issue_GH
-        fields = ('title', 'body', 'url', 'number', 'id')
-
-''' repository в гитхабе '''
-class Repository_GH_Serializer(serializers.HyperlinkedModelSerializer):
-    # изменяем название поля id (так как прилетает 'id' а не 'id_gh')
-    id = serializers.IntegerField(source='id_gh')
-
-    class Meta:
-        model = Repository_GH
-        fields = (['id'])
-
 ''' payloads от гитхаба '''
+class Comment_Payload_GH_Serializer(serializers.HyperlinkedModelSerializer):
+
+    class Meta:
+        model = Comment_Payload_GH
+        fields = ('action', 'sender_id', 'sender_login', 'issue_author_id', 'issue_author_login', 'issue_title',
+                  'issue_body', 'issue_id', 'project_id', 'issue_number', 'issue_url', 'comment_body',
+                  'comment_id', 'comment_author_id', 'comment_author_login', 'comment_author_firstname',
+                  'comment_author_lastname')
+
+    def create(self, payload):
+        parsed_payload = Comment_Payload_GH.objects.create_parsed_payload(payload)
+        return parsed_payload
+
+''' comment payloads от гитхаба '''
 class Payload_GH_Serializer(serializers.HyperlinkedModelSerializer):
-    issue = Issue_GH_Serializer(many=False, read_only=False)
-    repository = Repository_GH_Serializer(many=False, read_only=False)
 
     class Meta:
         model = Payload_GH
-        fields = ('action', 'issue', 'repository')
+        fields = ('action', 'sender_id', 'sender_login', 'issue_title', 'issue_body', 'issue_author_id',
+                  'issue_author_login', 'issue_id', 'repos_id', 'issue_number', 'issue_url', 'issue_label')
 
-    # для работы с OneToOne полем
-    def create(self, validated_data):
-        payload = Payload_GH.objects.create_payload(validated_data)
-        return payload
+    def create(self, payload):
+        parsed_payload = Payload_GH.objects.create_parsed_payload(payload)
+        return parsed_payload
 
 
 # ======================================================= REDMINE ======================================================
 
 
-''' projects в редмайне '''
-class Project_RM_Serializer(serializers.HyperlinkedModelSerializer):
-    # изменяем название полей, т.к. названия в модели стандартизированы под гитхаб (короче и удобней)
-    id = serializers.IntegerField(source='id_rm')
-
-    class Meta:
-        model = Project_RM
-        fields = (['id'])
-
-''' issues в редмайне '''
-class Issue_RM_Serializer(serializers.HyperlinkedModelSerializer):
-    # изменяем название полей, т.к. названия в модели стандартизированы под гитхаб (короче и удобней)
-    subject = serializers.CharField(source='title')
-    description = serializers.CharField(allow_blank=1, source='body')
-    id = serializers.IntegerField(source='id_rm')
-    project = Project_RM_Serializer(many=False, read_only=False)
-
-    class Meta:
-        model = Issue_RM
-        fields = ('subject', 'description', 'id', 'project')
-
-''' поле payloads от редмайна '''
-class Payload_RM_Field_Serializer(serializers.HyperlinkedModelSerializer):
-    issue = Issue_RM_Serializer(many=False, read_only=False)
-
-    class Meta:
-        model = Payload_RM_Field
-        fields = ('action', 'issue')
-
-    # для работы с OneToOne полем
-    def create(self, validated_data):
-        payload = Payload_RM_Field.objects.create_payload(validated_data)
-        return payload
-
 ''' payloads от редмайна '''
 class Payload_RM_Serializer(serializers.HyperlinkedModelSerializer):
-    payload = Payload_RM_Field_Serializer(many=False, read_only=False, source='payload_field')
 
     class Meta:
         model = Payload_RM
-        fields = (['payload'])
+        fields = ('action', 'issue_author_id', 'issue_author_login', 'issue_author_firstname', 'issue_author_lastname',
+                  'comment_body', 'comment_id', 'comment_author_id', 'comment_author_login', 'comment_author_firstname',
+                  'comment_author_lastname', 'issue_title', 'issue_body', 'tracker_id', 'status_id', 'priority_id',
+                  'issue_id', 'project_id', 'issue_url')
 
-    # для работы с OneToOne полем
-    def create(self, validated_data):
-        payload = Payload_RM.objects.create_payload(validated_data)
-        return payload
+    def create(self, payload):
+        parsed_payload = Payload_RM.objects.create_parsed_payload(payload)
+        return parsed_payload
 
 
 # ======================================================== СВЯЗЬ =======================================================

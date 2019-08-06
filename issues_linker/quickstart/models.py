@@ -8,104 +8,158 @@ from django.core.exceptions import ObjectDoesNotExist   # обработка и�
 
 
 # ======================================================= GITHUB =======================================================
-# убрал .save(), так как нет задачи сохранять на сервере резервную копию данных
 
 
-'''Класс "Issue_GH" - поле "Issue" (title, body, url, number, id) в классе "Payload_GH" - Issue в гитхабе'''
-class Issue_GH_Manager(models.Manager):
+''' Класс "Comment_Payload_GH" - payload-ы комментариев с гитхаба '''
+class Comment_Payload_GH_Manager(models.Manager):
     use_in_migrations = True
 
-    def create_issue(self, issue):
-        # Creates and saves an Issue with the given title, body and url.
-        issue_ = self.model(title=issue['title'],
-                           body=issue['body'],
-                           url=issue['url'],
-                           number=issue['number'],
-                           id_gh=issue['id_gh'])
+    def create_parsed_payload(self, payload):
 
-        #issue_.save()   # сохранение issue в бвзе данных
-        return issue_
+        # совершённое действие и его автор
+        self.action = payload['action']
+        self.sender_id = payload['sender']['id']
+        self.sender_login = payload['sender']['login']
+
+        # автор issue
+        self.issue_author_id = payload['issue']['user']['id']
+        self.issue_author_login = payload['issue']['user']['login']
+
+        # поля issue
+        self.issue_title = payload['issue']['title']
+        self.issue_body = payload['issue']['body']
+
+        # идентификаторы (для связи и логов)
+        self.issue_id = payload['issue']['id']
+        self.project_id = payload['repository']['id']
+        self.issue_number = payload['issue']['number']
+
+        # ссылка на issue (для фразы бота и логов)
+        self.issue_url = payload['issue']['html_url']
+
+        # тело комментария
+        self.comment_body = payload['comment']['body']
+
+        # id комментария (для связи и логов)
+        self.comment_id = payload['comment']['id']
+
+        # автор комментария
+        self.comment_author_id = payload['comment']['user']['id']
+        self.comment_author_login = payload['comment']['user']['login']
+
+        self.save()
+        return self
 
     def get_by_natural_key(self, id):
         return self.get(id=id)
 
-class Issue_GH(models.Model):
-    title = models.CharField(blank=1,
-                             max_length=256)    # 256 - максимальная длина title  в гитхабе
-    body = models.CharField(blank=1,
-                            max_length=65536)   # 65536 - максимальная (?) длина body  в гитхабе
-    url = models.CharField(max_length=512)      # 512 - в 2 раза больше максимальной длины title
-    id_gh = models.IntegerField()               # id issue в гитхабе
-    number = models.IntegerField()              # номер issue в репозитории
+class Comment_Payload_GH(models.Model):
 
-    db_table = 'issue_fields_gh'
-    objects = Issue_GH_Manager()
+    # совершённое действие и его автор
+    action = models.CharField(blank=1, max_length=256)
+    sender_id = models.IntegerField(blank=1, null=1)
+    sender_login = models.CharField(blank=1, max_length=256)
+
+    # автор issue
+    issue_author_id = models.IntegerField(blank=1, null=1)
+    issue_author_login = models.CharField(blank=1, max_length=256)
+
+    # поля issue
+    issue_title = models.CharField(blank=1, max_length=512)
+    issue_body = models.CharField(blank=1, max_length=65536)
+
+    # идентификаторы (для связи и логов)
+    issue_id = models.IntegerField(blank=1, null=1)
+    project_id = models.IntegerField(blank=1, null=1)
+    issue_number = models.IntegerField(blank=1, null=1)
+
+    # ссылка на issue (для фразы бота и логов)
+    issue_url = models.CharField(blank=1, max_length=512)
+
+    # тело комментария
+    comment_body = models.CharField(blank=1, max_length=65536)
+
+    # id комментария (для связи и логов)
+    comment_id = models.IntegerField(blank=1, null=1)
+
+    # автор комментария
+    comment_author_id = models.IntegerField(blank=1, null=1)
+    comment_author_login = models.CharField(blank=1, max_length=256)
+    comment_author_firstname = models.CharField(blank=1, max_length=256)
+    comment_author_lastname = models.CharField(blank=1, max_length=256)
+
+
+    db_table = 'payloads_from_rm'
+    objects = Comment_Payload_GH_Manager()
 
     class Meta:
-        verbose_name = 'issue_field_gh'
-        verbose_name_plural = 'issue_fields_gh'
+        verbose_name = 'payload_from_rm'
+        verbose_name_plural = 'payloads_from_rm'
 
-
-'''Класс "Repository_GH" - для хранения id репозитория в гитхабе'''
-class Repository_GH_Manager(models.Manager):
-    use_in_migrations = True
-
-    def create_gh_repository(self, repository):
-        repository_ = self.model(id_gh=repository['id_gh'])
-        #repository_.save()
-
-        return repository_
-
-    def get_by_natural_key(self, id):
-        return self.get(id=id)
-
-class Repository_GH(models.Model):
-    id_gh = models.IntegerField()               # repository id  в гитхабе
-
-    db_table = 'repositories_gh'
-
-    objects = Repository_GH_Manager()
-
-    class Meta:
-        verbose_name = 'repository_gh'
-        verbose_name_plural = 'repositories_gh'
-
-
-'''Класс "Payload_GH" (action, issue(title, body, url)) - payload-ы с гитхаба'''
+# TODO: ПЕРЕДЕЛАТЬ ЛОГИКУ КОРРЕКТИРОВАНИЯ LABELS!!!
+''' Класс "Payload_GH" - payload-ы с гитхаба '''
 class Payload_GH_Manager(models.Manager):
     use_in_migrations = True
 
-    def create_payload(self, validated_data):
-        issue = Issue_GH.objects.create_issue(
-            validated_data.pop('issue'))
+    def create_parsed_payload(self, payload):
 
-        repository = Repository_GH.objects.create_gh_repository(
-            validated_data.pop('repository'))
+        # совершённоедействие и его автор
+        self.action = payload['action']
+        self.sender_id = payload['sender']['id']
+        self.sender_login = payload['sender']['login']
 
-        payload = self.model(action=validated_data.pop('action'),
-                             issue=issue,
-                             repository=repository)
-        #payload.save()
+        # поля issue
+        self.issue_title = payload['issue']['title']
+        self.issue_body = payload['issue']['body']
 
-        return payload
+        # автор issue
+        self.issue_author_id = payload['issue']['user']['id']
+        self.issue_author_login = payload['issue']['user']['login']
+
+        # идентификаторы (для связи и логов)
+        self.issue_id =payload['issue']['id']
+        self.repos_id = payload['repository']['id']
+        self.issue_number = payload['issue']['number']
+
+        # ссылка на issue (для фразы бота и логов)
+        self.issue_url = payload['issue']['html_url']
+
+        if (payload['action'] == 'labeled' or payload['action'] == 'delabeled'):
+            self.issue_label = payload['issue']['labels']
+
+        self.save()
+        return self
 
     def get_by_natural_key(self, id):
         return self.get(id=id)
 
 class Payload_GH(models.Model):
-    action = models.CharField(blank=1,
-                              max_length=20)    # совершённое действие (opened, closed, reopened и т.п.)
-    issue = models.OneToOneField(
-        Issue_GH,
-        on_delete=models.CASCADE,
-        default=None)                           # сожержимое issue (title, body и т.п.)
-    repository = models.OneToOneField(
-        Repository_GH,
-        on_delete=models.CASCADE,
-        default=None)                           # содержимое repository (id)
+
+    # совершённоедействие и его автор
+    action = models.CharField(blank=1, max_length=256)
+    sender_id = models.IntegerField(blank=1, null=1)
+    sender_login = models.CharField(blank=1, max_length=256)
+
+    # поля issue
+    issue_title = models.CharField(blank=1, max_length=512)
+    issue_body = models.CharField(blank=1, max_length=65536)
+
+    #автор issue
+    issue_author_id = models.IntegerField(blank=1, null=1)
+    issue_author_login = models.CharField(blank=1, max_length=256)
+
+    # идентификаторы (для связи и логов)
+    issue_id = models.IntegerField(blank=1, null=1)
+    repos_id = models.IntegerField(blank=1, null=1)
+    issue_number = models.IntegerField(blank=1, null=1)
+
+    # ссылка на issue (для фразы бота и логов)
+    issue_url = models.CharField(blank=1, max_length=512)
+
+    issue_label = models.CharField(blank=1, max_length=256)
+
 
     db_table = 'payloads_from_gh'
-
     objects = Payload_GH_Manager()
 
     class Meta:
@@ -114,131 +168,98 @@ class Payload_GH(models.Model):
 
 
 # ======================================================= REDMINE ======================================================
-# убрал .save(), так как нет задачи сохранять на сервере резервную копию данных
 
 
-'''Класс "Project_RM" - для хранения id репозитория в редмайне'''
-class Project_RM_Manager(models.Manager):
-    use_in_migrations = True
-
-    def create_rm_project(self, project):
-        # Creates and saves an Issue with the given title, body and url.
-        project_ = self.model(id_rm=project['id_rm'])
-
-        #project_.save()   # сохранение issue в бвзе данных
-        return project_
-
-    def get_by_natural_key(self, id):
-        return self.get(id=id)
-
-class Project_RM(models.Model):
-    id_rm = models.IntegerField()               # id проекта в редмайне
-
-    db_table = 'projects_rm'
-    objects = Project_RM_Manager()
-
-    class Meta:
-        verbose_name = 'project_rm'
-        verbose_name_plural = 'projects_rm'
-
-
-'''Класс "Issue_RM" - поле "Issue" (title, body, url, id) в классе "Payload_RM" - Issue в редмайне'''
-class Issue_RM_Manager(models.Manager):
-    use_in_migrations = True
-
-    def create_issue(self, issue):
-        # Creates and saves an Issue with the given title, body and url.
-        project = Project_RM.objects.create_rm_project(
-            issue['project'])
-
-        issue_ = self.model(title=issue['title'],
-                            body=issue['body'],
-                            id_rm=issue['id_rm'],
-                            project=project)
-
-        #issue_.save()   # сохранение issue в бвзе данных
-        return issue_
-
-    def get_by_natural_key(self, id):
-        return self.get(id=id)
-
-class Issue_RM(models.Model):
-    title = models.CharField(blank=1,
-                             max_length=256)    # 256 - максимальная (?) длина title  в редмайне (гитхабе)
-    body = models.CharField(blank=1,
-                            max_length=65536)   # 65536 - максимальная (?) длина body  в редмайне (гитхабе)
-    id_rm = models.IntegerField()               # id issue в редмайне
-    project = models.OneToOneField(
-        Project_RM,
-        on_delete=models.CASCADE,
-        default=None)                           # содержимое project (id)
-
-    db_table = 'issue_fields_rm'
-    objects = Issue_RM_Manager()
-
-    class Meta:
-        verbose_name = 'issue_field_rm'
-        verbose_name_plural = 'issue_fields_rm'
-
-
-'''Класс "Payload_RM_Field" (action, issue(title, body, id)) - хранит payload-ы с редмайна'''
-class Payload_RM_Field_Manager(models.Manager):
-    use_in_migrations = True
-
-    def create_payload(self, validated_data):
-        issue = Issue_RM.objects.create_issue(
-            validated_data.pop('issue'))
-
-        payload = self.model(action=validated_data.pop('action'),
-                             issue=issue)
-        #payload.save()
-
-        return payload
-
-    def get_by_natural_key(self, id):
-        return self.get(id=id)
-
-class Payload_RM_Field(models.Model):
-    action = models.CharField(blank=1,
-                              max_length=20)
-    issue = models.OneToOneField(
-        Issue_RM,
-        on_delete=models.CASCADE,
-        default=None)
-
-    db_table = 'payload_fields_from_rm'
-
-    objects = Payload_RM_Field_Manager()
-
-    class Meta:
-        verbose_name = 'payload_field_from_rm'
-        verbose_name_plural = 'payload_fields_from_rm'
-
-
-'''Класс "Payload_RM" хранит поле Payload_RM_Field - payload-ы с редмайна'''
+''' Класс "Payload_RM" - payload-ы с редмайна '''
 class Payload_RM_Manager(models.Manager):
     use_in_migrations = True
 
-    def create_payload(self, validated_data):
-        payload_field = Payload_RM_Field.objects.create_payload(
-            validated_data.pop('payload_field'))
+    def create_parsed_payload(self, payload):
 
-        payload = self.model(payload_field=payload_field)
-        #payload.save()
+        payload = payload['payload']  # достаём содержимое payload. payload payload. payload? payload!
 
+        # совершённое действие
+        self.action = payload['action']
+
+        # автор issue
+        self.issue_author_id = payload['issue']['author']['id']
+        self.issue_author_login = payload['issue']['author']['login']
+        self.issue_author_firstname = payload['issue']['author']['firstname']
+        self.issue_author_lastname = payload['issue']['author']['lastname']
+
+        # при update возможна добавка комментария
+        if (payload['action'] == 'updated'):
+            # тело комментария
+            self.comment_body = payload['journal']['notes']
+
+            # id комментария (для связи и логов)
+            self.comment_id = payload['journal']['id']
+
+            # автор комментария
+            self.comment_author_id = payload['journal']['author']['id']
+            self.comment_author_login = payload['journal']['author']['login']
+            self.comment_author_firstname = payload['journal']['author']['firstname']
+            self.comment_author_lastname = payload['journal']['author']['lastname']
+
+        # поля issue
+        self.issue_title = payload['issue']['subject']
+        self.issue_body = payload['issue']['description']
+        self.tracker_id = payload['issue']['tracker']['id']
+        self.status_id = payload['issue']['status']['id']
+        self.priority_id = payload['issue']['priority']['id']
+
+        # идентификаторы (для связи и логов)
+        self.issue_id = payload['issue']['id']
+        self.project_id = payload['issue']['project']['id']
+
+        # ссылка на issue (для фразы бота и логов)
+        self.issue_url = payload['url']
+
+        self.save()
         return payload
 
     def get_by_natural_key(self, id):
         return self.get(id=id)
 
 class Payload_RM(models.Model):
-    payload_field = models.OneToOneField(
-        Payload_RM_Field,
-        on_delete=models.CASCADE,
-        default=None)
+
+    # совершённое действие
+    action = models.CharField(blank=1, max_length=256)
+
+    # автор issue
+    issue_author_id = models.IntegerField(blank=1, null=1)
+    issue_author_login = models.CharField(blank=1, max_length=256)
+    issue_author_firstname = models.CharField(blank=1, max_length=256)
+    issue_author_lastname = models.CharField(blank=1, max_length=256)
+
+    # тело комментария
+    comment_body = models.CharField(blank=1, max_length=65536)
+
+    # id комментария (для связи и логов)
+    comment_id = models.IntegerField(blank=1, null=1)
+
+    # автор комментария
+    comment_author_id = models.IntegerField(blank=1, null=1)
+    comment_author_login = models.CharField(blank=1, max_length=256)
+    comment_author_firstname = models.CharField(blank=1, max_length=256)
+    comment_author_lastname = models.CharField(blank=1, max_length=256)
+
+    # поля issue
+    issue_title = models.CharField(blank=1, max_length=512)
+    issue_body = models.CharField(blank=1, max_length=65536)
+    tracker_id = models.IntegerField(blank=1, null=1)
+    status_id = models.IntegerField(blank=1, null=1)
+    priority_id = models.IntegerField(blank=1, null=1)
+
+    # идентификаторы (для связи и логов)
+    issue_id = models.IntegerField(blank=1, null=1)
+    project_id = models.IntegerField(blank=1, null=1)
+
+    # ссылка на issue (для фразы бота и логов)
+    issue_url = models.CharField(blank=1, max_length=512)
+
 
     db_table = 'payloads_from_rm'
-
     objects = Payload_RM_Manager()
 
     class Meta:
@@ -249,7 +270,7 @@ class Payload_RM(models.Model):
 # ==================================================== СВЯЗЬ COMMENTS ==================================================
 
 
-'''Класс "Linked_Comments" - связанные комментарии в issue (comment_id_rm - comment_id_gh, linked_issues_id)'''
+''' Класс "Linked_Comments" - связанные комментарии в issue (comment_id_rm - comment_id_gh, linked_issues_id) '''
 class Linked_Comments_Manager(models.Manager):
     use_in_migrations = True
 
@@ -290,7 +311,7 @@ class Linked_Comments(models.Model):
 
 
 # TODO: при удалении linked_issues linked_comments не удаляются (использовать что-то другое, вместо ManyToMany (https://stackoverflow.com/questions/3937194/django-cascade-deletion-in-manytomanyrelation))
-'''Класс "Linked_Issues" - связанные issues (issue_id_rm - repo_id_gh, issue_id_gh)'''
+''' Класс "Linked_Issues" - связанные issues (issue_id_rm - repo_id_gh, issue_id_gh) '''
 class Linked_Issues_Manager(models.Manager):
     use_in_migrations = True
 
@@ -361,7 +382,7 @@ class Linked_Issues(models.Model):
 # ==================================================== СВЯЗЬ PROJECTS ==================================================
 
 
-'''Класс "Linked_Projects" - связанные projects (project_id_rm - repo_id_gh)'''
+''' Класс "Linked_Projects" - связанные projects (project_id_rm - repo_id_gh) '''
 class Linked_Projects_Manager(models.Manager):
 
     use_in_migrations = True
