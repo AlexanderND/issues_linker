@@ -19,6 +19,10 @@ import time         # задержка
 
 from django.db.utils import OperationalError
 
+# мои модели (хранение на сервере)
+from issues_linker.quickstart.models import Comment_Payload_GH, Payload_GH, Payload_RM
+
+
 # ================================================ ОЧЕРЕДЬ ОБРАБОТКИ ЗАДАЧ =============================================
 
 
@@ -27,8 +31,28 @@ class Task_In_Queue_Manager(models.Manager):
     use_in_migrations = True
 
     def create_task_in_queue(self, payload, type):
-        task_in_queue = self.model(payload=payload,
-                                   type=type)
+
+        # определяем тип обработки
+        if (type == 1):
+            payload_parsed = payload
+            task_in_queue = self.model(payload=payload_parsed,
+                                       type=type)
+
+        elif (type == 2):
+            payload_parsed = Payload_RM.objects.create_parsed_payload(payload)
+            task_in_queue = self.model(payload_rm=payload_parsed,
+                                       type=type)
+
+        elif (type == 3):
+            payload_parsed = Payload_GH.objects.create_parsed_payload(payload)
+            task_in_queue = self.model(payload_gh=payload_parsed,
+                                       type=type)
+
+        else:  # type == 4
+            payload_parsed = Comment_Payload_GH.objects.create_parsed_payload(payload)
+            task_in_queue = self.model(comment_payload_gh=payload_parsed,
+                                       type=type)
+
 
         task_in_queue.save()    # сохранение task_in_queue в бвзе данных
         return task_in_queue
@@ -47,8 +71,27 @@ class Task_In_Queue_Manager(models.Manager):
 
 class Task_In_Queue(models.Model):
 
-    payload = models.CharField(blank=1,
-                               max_length=78643)    # 65536 в 1.2 раза больше максимальной (?) длины body в гитхабе
+    # payload комментарии с гитхаба
+    comment_payload_gh = models.OneToOneField(
+        Comment_Payload_GH,
+        on_delete=models.CASCADE,
+        default=None)
+
+    # payload с гитхаба
+    payload_gh = models.OneToOneField(
+        Payload_GH,
+        on_delete=models.CASCADE,
+        default=None)
+
+    # payload с редмайна
+    payload_rm = models.OneToOneField(
+        Payload_RM,
+        on_delete=models.CASCADE,
+        default=None)
+
+    # payload создание связи между проектами
+    payload = models.CharField(blank=1, max_length=1024)
+
     type = models.SmallIntegerField()               # id issue в гитхабе
 
     db_table = 'tasks_in_queue'
@@ -107,6 +150,7 @@ class Tasks_Queue(models.Model):
     tasks_in_queue = models.ManyToManyField(Task_In_Queue, blank=1)
 
     def tasks_queue_daemon(self, sleep_retry):
+        WRITE_LOG('daemon')
         retry_wait = 0
 
         # продолжаем брать задачи из очереди, пока есть задачи
