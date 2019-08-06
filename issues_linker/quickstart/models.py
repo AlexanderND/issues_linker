@@ -295,14 +295,15 @@ class Linked_Issues_Manager(models.Manager):
     use_in_migrations = True
 
     def create_linked_issues(self, issue_id_rm, issue_id_gh, repos_id_gh, issue_num_gh,
-                             tracker_id_rm, status_id_rm, priority_id_rm):
+                             tracker_id_rm, status_id_rm, priority_id_rm, is_opened):
         linked_issues = self.model(issue_id_rm=issue_id_rm,
                                    issue_id_gh=issue_id_gh,
                                    repos_id_gh=repos_id_gh,
                                    issue_num_gh=issue_num_gh,
                                    tracker_id_rm=tracker_id_rm,
                                    status_id_rm=status_id_rm,
-                                   priority_id_rm=priority_id_rm)
+                                   priority_id_rm=priority_id_rm,
+                                   is_opened=is_opened)
         linked_issues.save()  # сохранение linked_issues в базе данных
 
         return linked_issues
@@ -407,13 +408,6 @@ class Linked_Projects(models.Model):
         self.issues.add(linked_issues)
 
         return linked_issues
-
-
-    def get_issue_by_id_gh(self, issue_id_gh):
-        return Linked_Issues.objects.get_by_issue_id_gh(issue_id_gh)
-
-    def get_issue_by_id_rm(self, issue_id_rm):
-        return Linked_Issues.objects.get_by_issue_id_rm(issue_id_rm)
 
 
     db_table = 'linked_projects'

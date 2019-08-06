@@ -450,11 +450,14 @@ def query_data_gh_to_rm(linked_projects):
         if (tracker_id_rm == None):
             tracker_id_rm = tracker_ids_rm[0]
 
-
         if (issue['state'] == 'closed'):
             status_id_rm = status_ids_rm[5]     # статус "закрытый"
+            is_opened = False
+
         else:
             status_id_rm = status_ids_rm[0]     # статус по умолчанию
+            is_opened = True
+
 
         # ------------------------------------------ ОБРАБОТКА ФРАЗЫ БОТА -----------------------------------------
 
@@ -500,7 +503,8 @@ def query_data_gh_to_rm(linked_projects):
             issue['issue_number'],          # номер issue  в репозитории гитхаба
             tracker_id_rm,                  # id трекера в редмайне
             status_id_rm,                   # id статуса в редмайне
-            priority_id_rm)                 # id приоритета в редмайне
+            priority_id_rm,                 # id приоритета в редмайне
+            is_opened)                      # закрыт / открыт
 
         # добавляем linked_issues в linked_projects
         linked_projects.add_linked_issues(linked_issues)

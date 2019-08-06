@@ -23,8 +23,7 @@ from issues_linker.quickstart.views import Payload_From_GH_ViewSet, Comment_Payl
 from issues_linker.quickstart.views import Linked_Projects_ViewSet, Linked_Issues_ViewSet, Linked_Comments_ViewSet
 
 # мои модели (очередь обработки задач)
-#from issues_linker.quickstart.views import Task_In_Queue_ViewSet, Queue_ViewSet
-from issues_linker.quickstart.views import Tasks_Queue_ViewSet
+from issues_linker.quickstart.views import Task_In_Queue_ViewSet, Tasks_Queue_ViewSet
 
 router = routers.DefaultRouter()
 

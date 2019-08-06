@@ -10,14 +10,13 @@ from issues_linker.quickstart.models import Linked_Projects, Linked_Issues, Link
 from issues_linker.quickstart.serializers import Linked_Projects_Serializer, Linked_Issues_Serializer, Linked_Comments_Serializer
 
 # мои модели (очередь обработки задач)
-#from issues_linker.quickstart.serializers import Tasks_In_Queue_Serializer, Queue_Serializer
-#from issues_linker.quickstart.models import Tasks_In_Queue, Queue
-from issues_linker.quickstart.serializers import Tasks_Queue_Serializer
-from issues_linker.quickstart.models_tasks_queue import Tasks_Queue
+from issues_linker.quickstart.serializers import Task_In_Queue_Serializer, Tasks_Queue_Serializer
+from issues_linker.quickstart.models_tasks_queue import Task_In_Queue, Tasks_Queue
 
 from django.http import HttpResponse            # ответы серверу
 
 from issues_linker.my_functions import WRITE_LOG_ERR                # ведение логов ошибок
+import json
 
 '''# testing
 class UserViewSet(viewsets.ModelViewSet):
@@ -47,77 +46,8 @@ def standard_server_response(sender):
 # ================================================ ОЧЕРЕДЬ ОБРАБОТКИ ЗАДАЧ =============================================
 
 
-"""class Task_In_Queue():
-
-    def __init__(self, payload, type):
-
-        self.payload = payload
-
-        ''' 1 - link_projects '''
-        ''' 2 - process_payload_from_rm '''
-        ''' 3 - process_payload_from_gh '''
-        ''' 4 - process_comment_payload_from_gh '''
-        self.type = type
-
-def process_payload(payload, type):
-
-    # определяем тип обработки
-    if (type == 1):
-        process_result = link_projects(payload)
-
-    elif (type == 2):
-        process_result = process_payload_from_rm(payload)
-
-    elif (type == 3):
-        process_result = process_payload_from_gh(payload)
-
-    else:  # type == 4
-        process_result = process_comment_payload_from_gh(payload)
-
-    return process_result
-
-def tasks_queue_daemon(sleep_retry):
-    retry_wait = 0
-
-    # продолжаем брать задачи из очереди, пока есть задачи
-    while (len(tasks_queue) > 0):
-
-        payload = tasks_queue[0].payload
-        type = tasks_queue[0].type
-
-        try:
-            process_result = process_payload(payload, type)
-
-            # определяем результат обработки
-            if (process_result.status_code == 200 or process_result.status_code == 201):
-                retry_wait = 0              # сброс времени ожидания перед повторным запуском
-                tasks_queue.popleft()       # удаляем задачу из очереди
-
-            else:
-                retry_wait += sleep_retry   # увеличение времени ожидания (чтобы не перегружать сервер)
-        except:
-            retry_wait += sleep_retry       # увеличение времени ожидания (чтобы не перегружать сервер)
-            pass
-
-        time.sleep(retry_wait)              # ждём перед следующим запуском
-
-def put_in_queue(payload, type):
-
-    # создаём задачу на обработку
-    task_in_queue = Task_In_Queue(payload, type)
-    tasks_queue.append(task_in_queue)   # добавляем задачу в очередь обработки
-
-    # запускаем демона, отчищающего очередь, если в очереди только 1 элемент (только что добавили)
-    if (len(tasks_queue) == 1):
-
-        sleep_retry = 2
-        daemon = threading.Thread(target=tasks_queue_daemon,
-                             args=(sleep_retry,),
-                             daemon=True)
-        daemon.start()"""
-
 ''' задачи в очереди обработки задач '''
-'''class Tasks_In_Queue_ViewSet(viewsets.ModelViewSet):
+class Task_In_Queue_ViewSet(viewsets.ModelViewSet):
     """
     Tasks_In_Queue_ViewSet.\n
     Здесь хранится информация о том, какие проекты задачи ожидают обработку\n
@@ -127,8 +57,8 @@ def put_in_queue(payload, type):
     def create(self, request, *args, **kwargs):
         return 'no'
 
-    queryset = Tasks_In_Queue.objects.all()
-    serializer_class = Tasks_In_Queue_Serializer'''
+    queryset = Task_In_Queue.objects.all()
+    serializer_class = Task_In_Queue_Serializer
 
 ''' очередь обработки задач '''
 class Tasks_Queue_ViewSet(viewsets.ModelViewSet):
@@ -242,8 +172,10 @@ class Linked_Projects_ViewSet(viewsets.ModelViewSet):
 
     # переопределение create, чтобы получить id проектов из ссылок
     def create(self, request, *args, **kwargs):
-        payload = request.data
-        put_in_queue(payload, 1)       # добавление задачи в очередь на обработку
+
+        payload = json.dumps(request.data)  # превращаем QueryDict в JSON - сериализуемую строку
+
+        put_in_queue(payload, 1)            # добавление задачи в очередь на обработку
         return standard_server_response('YOU')
 
     queryset = Linked_Projects.objects.all()

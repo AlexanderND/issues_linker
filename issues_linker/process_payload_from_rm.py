@@ -43,6 +43,8 @@ from issues_linker.my_functions import url_rm                       # ссылк
 
 
 def process_payload_from_rm(payload):
+
+    payload = json.loads(payload)   # превращаем payload в JSON
     payload = payload['payload']    # достаём содержимое payload. payload payload. payload? payload!
 
 
