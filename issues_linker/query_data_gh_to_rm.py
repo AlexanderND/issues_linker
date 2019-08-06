@@ -350,6 +350,23 @@ def query_data_gh_to_rm(linked_projects):
 
         return error_text
 
+    def chk_if_issues_are_linked(issue_id_gh):
+
+        linked_issues = Linked_Issues.objects.get_by_issue_id_gh(issue_id_gh)
+        if (linked_issues == None):
+            return False
+        else:
+            return True
+
+    def chk_if_comments_are_linked(comment_id_gh):
+
+        linked_comments = Linked_Issues.objects.get_by_comment_id_gh(comment_id_gh)
+        if (linked_comments == None):
+            return False
+        else:
+            return True
+
+
     # ============================================= КОМАНДЫ ДЛЯ ЗАГРУЗКИ ===============================================
 
 
@@ -557,9 +574,20 @@ def query_data_gh_to_rm(linked_projects):
         for comment in requested_comments:
 
             comment_parsed = parse_comment(issue, comment)
+            if (chk_if_comments_are_linked(comment_parsed['comment_id'])):
+                # задачи уже связаны
+                pass
 
             # отправляем комментарий в редмайн
             post_result = post_comment(linked_projects, linked_issues, comment_parsed)
+
+            # если успешно создали новую задачу в редмайне, осуществляем привязку комментариев
+            if (post_result['request_result'].status_code != 201):
+
+                error_text = '    ERROR WHILE LINKING COMMENTS: ' + str(request_result) + '\n  ' + str(
+                    request_result.text)
+                WRITE_LOG_ERR(error_text)
+                return 0
 
         log_link_comments_finish()
 
@@ -627,19 +655,23 @@ def query_data_gh_to_rm(linked_projects):
         # отправляем задачи в редмайн в обратном порядке
         for issue in reversed(issues):
 
+            if (chk_if_issues_are_linked(issue['issue_id'])):
+                # задачи уже связаны
+                pass
+
             # TODO: обработка ошибок
             post_result = post_issue(linked_projects, issue)
 
             # если успешно создали новую задачу в редмайне, осуществляем привязку комментариев
-            if (post_result['request_result'].status_code == 201):
+            if (post_result['request_result'].status_code != 201):
 
-                link_comments_in_issue(post_result['linked_issues'], issue)
-
-            else:
                 error_text = '  ERROR WHILE LINKING ISSUES: ' + str(request_result) + '\n  ' + str(
                     request_result.text)
                 WRITE_LOG_ERR(error_text)
                 return 0
+
+            else:
+                link_comments_in_issue(post_result['linked_issues'], issue)
 
         log_link_issues_finish()
 

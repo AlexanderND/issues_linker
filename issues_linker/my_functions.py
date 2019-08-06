@@ -5,6 +5,8 @@ from django.http import HttpResponse    # ответы серверу
 
 from collections import deque           # двухсторонняя очередь в питоне
 
+#from issues_linker.quickstart.models import Linked_Issues, Linked_Comments
+
 
 # =================================================== КОНСТАНТЫ СЕРВЕРА ================================================
 
@@ -263,12 +265,6 @@ def match_priority_to_gh(priority_id_rm):
         label_gh = None
 
     return label_gh
-
-
-# ОЧЕРЕДЬ ЗАДАЧ
-tasks_queue = [deque()]
-def get_tasks_queue():
-    return tasks_queue
 
 
 # ======================================================== REDMINE =====================================================
