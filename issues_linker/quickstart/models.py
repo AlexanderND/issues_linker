@@ -518,17 +518,12 @@ class Tasks_In_Queue(models.Model):
         verbose_name_plural = 'queue_tasks'''
 """class Task_In_Queue():
 
-    ''' 1 - link_projects '''
-    ''' 2 - process_payload_from_rm '''
-    ''' 3 - process_payload_from_gh '''
-    ''' 4 - process_comment_payload_from_gh '''
-    type = int()    # тип задачи (какой файл запускать)
-
-    id = int()      # id задачи
-
     def create(self, type, id):
 
-        # ПРОЕКТЫ
+        ''' 1 - link_projects '''
+        ''' 2 - process_payload_from_rm '''
+        ''' 3 - process_payload_from_gh '''
+        ''' 4 - process_comment_payload_from_gh '''
         self.type = type
         self.id = id
 
@@ -571,19 +566,11 @@ class Tasks_Queue_Manager(models.Manager):
 
 # ожидание очереди
 def wait(queue, task_in_queue):
-    #return 0
 
     # цикл проверки, не подошла ли очередь
     while True:
 
-        # пропускаем ошибку 'database is locked'
-        '''try:
-            # прекращаем ожидание, если данный объект является самым левым в очереди
-            if (queue[0] == task_in_queue):
-
-                return 0
-        except:
-            pass'''
+        # пропускаем ошибку 'database is locked'\
 
         try:
             # прекращаем ожидание, если данный объект является самым левым в очереди

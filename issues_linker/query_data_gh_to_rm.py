@@ -105,7 +105,7 @@ def query_data_gh_to_rm(linked_projects):
                       '    REDMINE      | ---------------------------------------' + '\n' +
                       '                 | project_id:   ' + str(linked_projects.project_id_rm) + '\n' +
                       '                 | project_url:  ' + linked_projects.url_rm + '\n' +
-                      '\n    ' + '=' * 33 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 33 + '\n')
+                      '    ' + '=' * 33 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 33 + '\n')
 
     # лог связи задач
     def log_link_issues_start():
@@ -134,7 +134,7 @@ def query_data_gh_to_rm(linked_projects):
                       '  REDMINE      | ---------------------------------------' + '\n' +
                       '               | project_id:   ' + str(linked_projects.project_id_rm) + '\n' +
                       '               | project_url:  ' + linked_projects.url_rm + '\n' +
-                      '\n  ' + '=' * 34 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 34 + '\n')
+                      '  ' + '=' * 34 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 34 + '\n')
 
 
     def log_issue_gh(result, issue, linked_issues, project_id_rm):
@@ -335,6 +335,7 @@ def query_data_gh_to_rm(linked_projects):
         issue_parsed['labels'] = issue['labels']
 
         issue_parsed['action'] = 'opened'
+        issue_parsed['state'] = issue['state']
 
         return issue_parsed
 
@@ -426,10 +427,9 @@ def query_data_gh_to_rm(linked_projects):
         project_id_rm = linked_projects.project_id_rm
 
         # настройка label-ов
-        tracker_id_rm = None
-        status_id_rm = status_ids_rm[0]
         priority_id_rm = priority_ids_rm[0]
 
+        tracker_id_rm = None
         for label in issue['labels']:
 
             tracker_rm = match_label_to_rm(label['name'])
@@ -444,12 +444,17 @@ def query_data_gh_to_rm(linked_projects):
 
                     # если пользователь выбрал более одного трекера -> значение по умолчанию
                     else:
-                        tracker_id_rm = tracker_ids_rm[0]
+                        tracker_id_rm = tracker_ids_rm[0]   # трекер по умолчанию
 
         # проверяем, был ли установлен трекер
         if (tracker_id_rm == None):
             tracker_id_rm = tracker_ids_rm[0]
 
+
+        if (issue['state'] == 'closed'):
+            status_id_rm = status_ids_rm[5]     # статус "закрытый"
+        else:
+            status_id_rm = status_ids_rm[0]     # статус по умолчанию
 
         # ------------------------------------------ ОБРАБОТКА ФРАЗЫ БОТА -----------------------------------------
 
@@ -519,7 +524,7 @@ def query_data_gh_to_rm(linked_projects):
 
 
     # загрузка комментариев у задачи
-    def link_comments(linked_issues, issue):
+    def link_comments_in_issue(linked_issues, issue):
 
 
         # ----------------------------------------------- ПОДГОТОВКА ----------------------------------------------
@@ -555,7 +560,7 @@ def query_data_gh_to_rm(linked_projects):
         log_link_comments_finish()
 
     # загрузка задач у проекта
-    def link_issues(linked_projects):
+    def link_issues_in_project(linked_projects):
 
 
         # ----------------------------------------------- ПОДГОТОВКА ----------------------------------------------
@@ -624,7 +629,7 @@ def query_data_gh_to_rm(linked_projects):
             # если успешно создали новую задачу в редмайне, осуществляем привязку комментариев
             if (post_result['request_result'].status_code == 201):
 
-                link_comments(post_result['linked_issues'], issue)
+                link_comments_in_issue(post_result['linked_issues'], issue)
 
             else:
                 error_text = '  ERROR WHILE LINKING ISSUES: ' + str(request_result) + '\n  ' + str(
@@ -635,4 +640,4 @@ def query_data_gh_to_rm(linked_projects):
         log_link_issues_finish()
 
 
-    link_issues(linked_projects)
+    link_issues_in_project(linked_projects)

@@ -33,6 +33,7 @@ from multiprocessing import Process                     # многопроцес
 import threading                                        # многопоточность
 import time
 
+from issues_linker.my_functions import WRITE_LOG_ERR                # ведение логов ошибок
 
 '''# testing
 class UserViewSet(viewsets.ModelViewSet):
@@ -53,7 +54,7 @@ class GroupViewSet(viewsets.ModelViewSet):
 
 def standard_server_response(sender):
 
-    response_text = 'The linker server has successfully received the payload from ' + sender
+    response_text = 'The issues_linker server has successfully received the payload from ' + sender
     response = HttpResponse(response_text, status=200)
 
     return response
@@ -74,81 +75,47 @@ class Task_In_Queue():
         ''' 4 - process_comment_payload_from_gh '''
         self.type = type
 
-# TODO: рефакторинг
+def process_payload(payload, type):
+
+    # определяем тип обработки
+    if (type == 1):
+        process_result = link_projects(payload)
+
+    elif (type == 2):
+        process_result = process_payload_from_rm(payload)
+
+    elif (type == 3):
+        process_result = process_payload_from_gh(payload)
+
+    else:  # type == 4
+        process_result = process_comment_payload_from_gh(payload)
+
+    return process_result
+
 def tasks_queue_daemon(sleep_retry):
-    retry_wait = sleep_retry
+    retry_wait = 0
 
     # продолжаем брать задачи из очереди, пока есть задачи
-    while True:
+    while (len(tasks_queue) > 0):
 
         payload = tasks_queue[0].payload
         type = tasks_queue[0].type
 
-        # определяем тип обработки
-        if (type == 1):
-            try:
-                process_result = link_projects(payload)
+        try:
+            process_result = process_payload(payload, type)
 
-                # определяем результат обработки
-                if (process_result.status_code == 200 or process_result.status_code == 201):
-                    retry_wait = sleep_retry    # сброс времени ожидания перед повторным запуском
-                    tasks_queue.popleft()       # удаляем задачу из очереди
+            # определяем результат обработки
+            if (process_result.status_code == 200 or process_result.status_code == 201):
+                retry_wait = 0              # сброс времени ожидания перед повторным запуском
+                tasks_queue.popleft()       # удаляем задачу из очереди
 
-                else:
-                    retry_wait += sleep_retry   # увеличение времени ожидания (чтобы не перегружать сервер)
-            except:
+            else:
                 retry_wait += sleep_retry   # увеличение времени ожидания (чтобы не перегружать сервер)
-                pass
+        except:
+            retry_wait += sleep_retry       # увеличение времени ожидания (чтобы не перегружать сервер)
+            pass
 
-        elif (type == 2):
-            try:
-                process_result = process_payload_from_rm(payload)
-
-                # определяем результат обработки
-                if (process_result.status_code == 200 or process_result.status_code == 201):
-                    retry_wait = sleep_retry    # сброс времени ожидания перед повторным запуском
-                    tasks_queue.popleft()       # удаляем задачу из очереди
-
-                else:
-                    retry_wait += sleep_retry   # увеличение времени ожидания (чтобы не перегружать сервер)
-            except:
-                retry_wait += sleep_retry   # увеличение времени ожидания (чтобы не перегружать сервер)
-                pass
-
-        elif (type == 3):
-            try:
-                process_result = process_payload_from_gh(payload)
-
-                # определяем результат обработки
-                if (process_result.status_code == 200 or process_result.status_code == 201):
-                    retry_wait = sleep_retry    # сброс времени ожидания перед повторным запуском
-                    tasks_queue.popleft()       # удаляем задачу из очереди
-
-                else:
-                    retry_wait += sleep_retry   # увеличение времени ожидания (чтобы не перегружать сервер)
-            except:
-                retry_wait += sleep_retry   # увеличение времени ожидания (чтобы не перегружать сервер)
-                pass
-
-        else: # type == 4
-            try:
-                process_result = process_comment_payload_from_gh(payload)
-
-                # определяем результат обработки
-                if (process_result.status_code == 200 or process_result.status_code == 201):
-                    retry_wait = sleep_retry    # сброс времени ожидания перед повторным запуском
-                    tasks_queue.popleft()       # удаляем задачу из очереди
-
-                else:
-                    retry_wait += sleep_retry   # увеличение времени ожидания (чтобы не перегружать сервер)
-            except:
-                retry_wait += sleep_retry   # увеличение времени ожидания (чтобы не перегружать сервер)
-                pass
-
-        time.sleep(retry_wait)      # ждём перед следующим запуском
-        # остановка цикла, как только задачи кончились
-        if (len(tasks_queue) < 1):
-            break
+        time.sleep(retry_wait)              # ждём перед следующим запуском
 
 def put_in_queue(payload, type):
 

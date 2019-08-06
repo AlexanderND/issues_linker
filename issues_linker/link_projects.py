@@ -128,7 +128,7 @@ def link_projects(payload):
                       'REDMINE      | ---------------------------------------' + '\n' +
                       '             | project_id:   ' + str(project_id_rm) + '\n' +
                       '             | project_url:  ' + url_rm + '\n' +
-                      '\n' + '=' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 35 + '\n')
+                      '=' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 35 + '\n')
 
     # проверка, что проекты уже связаны
     def clear_linked_projects(project_id_rm, repos_id_gh):
