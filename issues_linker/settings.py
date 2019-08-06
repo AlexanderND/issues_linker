@@ -128,6 +128,6 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-from collections import deque   # двухсторонняя очередь в питоне
-tasks_queue = deque()           # очередь обработки задач
-global tasks_queue
+#from collections import deque   # двухсторонняя очередь в питоне
+#tasks_queue = deque()           # очередь обработки задач
+#global tasks_queue

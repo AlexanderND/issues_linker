@@ -10,7 +10,7 @@ from issues_linker.quickstart.models import Linked_Projects, Linked_Issues, Link
 
 # мои модели (очередь обработки задач)
 #from issues_linker.quickstart.models import Tasks_In_Queue, Queue
-#from issues_linker.quickstart.models import Tasks_Queue
+from issues_linker.quickstart.models_tasks_queue import Tasks_Queue
 
 
 '''# testing
@@ -149,9 +149,9 @@ class Linked_Projects_Serializer(serializers.HyperlinkedModelSerializer):
                   'comment_id_rm', 'comment_id_gh')'''
 
 ''' очередь обработки задач '''
-"""class Tasks_Queue_Serializer(serializers.HyperlinkedModelSerializer):
-    #tasks = Tasks_In_Queue_Serializer(many=True, read_only=True)
+class Tasks_Queue_Serializer(serializers.HyperlinkedModelSerializer):
+    #tasks_queue = Tasks_In_Queue_Serializer(many=True, read_only=True)
 
     class Meta:
         model = Tasks_Queue
-        fields = (['queue'])"""
+        fields = (['tasks_queue'])

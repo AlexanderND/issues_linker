@@ -12,26 +12,10 @@ from issues_linker.quickstart.serializers import Linked_Projects_Serializer, Lin
 # мои модели (очередь обработки задач)
 #from issues_linker.quickstart.serializers import Tasks_In_Queue_Serializer, Queue_Serializer
 #from issues_linker.quickstart.models import Tasks_In_Queue, Queue
-#from issues_linker.quickstart.serializers import Tasks_Queue_Serializer
-#from issues_linker.quickstart.models import Tasks_Queue
+from issues_linker.quickstart.serializers import Tasks_Queue_Serializer
+from issues_linker.quickstart.models_tasks_queue import Tasks_Queue
 
-# обработка payload-ов
-from issues_linker.process_payload_from_gh import process_payload_from_gh    # загрузка issue в Redmine
-from issues_linker.process_payload_from_rm import process_payload_from_rm    # загрузка issue в Github
-
-# загрузка комментариев к issue в Github
-from issues_linker.process_comment_payload_from_gh import process_comment_payload_from_gh
-
-from django.http import HttpResponse    # ответы серверу
-
-# связь проектов
-from issues_linker.link_projects import link_projects
-
-# очередь задач
-from issues_linker.settings import tasks_queue          # очередь обработки задач
-from multiprocessing import Process                     # многопроцессорность
-import threading                                        # многопоточность
-import time
+from django.http import HttpResponse            # ответы серверу
 
 from issues_linker.my_functions import WRITE_LOG_ERR                # ведение логов ошибок
 
@@ -63,7 +47,7 @@ def standard_server_response(sender):
 # ================================================ ОЧЕРЕДЬ ОБРАБОТКИ ЗАДАЧ =============================================
 
 
-class Task_In_Queue():
+"""class Task_In_Queue():
 
     def __init__(self, payload, type):
 
@@ -130,8 +114,7 @@ def put_in_queue(payload, type):
         daemon = threading.Thread(target=tasks_queue_daemon,
                              args=(sleep_retry,),
                              daemon=True)
-        daemon.start()
-
+        daemon.start()"""
 
 ''' задачи в очереди обработки задач '''
 '''class Tasks_In_Queue_ViewSet(viewsets.ModelViewSet):
@@ -148,10 +131,10 @@ def put_in_queue(payload, type):
     serializer_class = Tasks_In_Queue_Serializer'''
 
 ''' очередь обработки задач '''
-'''class Tasks_Queue_ViewSet(viewsets.ModelViewSet):
+class Tasks_Queue_ViewSet(viewsets.ModelViewSet):
     """
-    Queue_ViewSet.\n
-    Здесь хранится информация о том, какие проекты задачи ожидают обработку\n
+    Tasks_Queue_ViewSet.\n
+    Здесь хранится информация о том, какие задачи ожидают обработку\n
     """
 
     # переопределение create
@@ -159,7 +142,11 @@ def put_in_queue(payload, type):
         return 'no'
 
     queryset = Tasks_Queue.objects.all()
-    serializer_class = Tasks_Queue_Serializer'''
+    serializer_class = Tasks_Queue_Serializer
+
+def put_in_queue(payload, type):
+    tasks_queue = Tasks_Queue.load()
+    tasks_queue.put_in_queue(payload, type)
 
 
 # ======================================================= GITHUB =======================================================
