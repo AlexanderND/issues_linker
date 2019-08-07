@@ -292,13 +292,14 @@ def process_payload_from_rm(payload):
 
         # занесение в базу данных информацию о том, что данные issues связаны
         linked_issues = Linked_Issues.objects.create_linked_issues(
-            issue['issue_id'],              # id issue в редмайне
-            posted_issue['id'],             # id issue в гитхабе
-            repos_id_gh,                    # id репозитория в гитхабе
-            posted_issue['number'],         # номер issue  в репозитории гитхаба
-            issue['tracker_id'],            # id трекера в редмайне
-            issue['status_id'],             # id статуса в редмайне
-            issue['priority_id'])           # id приоритета в редмайне
+            issue['issue_id'],      # id issue в редмайне
+            posted_issue['id'],     # id issue в гитхабе
+            repos_id_gh,            # id репозитория в гитхабе
+            posted_issue['number'], # номер issue  в репозитории гитхаба
+            issue['tracker_id'],    # id трекера в редмайне
+            issue['status_id'],     # id статуса в редмайне
+            issue['priority_id'],   # id приоритета в редмайне
+            True)                   # открыт
 
         # добавляем linked_issues в linked_projects
         linked_projects.add_linked_issues(linked_issues)

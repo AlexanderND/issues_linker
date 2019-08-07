@@ -338,7 +338,8 @@ def process_payload_from_gh(payload):
             issue['issue_number'],          # номер issue  в репозитории гитхаба
             tracker_id_rm,                  # id трекера в редмайне
             status_id_rm,                   # id статуса в редмайне
-            priority_id_rm)                 # id приоритета в редмайне
+            priority_id_rm,                 # id приоритета в редмайне
+            True)                           # открыт
 
         # добавляем linked_issues в linked_projects
         linked_projects.add_linked_issues(linked_issues)

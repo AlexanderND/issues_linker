@@ -21,13 +21,59 @@ import time         # задержка
 from django.db.utils import OperationalError
 from requests.exceptions import RequestException
 
+import datetime
+
 # мои модели (хранение на сервере)
 from issues_linker.quickstart.models import Comment_Payload_GH, Payload_GH, Payload_RM
 
 
-'''def log_connection_refused():
-    
-    WRITE_LOG_WAR()'''
+def log_process_error(queue, try_count, sleep_time, process_result):
+
+    type = queue[0].type
+    queue_len = len(queue)
+
+    if (type == 1):
+        action = 'link_projects'
+    elif (type == 2):
+        action = 'process_payload_from_rm'
+    elif (type == 3):
+        action = 'process_payload_from_gh'
+    else:   # type == 4
+        action = 'process_comment_payload_from_gh'
+
+    error_text = 'encountered some process_error'
+
+    WRITE_LOG('\n' + '=' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 35 + '\n' +
+              'WARNING: Tried to ' + action + ', but ' + error_text + '\n' +
+              ' | queue_len:    ' + str(queue_len) + '\n' +
+              ' | try_count:    ' + str(try_count) + '\n' +
+              ' | retrying in:  ' + str(sleep_time) + '\n' +
+              ' | error_code:   ' + str(process_result.status_code) + '\n' +
+              ' | error_text:   ' + str(process_result.text))
+
+def log_connection_refused(queue, try_count, sleep_time):
+
+    type = queue[0].type
+    queue_len = len(queue)
+
+    if (type == 1):
+        action = 'link_projects'
+        error_text = 'REDMINE is not responding'
+    elif (type == 2):
+        action = 'process_payload_from_rm'
+        error_text = 'GITHUB is not responding'
+    elif (type == 3):
+        action = 'process_payload_from_gh'
+        error_text = 'REDMINE is not responding'
+    else:   # type == 4
+        action = 'process_comment_payload_from_gh'
+        error_text = 'REDMINE is not responding'
+
+    WRITE_LOG('\n' + '=' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 35 + '\n' +
+              'WARNING: Tried to ' + action + ', but ' + error_text + '\n' +
+              ' | queue_len:    ' + str(queue_len) + '\n' +
+              ' | try_count:    ' + str(try_count) + '\n' +
+              ' | retrying in:  ' + str(sleep_time))
 
 
 # ================================================ ОЧЕРЕДЬ ОБРАБОТКИ ЗАДАЧ =============================================
@@ -294,6 +340,7 @@ class Tasks_Queue(models.Model):
     def tasks_queue_daemon(self, sleep_retry):
 
         retry_wait = 0
+        try_count = 0
 
         # продолжаем брать задачи из очереди, пока есть задачи
         while (len(self.queue) > 0):
@@ -307,11 +354,17 @@ class Tasks_Queue(models.Model):
                 # определяем результат обработки
                 if (process_result.status_code == 200 or process_result.status_code == 201):
 
-                    retry_wait = 0              # сброс времени ожидания перед повторным запуском
-                    self.queue.popleft()     # удаляем задачу из очереди
+                    retry_wait = 0          # сброс времени ожидания перед повторным запуском
+                    try_count = 0           # сброс счётчика попыток
+
+                    self.queue.popleft()    # удаляем задачу из очереди
 
                 else:
+
                     retry_wait += sleep_retry   # увеличение времени ожидания (чтобы не перегружать сервер)
+
+                    try_count += 1
+                    log_process_error(self.queue, try_count, retry_wait, process_result)
 
             # пропускаем ошибку 'database is locked'
             except OperationalError:
@@ -320,7 +373,12 @@ class Tasks_Queue(models.Model):
 
             # пропускаем ошибку 'Connection refused' (сервер упал)
             except RequestException:
+
                 retry_wait += sleep_retry   # увеличение времени ожидания (чтобы не перегружать сервер)
+
+                try_count += 1
+                log_connection_refused(self.queue, try_count, retry_wait)
+
                 pass
 
             time.sleep(retry_wait)  # ждём перед следующим запуском

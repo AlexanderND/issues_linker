@@ -177,7 +177,7 @@ def link_projects(payload):
                     "(or not, I actually don't know)\n" +\
                     "Labels:\n\n"
 
-    '''# загрузка label-ов в гитхаб
+    # загрузка label-ов в гитхаб
     def log_label_post(label, post_result):
 
         if (not allow_log_project_linking):
@@ -242,7 +242,7 @@ def link_projects(payload):
         # ДЕБАГГИНГ
         log_label_post(label, request_result)
 
-        response_text += log_text'''
+        response_text += log_text
 
 
     # =================================== ЗАГРУЗКА ВСЕХ ISSUE ИЗ ГИТХАБА В РЕДМАЙН =====================================
