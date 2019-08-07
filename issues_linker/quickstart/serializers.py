@@ -30,12 +30,28 @@ class GroupSerializer(serializers.HyperlinkedModelSerializer):
 ''' payloads от гитхаба '''
 class Comment_Payload_GH_Serializer(serializers.HyperlinkedModelSerializer):
 
+    action = serializers.CharField(read_only=True)
+    sender_id = serializers.IntegerField(read_only=True)
+    sender_login = serializers.CharField(read_only=True)
+    issue_author_id = serializers.IntegerField(read_only=True)
+    issue_author_login = serializers.CharField(read_only=True)
+    issue_title = serializers.CharField(read_only=True)
+    issue_body = serializers.CharField(read_only=True)
+    issue_id = serializers.IntegerField(read_only=True)
+    project_id = serializers.IntegerField(read_only=True)
+    issue_number = serializers.IntegerField(read_only=True)
+    issue_url = serializers.CharField(read_only=True)
+    comment_body = serializers.CharField(read_only=True)
+    comment_id = serializers.IntegerField(read_only=True)
+    comment_author_id = serializers.IntegerField(read_only=True)
+    comment_author_login = serializers.CharField(read_only=True)
+
+
     class Meta:
         model = Comment_Payload_GH
         fields = ('action', 'sender_id', 'sender_login', 'issue_author_id', 'issue_author_login', 'issue_title',
                   'issue_body', 'issue_id', 'project_id', 'issue_number', 'issue_url', 'comment_body',
-                  'comment_id', 'comment_author_id', 'comment_author_login', 'comment_author_firstname',
-                  'comment_author_lastname')
+                  'comment_id', 'comment_author_id', 'comment_author_login')
 
     def create(self, payload):
         parsed_payload = Comment_Payload_GH.objects.create_parsed_payload(payload)
@@ -43,6 +59,20 @@ class Comment_Payload_GH_Serializer(serializers.HyperlinkedModelSerializer):
 
 ''' comment payloads от гитхаба '''
 class Payload_GH_Serializer(serializers.HyperlinkedModelSerializer):
+
+    action = serializers.CharField(read_only=True)
+    sender_id = serializers.IntegerField(read_only=True)
+    sender_login = serializers.CharField(read_only=True)
+    issue_title = serializers.CharField(read_only=True)
+    issue_body = serializers.CharField(read_only=True)
+    issue_author_id = serializers.IntegerField(read_only=True)
+    issue_author_login = serializers.CharField(read_only=True)
+    issue_id = serializers.IntegerField(read_only=True)
+    repos_id = serializers.IntegerField(read_only=True)
+    issue_number = serializers.IntegerField(read_only=True)
+    issue_url = serializers.CharField(read_only=True)
+    issue_label = serializers.IntegerField(read_only=True)
+
 
     class Meta:
         model = Payload_GH
@@ -59,6 +89,27 @@ class Payload_GH_Serializer(serializers.HyperlinkedModelSerializer):
 
 ''' payloads от редмайна '''
 class Payload_RM_Serializer(serializers.HyperlinkedModelSerializer):
+
+    action = serializers.CharField(read_only=True)
+    issue_author_id = serializers.IntegerField(read_only=True)
+    issue_author_login = serializers.CharField(read_only=True)
+    issue_author_firstname = serializers.CharField(read_only=True)
+    issue_author_lastname = serializers.CharField(read_only=True)
+    comment_body = serializers.CharField(read_only=True)
+    comment_id = serializers.IntegerField(read_only=True)
+    comment_author_id = serializers.IntegerField(read_only=True)
+    comment_author_login = serializers.CharField(read_only=True)
+    comment_author_firstname = serializers.CharField(read_only=True)
+    comment_author_lastname = serializers.CharField(read_only=True)
+    issue_title = serializers.CharField(read_only=True)
+    issue_body = serializers.CharField(read_only=True)
+    tracker_id = serializers.IntegerField(read_only=True)
+    status_id = serializers.IntegerField(read_only=True)
+    priority_id = serializers.IntegerField(read_only=True)
+    issue_id = serializers.IntegerField(read_only=True)
+    project_id = serializers.IntegerField(read_only=True)
+    issue_url = serializers.CharField(read_only=True)
+
 
     class Meta:
         model = Payload_RM
@@ -77,23 +128,47 @@ class Payload_RM_Serializer(serializers.HyperlinkedModelSerializer):
 
 ''' связынные комментарии в issue'''
 class Linked_Comments_Serializer(serializers.HyperlinkedModelSerializer):
+
+    comment_id_rm = serializers.IntegerField(read_only=True)
+    comment_id_gh = serializers.IntegerField(read_only=True)
+
+
     class Meta:
         model = Linked_Comments
         fields = ('comment_id_rm', 'comment_id_gh')
 
 ''' связынные issues в проекте '''
 class Linked_Issues_Serializer(serializers.HyperlinkedModelSerializer):
+
+    issue_id_rm = serializers.IntegerField(read_only=True)
+    issue_id_gh = serializers.IntegerField(read_only=True)
+    repos_id_gh = serializers.IntegerField(read_only=True)
+    issue_num_gh = serializers.IntegerField(read_only=True)
+    tracker_id_rm = serializers.IntegerField(read_only=True)
+    status_id_rm = serializers.IntegerField(read_only=True)
+    priority_id_rm = serializers.IntegerField(read_only=True)
+    is_opened = serializers.BooleanField(read_only=True)
+
+    comments = Linked_Comments_Serializer(many=True, read_only=True)
+
+
     class Meta:
         model = Linked_Issues
-        fields = ('issue_id_rm', 'issue_id_gh', 'repos_id_gh', 'issue_num_gh', 'comments',
-                  'tracker_id_rm', 'status_id_rm', 'priority_id_rm', 'is_opened')
+        fields = ('issue_id_rm', 'issue_id_gh', 'repos_id_gh', 'issue_num_gh',
+                  'tracker_id_rm', 'status_id_rm', 'priority_id_rm', 'is_opened', 'comments')
 
 ''' связынные проекты '''
 class Linked_Projects_Serializer(serializers.HyperlinkedModelSerializer):
+
+    project_id_rm = serializers.IntegerField(read_only=True)
+    repos_id_gh = serializers.IntegerField(read_only=True)
+    last_link_time = serializers.DateTimeField(read_only=True)
+
+    issues = Linked_Issues_Serializer(many=True, read_only=True)
+
     class Meta:
         model = Linked_Projects
-        fields = ('url_rm', 'url_gh', 'issues')
-        read_only_fields = ('project_id_rm', 'repos_id_gh')
+        fields = ('url_rm', 'url_gh', 'last_link_time', 'project_id_rm', 'repos_id_gh', 'issues')
 
 
 # ================================================ ОЧЕРЕДЬ ОБРАБОТКИ ЗАДАЧ =============================================

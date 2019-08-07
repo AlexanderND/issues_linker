@@ -14,6 +14,7 @@ from issues_linker.my_functions import read_file                    # загру
 
 from issues_linker.my_functions import allow_log_project_linking    # разрешить лог связи серверов
 from issues_linker.my_functions import detailed_log_project_linking # подробный лог связи серверов
+from issues_linker.my_functions import allow_projects_relinking     # повторная связь проектов
 
 from issues_linker.query_data_gh_to_rm import query_data_gh_to_rm   # запрос всех issues и комментариев к ним с гитхаба
 

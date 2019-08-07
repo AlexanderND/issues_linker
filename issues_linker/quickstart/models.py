@@ -85,8 +85,6 @@ class Comment_Payload_GH(models.Model):
     # автор комментария
     comment_author_id = models.IntegerField(blank=1, null=1)
     comment_author_login = models.CharField(blank=1, max_length=256)
-    comment_author_firstname = models.CharField(blank=1, max_length=256)
-    comment_author_lastname = models.CharField(blank=1, max_length=256)
 
 
     db_table = 'payloads_from_rm'
@@ -296,8 +294,8 @@ class Linked_Comments_Manager(models.Manager):
 
 class Linked_Comments(models.Model):
 
-    comment_id_rm = models.BigIntegerField(blank=1, null=1)     # id комментария в редмайне
-    comment_id_gh = models.BigIntegerField(blank=1, null=1)     # id комментария в гитхабе
+    comment_id_rm = models.IntegerField(blank=1, null=1)     # id комментария в редмайне
+    comment_id_gh = models.IntegerField(blank=1, null=1)     # id комментария в гитхабе
 
     db_table = 'linked_comments'
     objects = Linked_Comments_Manager()
@@ -339,11 +337,11 @@ class Linked_Issues_Manager(models.Manager):
         return self.filter(issue_id_gh=issue_id_gh)
 
 class Linked_Issues(models.Model):
-    issue_id_rm = models.BigIntegerField(blank=1, null=1)           # id issue в редмайне
-    issue_id_gh = models.BigIntegerField(blank=1, null=1)           # id issue в гитхабе
+    issue_id_rm = models.IntegerField(blank=1, null=1)           # id issue в редмайне
+    issue_id_gh = models.IntegerField(blank=1, null=1)           # id issue в гитхабе
 
-    repos_id_gh = models.BigIntegerField(blank=1, null=1)           # id репозитория в гитхабе
-    issue_num_gh = models.BigIntegerField(blank=1, null=1)          # номер issue в репозитории гитхаба
+    repos_id_gh = models.IntegerField(blank=1, null=1)           # id репозитория в гитхабе
+    issue_num_gh = models.IntegerField(blank=1, null=1)          # номер issue в репозитории гитхаба
 
     # различные id-шники в редмайне (или label-ы в гитхабе)
     tracker_id_rm = models.IntegerField(blank=1, null=1)
@@ -415,8 +413,8 @@ class Linked_Projects_Manager(models.Manager):
 class Linked_Projects(models.Model):
 
     # используются для привязки проектов
-    project_id_rm = models.BigIntegerField(blank=1, null=1)         # id проекта в редмайне
-    repos_id_gh = models.BigIntegerField(blank=1, null=1)           # id репозитория в гитхабе
+    project_id_rm = models.IntegerField(blank=1, null=1)         # id проекта в редмайне
+    repos_id_gh = models.IntegerField(blank=1, null=1)           # id репозитория в гитхабе
 
     # ссылки - используются лишь для получения id проектов, но более удобны лдя человека
     url_rm = models.CharField(blank=1, max_length=256)              # ссылка на проект в редмайне
@@ -424,6 +422,8 @@ class Linked_Projects(models.Model):
 
     issues = models.ManyToManyField(Linked_Issues, blank=1)         # задачи в проекте
 
+    # время последней связи используется для повторной привязки проектов
+    last_link_time = models.DateTimeField(blank=1, null=1)
 
     def add_linked_issues(self, linked_issues):
 
