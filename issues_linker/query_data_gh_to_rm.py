@@ -353,7 +353,7 @@ def query_data_gh_to_rm(linked_projects):
 
     def chk_if_issues_are_linked(issue_id_gh):
 
-        linked_issues = Linked_Issues.objects.get_by_issue_id_gh(issue_id_gh)
+        linked_issues = Linked_Issues.objects.get_issue_by_id_gh(issue_id_gh)
         if (len(linked_issues) == 0):
             return False
         else:

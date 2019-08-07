@@ -35,14 +35,11 @@ from issues_linker.my_functions import make_gh_repos_url            # ссылк
 
 from issues_linker.my_functions import allow_correct_github_labels
 
-# очередь обработки задач
-#from issues_linker.quickstart.models import Queue
-
 
 def process_payload_from_gh(payload):
 
-    payload.replace("'", '"')
-    payload = json.loads(payload)   # превращаем payload в JSON
+    #payload.replace("'", '"')
+    #payload = json.loads(payload)   # превращаем payload в JSON
 
 
     # =================================================== ПОДГОТОВКА ===================================================
@@ -757,7 +754,7 @@ def process_payload_from_gh(payload):
 
     do_delete_issues = False    # запрет удаления issues (вместо удаления ставим rejected)
 
-    linked_projects = Linked_Projects.objects.get_by_repos_id_gh(issue['repos_id'])
+    linked_projects = Linked_Projects.objects.get_project_by_id_gh(issue['repos_id'])
     if (issue['action'] == 'opened'):
 
         if (chk_if_gh_user_is_our_bot(issue['sender_id'])):

@@ -99,16 +99,17 @@ class Linked_Projects_Serializer(serializers.HyperlinkedModelSerializer):
 # ================================================ ОЧЕРЕДЬ ОБРАБОТКИ ЗАДАЧ =============================================
 
 
-''' задачи в очереди обработки задач '''
-class Task_In_Queue_Serializer(serializers.HyperlinkedModelSerializer):
+''' задача в очереди обработки задач '''
+"""class Task_In_Queue_Serializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Task_In_Queue
-        fields = ('type', 'payload')
+        fields = ('type', 'payload')"""
 
 ''' очередь обработки задач '''
 class Tasks_Queue_Serializer(serializers.HyperlinkedModelSerializer):
-    #tasks_queue = Tasks_In_Queue_Serializer(many=True, read_only=True)
+    #tasks_in_queue = Task_In_Queue_Serializer(many=True, read_only=True)
 
     class Meta:
         model = Tasks_Queue
-        fields = (['tasks_in_queue'])
+        #fields = (['tasks_in_queue'])
+        fields = (['queue'])

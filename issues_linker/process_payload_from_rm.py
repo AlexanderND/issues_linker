@@ -38,12 +38,11 @@ from issues_linker.my_functions import status_ids_rm                # ids ста
 from issues_linker.my_functions import priority_ids_rm              # ids приоритетов задачи в редмайне
 from issues_linker.my_functions import url_rm                       # ссылка на сервер редмайна
 
-# очередь обработки задач
-#from issues_linker.quickstart.models import Queue
-
 
 def process_payload_from_rm(payload):
 
+    #payload.replace("'", '"')
+    #payload = json.loads(payload)   # превращаем payload в JSON
     payload = payload['payload']    # достаём содержимое payload. payload payload. payload? payload!
 
 
@@ -524,7 +523,7 @@ def process_payload_from_rm(payload):
 
     block_action_opened = True  # запрет копирования задач: RM -> GH
 
-    linked_projects = Linked_Projects.objects.get_by_project_id_rm(issue['project_id'])
+    linked_projects = Linked_Projects.objects.get_project_by_id_rm(issue['project_id'])
 
     if (issue['action'] == 'opened'):
 
@@ -558,7 +557,7 @@ def process_payload_from_rm(payload):
 
     else:
 
-        error_text = "ERROR: process_payload_from_rm.link_comment_to_github\n" + \
+        error_text = "ERROR: process_payload_from_rm\n" + \
                      "WRONG ACTION"
 
         return LOGICAL_ERR(error_text)

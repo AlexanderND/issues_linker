@@ -26,12 +26,12 @@ from issues_linker.my_functions import del_bot_phrase               # удале
 
 from issues_linker.my_functions import align_request_result         # создание корректного ответа серверу
 
-# очередь обработки задач
-#from issues_linker.quickstart.models import Queue
-
 
 # TODO: ИЗМЕНИТЬ ЛОГИКУ ПАРСИНГА??
 def process_comment_payload_from_gh(payload):
+
+    #payload.replace("'", '"')
+    #payload = json.loads(payload)   # превращаем payload в JSON
 
 
     # =================================================== ПОДГОТОВКА ===================================================
@@ -452,7 +452,7 @@ def process_comment_payload_from_gh(payload):
     # ========================================= ЗАГРУЗКА КОММЕНТАРИЯ В REDMINE =========================================
 
 
-    linked_projects = Linked_Projects.objects.get_by_repos_id_gh(issue['repos_id'])
+    linked_projects = Linked_Projects.objects.get_project_by_id_gh(issue['repos_id'])
     if (issue['action'] == 'created'):
 
         if (chk_if_gh_user_is_our_bot(issue['sender_id'])):

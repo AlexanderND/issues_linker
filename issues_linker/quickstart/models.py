@@ -310,7 +310,7 @@ class Linked_Comments(models.Model):
 # ===================================================== СВЯЗЬ ISSUES ===================================================
 
 
-# TODO: при удалении linked_issues linked_comments не удаляются (использовать что-то другое, вместо ManyToMany (https://stackoverflow.com/questions/3937194/django-cascade-deletion-in-manytomanyrelation))
+# TODO: linked_comments - ForeignKey (https://stackoverflow.com/questions/3937194/django-cascade-deletion-in-manytomanyrelation)
 ''' Класс "Linked_Issues" - связанные issues (issue_id_rm - repo_id_gh, issue_id_gh) '''
 class Linked_Issues_Manager(models.Manager):
     use_in_migrations = True
@@ -332,10 +332,10 @@ class Linked_Issues_Manager(models.Manager):
     def get_by_natural_key(self, id):
         return self.get(id=id)
 
-    def get_by_issue_id_rm(self, issue_id_rm):
+    def get_issue_by_id_rm(self, issue_id_rm):
         return self.filter(issue_id_rm=issue_id_rm)
 
-    def get_by_issue_id_gh(self, issue_id_gh):
+    def get_issue_by_id_gh(self, issue_id_gh):
         return self.filter(issue_id_gh=issue_id_gh)
 
 class Linked_Issues(models.Model):
@@ -382,6 +382,7 @@ class Linked_Issues(models.Model):
 # ==================================================== СВЯЗЬ PROJECTS ==================================================
 
 
+# TODO: linked_issues - ForeignKey (https://stackoverflow.com/questions/3937194/django-cascade-deletion-in-manytomanyrelation)
 ''' Класс "Linked_Projects" - связанные projects (project_id_rm - repo_id_gh) '''
 class Linked_Projects_Manager(models.Manager):
 
@@ -401,10 +402,10 @@ class Linked_Projects_Manager(models.Manager):
     def get_by_natural_key(self, id):
         return self.get(id=id)
 
-    def get_by_project_id_rm(self, project_id_rm):
+    def get_project_by_id_rm(self, project_id_rm):
         return self.filter(project_id_rm=project_id_rm)
 
-    def get_by_repos_id_gh(self, repos_id_gh):
+    def get_project_by_id_gh(self, repos_id_gh):
         return self.filter(repos_id_gh=repos_id_gh)
 
     def get_linked_projects(self, project_id_rm, repos_id_gh):
@@ -431,6 +432,13 @@ class Linked_Projects(models.Model):
         return linked_issues
 
 
+    def get_issue_by_id_gh(self, issue_id_gh):
+        return Linked_Issues.objects.get_issue_by_id_gh(issue_id_gh)
+
+    def get_issue_by_id_rm(self, issue_by_id_rm):
+        return Linked_Issues.objects.get_issue_by_id_rm(issue_by_id_rm)
+    
+    
     db_table = 'linked_projects'
     objects = Linked_Projects_Manager()
 

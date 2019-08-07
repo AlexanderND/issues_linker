@@ -24,7 +24,7 @@ from issues_linker.query_data_gh_to_rm import query_data_gh_to_rm   # запро
 # TODO: при связи проектов, проверять: а не связани ли они уже
 # TODO: при связи проектов, запрашивать: все текущие issues и комментарии к ним
 def link_projects(payload):
-    WRITE_LOG('linking')
+
     payload = json.loads(payload)   # превращаем payload в JSON
 
 

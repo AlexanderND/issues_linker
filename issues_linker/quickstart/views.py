@@ -10,12 +10,13 @@ from issues_linker.quickstart.models import Linked_Projects, Linked_Issues, Link
 from issues_linker.quickstart.serializers import Linked_Projects_Serializer, Linked_Issues_Serializer, Linked_Comments_Serializer
 
 # мои модели (очередь обработки задач)
-from issues_linker.quickstart.serializers import Task_In_Queue_Serializer, Tasks_Queue_Serializer
+#from issues_linker.quickstart.serializers import Task_In_Queue_Serializer, Tasks_Queue_Serializer
+from issues_linker.quickstart.serializers import Tasks_Queue_Serializer
 from issues_linker.quickstart.models_tasks_queue import Task_In_Queue, Tasks_Queue
 
-from django.http import HttpResponse            # ответы серверу
+from django.http import HttpResponse    # ответы серверу
 
-from issues_linker.my_functions import WRITE_LOG_ERR                # ведение логов ошибок
+from issues_linker.my_functions import WRITE_LOG_ERR    # ведение логов ошибок
 import json
 
 '''# testing
@@ -47,7 +48,7 @@ def standard_server_response(sender):
 
 
 ''' задачи в очереди обработки задач '''
-class Task_In_Queue_ViewSet(viewsets.ModelViewSet):
+'''class Task_In_Queue_ViewSet(viewsets.ModelViewSet):
     """
     Tasks_In_Queue_ViewSet.\n
     Здесь хранится информация о том, какие проекты задачи ожидают обработку\n
@@ -58,7 +59,7 @@ class Task_In_Queue_ViewSet(viewsets.ModelViewSet):
         return 'no'
 
     queryset = Task_In_Queue.objects.all()
-    serializer_class = Task_In_Queue_Serializer
+    serializer_class = Task_In_Queue_Serializer'''
 
 ''' очередь обработки задач '''
 class Tasks_Queue_ViewSet(viewsets.ModelViewSet):
@@ -74,7 +75,7 @@ class Tasks_Queue_ViewSet(viewsets.ModelViewSet):
     queryset = Tasks_Queue.objects.all()
     serializer_class = Tasks_Queue_Serializer
 
-def put_in_queue(payload, type):
+def put_task_in_queue(payload, type):
     tasks_queue = Tasks_Queue.load()
     tasks_queue.put_in_queue(payload, type)
 
@@ -96,7 +97,7 @@ class Payload_From_GH_ViewSet(viewsets.ModelViewSet):
     # переопределение create, чтобы сразу отправлять загруженные issue на RM
     def create(self, request, *args, **kwargs):
         payload = request.data
-        put_in_queue(payload, 3)    # добавление задачи в очередь на обработку
+        put_task_in_queue(payload, 3)    # добавление задачи в очередь на обработку
         return standard_server_response('Github')
 
 # TODO: добавлять в очередь
@@ -113,7 +114,7 @@ class Comment_Payload_From_GH_ViewSet(viewsets.ModelViewSet):
     # переопределение create, чтобы сразу отправлять загруженные issue на RM
     def create(self, request, *args, **kwargs):
         payload = request.data
-        put_in_queue(payload, 4)    # добавление задачи в очередь на обработку
+        put_task_in_queue(payload, 4)    # добавление задачи в очередь на обработку
         return standard_server_response('Github')
 
 
@@ -135,7 +136,7 @@ class Payload_From_RM_ViewSet(viewsets.ModelViewSet):
     # переопределение create, чтобы сразу отправлять загруженные issue на GH
     def create(self, request, *args, **kwargs):
         payload = request.data
-        put_in_queue(payload, 2)    # добавление задачи в очередь на обработку
+        put_task_in_queue(payload, 2)    # добавление задачи в очередь на обработку
         return standard_server_response('Redmine')
 
 
@@ -175,7 +176,7 @@ class Linked_Projects_ViewSet(viewsets.ModelViewSet):
 
         payload = json.dumps(request.data)  # превращаем QueryDict в JSON - сериализуемую строку
 
-        put_in_queue(payload, 1)            # добавление задачи в очередь на обработку
+        put_task_in_queue(payload, 1)            # добавление задачи в очередь на обработку
         return standard_server_response('YOU')
 
     queryset = Linked_Projects.objects.all()
