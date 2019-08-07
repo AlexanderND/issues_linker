@@ -30,6 +30,8 @@ class GroupSerializer(serializers.HyperlinkedModelSerializer):
 ''' payloads от гитхаба '''
 class Comment_Payload_GH_Serializer(serializers.HyperlinkedModelSerializer):
 
+    id = serializers.IntegerField(read_only=True)
+
     action = serializers.CharField(read_only=True)
     sender_id = serializers.IntegerField(read_only=True)
     sender_login = serializers.CharField(read_only=True)
@@ -49,7 +51,7 @@ class Comment_Payload_GH_Serializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = Comment_Payload_GH
-        fields = ('action', 'sender_id', 'sender_login', 'issue_author_id', 'issue_author_login', 'issue_title',
+        fields = ('id', 'action', 'sender_id', 'sender_login', 'issue_author_id', 'issue_author_login', 'issue_title',
                   'issue_body', 'issue_id', 'project_id', 'issue_number', 'issue_url', 'comment_body',
                   'comment_id', 'comment_author_id', 'comment_author_login')
 
@@ -59,6 +61,8 @@ class Comment_Payload_GH_Serializer(serializers.HyperlinkedModelSerializer):
 
 ''' comment payloads от гитхаба '''
 class Payload_GH_Serializer(serializers.HyperlinkedModelSerializer):
+
+    id = serializers.IntegerField(read_only=True)
 
     action = serializers.CharField(read_only=True)
     sender_id = serializers.IntegerField(read_only=True)
@@ -76,7 +80,7 @@ class Payload_GH_Serializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = Payload_GH
-        fields = ('action', 'sender_id', 'sender_login', 'issue_title', 'issue_body', 'issue_author_id',
+        fields = ('id', 'action', 'sender_id', 'sender_login', 'issue_title', 'issue_body', 'issue_author_id',
                   'issue_author_login', 'issue_id', 'repos_id', 'issue_number', 'issue_url', 'issue_label')
 
     def create(self, payload):
@@ -89,6 +93,8 @@ class Payload_GH_Serializer(serializers.HyperlinkedModelSerializer):
 
 ''' payloads от редмайна '''
 class Payload_RM_Serializer(serializers.HyperlinkedModelSerializer):
+
+    id = serializers.IntegerField(read_only=True)
 
     action = serializers.CharField(read_only=True)
     issue_author_id = serializers.IntegerField(read_only=True)
@@ -113,7 +119,7 @@ class Payload_RM_Serializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = Payload_RM
-        fields = ('action', 'issue_author_id', 'issue_author_login', 'issue_author_firstname', 'issue_author_lastname',
+        fields = ('id', 'action', 'issue_author_id', 'issue_author_login', 'issue_author_firstname', 'issue_author_lastname',
                   'comment_body', 'comment_id', 'comment_author_id', 'comment_author_login', 'comment_author_firstname',
                   'comment_author_lastname', 'issue_title', 'issue_body', 'tracker_id', 'status_id', 'priority_id',
                   'issue_id', 'project_id', 'issue_url')
@@ -129,16 +135,20 @@ class Payload_RM_Serializer(serializers.HyperlinkedModelSerializer):
 ''' связынные комментарии в issue'''
 class Linked_Comments_Serializer(serializers.HyperlinkedModelSerializer):
 
+    id = serializers.IntegerField(read_only=True)
+
     comment_id_rm = serializers.IntegerField(read_only=True)
     comment_id_gh = serializers.IntegerField(read_only=True)
 
 
     class Meta:
         model = Linked_Comments
-        fields = ('comment_id_rm', 'comment_id_gh')
+        fields = ('id', 'comment_id_rm', 'comment_id_gh')
 
 ''' связынные issues в проекте '''
 class Linked_Issues_Serializer(serializers.HyperlinkedModelSerializer):
+
+    id = serializers.IntegerField(read_only=True)
 
     issue_id_rm = serializers.IntegerField(read_only=True)
     issue_id_gh = serializers.IntegerField(read_only=True)
@@ -154,11 +164,13 @@ class Linked_Issues_Serializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = Linked_Issues
-        fields = ('issue_id_rm', 'issue_id_gh', 'repos_id_gh', 'issue_num_gh',
+        fields = ('id', 'issue_id_rm', 'issue_id_gh', 'repos_id_gh', 'issue_num_gh',
                   'tracker_id_rm', 'status_id_rm', 'priority_id_rm', 'is_opened', 'comments')
 
 ''' связынные проекты '''
 class Linked_Projects_Serializer(serializers.HyperlinkedModelSerializer):
+
+    id = serializers.IntegerField(read_only=True)
 
     project_id_rm = serializers.IntegerField(read_only=True)
     repos_id_gh = serializers.IntegerField(read_only=True)
@@ -168,7 +180,7 @@ class Linked_Projects_Serializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = Linked_Projects
-        fields = ('url_rm', 'url_gh', 'last_link_time', 'project_id_rm', 'repos_id_gh', 'issues')
+        fields = ('id', 'url_rm', 'url_gh', 'last_link_time', 'project_id_rm', 'repos_id_gh', 'issues')
 
 
 # ================================================ ОЧЕРЕДЬ ОБРАБОТКИ ЗАДАЧ =============================================
@@ -182,9 +194,11 @@ class Linked_Projects_Serializer(serializers.HyperlinkedModelSerializer):
 
 ''' очередь обработки задач '''
 class Tasks_Queue_Serializer(serializers.HyperlinkedModelSerializer):
+
+    id = serializers.IntegerField(read_only=True)
     #tasks_in_queue = Task_In_Queue_Serializer(many=True, read_only=True)
 
     class Meta:
         model = Tasks_Queue
         #fields = (['tasks_in_queue'])
-        fields = (['queue'])
+        fields = ('id', 'queue')

@@ -1,10 +1,13 @@
 from collections import deque                           # двухсторонняя очередь в питоне
 
 from django.db import models
+from django.utils import timezone
 
 from issues_linker.my_functions import WRITE_LOG        # ведение логов
 
 from django.core.exceptions import ObjectDoesNotExist   # обработка исключений: объект не найден
+
+import datetime
 
 
 # ======================================================= GITHUB =======================================================
@@ -423,7 +426,8 @@ class Linked_Projects(models.Model):
     issues = models.ManyToManyField(Linked_Issues, blank=1)         # задачи в проекте
 
     # время последней связи используется для повторной привязки проектов
-    last_link_time = models.DateTimeField(blank=1, null=1)
+    #last_link_time = models.DateTimeField(default=datetime.datetime.today())
+    last_link_time = models.DateTimeField(default=timezone.now)
 
     def add_linked_issues(self, linked_issues):
 
