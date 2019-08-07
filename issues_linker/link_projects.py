@@ -1,5 +1,6 @@
 import requests
 import datetime
+import time
 from jinja2 import Template
 import json
 from django.http import HttpResponse                                # ответы серверу (гитхабу)
@@ -260,6 +261,9 @@ def link_projects(payload):
 
 # TODO: добавить в linked_projects поле "last_linking_time" - запрашивать issues старше этого времени (изначально ставим минимальную дату)
 def relink_projects(linked_projects):
+    #while True:
+    #    WRITE_LOG('test')
+    #    time.sleep(1)
 
 
     # =================================================== ПОДГОТОВКА ===================================================

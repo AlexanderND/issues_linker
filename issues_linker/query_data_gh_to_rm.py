@@ -41,6 +41,8 @@ from issues_linker.my_functions import detailed_log_project_linking # подро
 from issues_linker.my_functions import allow_correct_github_labels  # разрешение корректировки labl-ов в гитхабе
 
 
+# TODO: переписать post_... ? (чтобы выводило меньше информации в логах)
+# TODO: исправить лог комментариев
 def query_data_gh_to_rm(linked_projects):
 
 
@@ -137,6 +139,7 @@ def query_data_gh_to_rm(linked_projects):
                       '  ' + '=' * 34 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 34 + '\n')
 
 
+    # TODO: исправить логи (сжать информацию, log_comment_gh не используется и т.п.)
     def log_issue_gh(result, issue, linked_issues, project_id_rm):
 
         if (not allow_log_project_linking):
@@ -161,10 +164,9 @@ def query_data_gh_to_rm(linked_projects):
                   '  REDMINE | ---------------- issue ----------------' + '\n' +
                   '          | url_rm:        ' + url_rm + '\n' +
                   '          | issue_id:      ' + str(linked_issues.issue_id_rm) + '\n' +
-                  '          | project_id:    ' + str(
-            project_id_rm))
+                  '          | project_id:    ' + str(project_id_rm))
 
-    def log_comment_gh(result, issue, linked_issues, project_id_rm):
+    def log_comment_gh(result, comment, linked_issues, project_id_rm):
 
         if (not allow_log_project_linking):
             return 0
@@ -177,22 +179,70 @@ def query_data_gh_to_rm(linked_projects):
                   '    linking comment from GITHUB to REDMINE\n' +
                   '    ' + action_rm + ' result in REDMINE: ' + str(result.status_code) + ' ' + str(result.reason) + '\n' +
                   '    GITHUB  | ---------------- issue ----------------' + '\n' +
-                  '            | author_id:     ' + str(issue['issue_author_id']) + '\n' +
-                  '            | author_login:  ' + str(issue['issue_author_login']) + '\n' +
-                  '            | issue_url:     ' + issue['issue_url'] + '\n' +
-                  '            | issue_title:   ' + issue['issue_title'] + '\n' +
-                  '            | issue_id:      ' + str(issue['issue_id']) + '\n' +
-                  '            | repos_id:      ' + str(issue['repos_id']) + '\n' +
-                  '            | issue_number:  ' + str(issue['issue_number']) + '\n' +
+                  '            | author_id:     ' + str(comment['issue_author_id']) + '\n' +
+                  '            | author_login:  ' + str(comment['issue_author_login']) + '\n' +
+                  '            | issue_url:     ' + comment['issue_url'] + '\n' +
+                  '            | issue_title:   ' + comment['issue_title'] + '\n' +
+                  '            | issue_id:      ' + str(comment['issue_id']) + '\n' +
+                  '            | repos_id:      ' + str(comment['repos_id']) + '\n' +
+                  '            | issue_number:  ' + str(comment['issue_number']) + '\n' +
                   '            | --------------- comment ---------------' + '\n' +
-                  '            | author_id:     ' + str(issue['comment_author_id']) + '\n' +
-                  '            | author_login:  ' + str(issue['comment_author_login']) + '\n' +
-                  '            | comment_id:    ' + str(issue['comment_id']) + '\n' +
+                  '            | author_id:     ' + str(comment['comment_author_id']) + '\n' +
+                  '            | author_login:  ' + str(comment['comment_author_login']) + '\n' +
+                  '            | comment_id:    ' + str(comment['comment_id']) + '\n' +
                   '            |\n' +
                   '    REDMINE | ---------------- issue ----------------' + '\n' +
                   '            | url_rm:        ' + url_rm + '\n' +
                   '            | issue_id:      ' + str(linked_issues.issue_id_rm) + '\n' +
                   '            | project_id:    ' + str(project_id_rm) + '\n')
+
+    def log_issue_gh_already_linked(issue, linked_issues, project_id_rm):
+
+        if (not allow_log_project_linking):
+            return 0
+        if (not detailed_log_project_linking):
+            return 0
+
+        WRITE_LOG('\n  ' + '-' * 34 + ' ' + str(datetime.datetime.today()) + ' ' + '-' * 34 + '\n' +
+                  '  linking issue from GITHUB to REDMINE\n' +
+                  '  WARNING: issues are already linked!\n' +
+                  '  GITHUB  | ---------------- issue ----------------' + '\n' +
+                  '          | author_id:     ' + str(issue['issue_author_id']) + '\n' +
+                  '          | author_login:  ' + str(issue['issue_author_login']) + '\n' +
+                  '          | issue_url:     ' + issue['issue_url'] + '\n' +
+                  '          | issue_title:   ' + issue['issue_title'] + '\n' +
+                  '          | issue_id:      ' + str(issue['issue_id']) + '\n' +
+                  '          | repos_id:      ' + str(issue['repos_id']) + '\n' +
+                  '          | issue_number:  ' + str(issue['issue_number']) + '\n' +
+                  '          |\n' +
+                  '  REDMINE | ---------------- issue ----------------' + '\n' +
+                  '          | url_rm:        ' + url_rm + '\n' +
+                  '          | issue_id:      ' + str(linked_issues.issue_id_rm) + '\n' +
+                  '          | project_id:    ' + str(project_id_rm))
+
+    def log_comment_gh_already_linked(linked_projects, linked_issues, linked_comments):
+
+        if (not allow_log_project_linking):
+            return 0
+        if (not detailed_log_project_linking):
+            return 0
+
+        WRITE_LOG('\n    ' + '-' * 33 + ' ' + str(datetime.datetime.today()) + ' ' + '-' * 33 + '\n' +
+                  '    linking comment from GITHUB to REDMINE\n' +
+                  '    WARNING: comments are already linked\n' +
+                  '    GITHUB  | ---------------- issue ----------------' + '\n' +
+                  '            | issue_id:      ' + str(linked_issues.issue_id_gh) + '\n' +
+                  '            | repos_id:      ' + str(linked_projects.repos_id_gh) + '\n' +
+                  '            | issue_number:  ' + str(linked_issues.issue_num_gh) + '\n' +
+                  '            | --------------- comment ---------------' + '\n' +
+                  '            | comment_id:    ' + str(linked_comments.comment_id_gh) + '\n' +
+                  '            |\n' +
+                  '    REDMINE | ---------------- issue ----------------' + '\n' +
+                  '            | url_rm:        ' + url_rm + '\n' +
+                  '            | issue_id:      ' + str(linked_issues.issue_id_gh) + '\n' +
+                  '            | project_id:    ' + str(linked_projects.project_id_rm) + '\n' +
+                  '            | --------------- comment ----------------' + '\n'
+                  '            | comment_id:    ' + str(linked_comments.comment_id_rm) + '\n')
 
     #def log_correct_gh_labels(issue, tracker, linked_issues):
 
@@ -578,7 +628,10 @@ def query_data_gh_to_rm(linked_projects):
 
             comment_parsed = parse_comment(issue, comment)
             if (chk_if_comments_are_linked(comment_parsed['comment_id'])):
-                # задачи уже связаны
+                # комментарии уже связаны
+                linked_comments = Linked_Comments.objects.get_by_comment_id_gh(comment_parsed['comment_id'])
+                log_comment_gh_already_linked(linked_projects, linked_issues, linked_comments[0])
+
                 continue
 
             # отправляем комментарий в редмайн
@@ -664,7 +717,11 @@ def query_data_gh_to_rm(linked_projects):
 
             if (chk_if_issues_are_linked(issue['issue_id'])):
                 # задачи уже связаны
-                WRITE_LOG('  ISSUES ARE ALREADY LINKED')
+                linked_issues = Linked_Issues.objects.get_issue_by_id_gh(issue['issue_id'])
+                log_issue_gh_already_linked(issue, linked_issues[0], linked_projects.project_id_rm)
+
+                link_comments_in_issue(linked_issues[0], issue)
+
                 continue
 
             # TODO: обработка ошибок

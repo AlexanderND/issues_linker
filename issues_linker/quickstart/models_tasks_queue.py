@@ -12,8 +12,10 @@ from issues_linker.process_payload_from_gh import process_payload_from_gh    # �
 from issues_linker.process_payload_from_rm import process_payload_from_rm    # обработка запроса редмайна
 # загрузка комментариев к issue в Github
 from issues_linker.process_comment_payload_from_gh import process_comment_payload_from_gh
+
 # связь проектов
 from issues_linker.link_projects import link_projects
+from issues_linker.link_projects import relink_projects
 
 import threading    # многопоточность
 import time         # задержка
@@ -294,7 +296,7 @@ class Tasks_Queue(models.Model):
         verbose_name = 'tasks_queues'
         verbose_name_plural = 'tasks_queue'"""
 
-
+# TODO: заменить type с
 ''' Класс "Tasks_In_Queue" - задача в очереди обработки задач '''
 class Task_In_Queue():
 
@@ -305,6 +307,7 @@ class Task_In_Queue():
         ''' 2 - process_payload_from_rm '''
         ''' 3 - process_payload_from_gh '''
         ''' 4 - process_comment_payload_from_gh '''
+        ''' 5 - relink_projects '''
         self.type = type
 
 ''' Класс "Tasks_Queue" - очередь обработки задач '''
@@ -402,8 +405,11 @@ class Tasks_Queue(models.Model):
         elif (type == 3):
             process_result = process_payload_from_gh(payload)
 
-        else:  # type == 4
+        elif (type == 4):
             process_result = process_comment_payload_from_gh(payload)
+
+        else:  # type == 5
+            process_result = relink_projects(payload)
 
         return process_result
 

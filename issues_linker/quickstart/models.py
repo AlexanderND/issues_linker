@@ -9,7 +9,7 @@ from django.core.exceptions import ObjectDoesNotExist   # обработка и�
 
 import datetime
 
-
+# TODO: СТАНДАРТИЗАЦИЯ: GET_BY_... -> GET_..._BY_...
 # ======================================================= GITHUB =======================================================
 
 
@@ -295,6 +295,9 @@ class Linked_Comments_Manager(models.Manager):
     def get_by_comment_id_gh(self, comment_id_gh):
         return self.filter(comment_id_gh=comment_id_gh)
 
+    def get_all(self):
+        return self.all()
+
 class Linked_Comments(models.Model):
 
     comment_id_rm = models.IntegerField(blank=1, null=1)     # id комментария в редмайне
@@ -338,6 +341,9 @@ class Linked_Issues_Manager(models.Manager):
 
     def get_issue_by_id_gh(self, issue_id_gh):
         return self.filter(issue_id_gh=issue_id_gh)
+
+    def get_all(self):
+        return self.all()
 
 class Linked_Issues(models.Model):
     issue_id_rm = models.IntegerField(blank=1, null=1)           # id issue в редмайне
@@ -412,6 +418,9 @@ class Linked_Projects_Manager(models.Manager):
     def get_linked_projects(self, project_id_rm, repos_id_gh):
         return self.filter(project_id_rm=project_id_rm,
                            repos_id_gh=repos_id_gh)
+
+    def get_all(self):
+        return self.all()
 
 class Linked_Projects(models.Model):
 
