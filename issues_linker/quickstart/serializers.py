@@ -212,13 +212,4 @@ class Tasks_Queue_Serializer(serializers.HyperlinkedModelSerializer):
 # =================================================== ЗАГРУЗКА СЕРВЕРА =================================================
 
 
-#linked_projects = Linked_Projects_Manager.get_all()
-#linked_issues = Linked_Issues_Manager.get_all()
-#linked_comments = Linked_Comments_Manager.get_all()
-linked_projects = Linked_Projects.objects.get_all()
-linked_issues = Linked_Issues.objects.get_all()
-linked_comments = Linked_Comments.objects.get_all()
-
-tasks_queue = Tasks_Queue.load()
-
-server_startup(tasks_queue, linked_projects, linked_issues, linked_comments)
+server_startup()

@@ -3,6 +3,7 @@
 
 
 Запуск Pycharm:
+($ Pycharm/bin/pycharm.sh)
 $ cd /home/aleksandr.nenakhov/pycharm-community-2019.2/bin
 $ ./pycharm.sh
 
@@ -24,18 +25,20 @@ $ bundle exec rails server webrick -e development
 
 Настройка коммитов:
 echo "# test-2" >> README.md
-git init
-git add README.md
-git commit -m "first commit"
-git remote add origin https://github.com/AlexanderND/issues_linker.git
-git push -u origin master
+$ git init
+$ git add README.md
+$ git config --global user.name "AlexanderND"
+$ git config --global user.email EMAIL
+$ git commit -m "first commit"
+$ git remote add origin https://github.com/AlexanderND/issues_linker.git
+$ git push -u origin master
 
 Коммит полностью из консоли:
-git commit -m "second commit"
-git push -u origin master
+$ git commit -m "second commit"
+$ git push -u origin master
 
 Коммит (только отправляем на гитхаб)
-git push -u origin master
+$ git push -u origin master
 
 
 ====================================== CURL КОМАНДЫ ДЛЯ ОБЩЕНИЯ С СЕРВЕРАМИ =====================================

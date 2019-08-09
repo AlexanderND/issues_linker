@@ -8,13 +8,15 @@ from issues_linker.link_projects import link_projects
 # разрешение запуска процесса обновления связи между проектами
 from issues_linker.my_functions import allow_projects_relinking
 
-def server_startup(tasks_queue, linked_projects, linked_issues, linked_comments):
+# мои модели (связь)
+from issues_linker.quickstart.models import Linked_Projects, Linked_Issues, Linked_Comments
 
-    num_projects = len(linked_projects)
-    num_issues = len(linked_issues)
-    num_comments = len(linked_comments)
+# мои модели (очередь обработки задач)
+from issues_linker.quickstart.models_tasks_queue import Tasks_Queue
 
-    def log_server_startup_begin():
+def server_startup():
+
+    def log_server_startup_begin(num_projects, num_issues, num_comments):
 
         WRITE_LOG('\n' + '=' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 35 + '\n' +
                   'Starting up the server!\n' +
@@ -23,9 +25,20 @@ def server_startup(tasks_queue, linked_projects, linked_issues, linked_comments)
                   'ISSUES    | num_issues:    ' + str(num_issues) + '\n' +
                   'COMMENTS  | num_comments:  ' + str(num_comments) + '\n')
 
-    log_server_startup_begin()
 
     if (allow_projects_relinking):
+
+        linked_projects = Linked_Projects.objects.get_all()
+        linked_issues = Linked_Issues.objects.get_all()
+        linked_comments = Linked_Comments.objects.get_all()
+
+        num_projects = len(linked_projects)
+        num_issues = len(linked_issues)
+        num_comments = len(linked_comments)
+
+        log_server_startup_begin(num_projects, num_issues, num_comments)
+
+        tasks_queue = Tasks_Queue.load()
 
         if (len(linked_projects) > 0):
 
