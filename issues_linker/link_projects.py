@@ -24,7 +24,6 @@ from issues_linker.query_data_gh_to_rm import query_data_gh_to_rm   # запро
 
 
 # TODO: при связи проектов, проверять: а не связани ли они уже
-# TODO: при связи проектов, запрашивать: все текущие issues и комментарии к ним
 def link_projects(payload):
 
     payload = json.loads(payload)   # превращаем payload в JSON
@@ -65,6 +64,37 @@ def link_projects(payload):
                   'Content-Type': 'application/json'}
 
 
+    def log_linking_error(error_text, request_result):
+
+        WRITE_LOG('\n' + '=' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 35 + '\n' +
+                  'ERROR: tried to LINK PROJECTS, but ' + error_text + '\n' +
+                  'REDMINE         | ---------------------------------------' + '\n' +
+                  '                | project_url:  ' + url_rm + '\n' +
+                  'GITHUB          | ---------------------------------------' + '\n' +
+                  '                | repos_url:    ' + url_gh + '\n' +
+                  'REQUEST_RESULT  | ---------------------------------------' + '\n' +
+                  '                | status_code:  ' + str(request_result.status_code) + '\n' +
+                  '                | text:         ' + request_result.text)
+
+    def log_linking_error_url(error_text):
+
+        WRITE_LOG('\n' + '=' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 35 + '\n' +
+                  'ERROR: tried to LINK PROJECTS, but ' + error_text + '\n' +
+                  'REDMINE         | ---------------------------------------' + '\n' +
+                  '                | project_url:  ' + url_rm + '\n' +
+                  'GITHUB          | ---------------------------------------' + '\n' +
+                  '                | repos_url:    ' + url_gh + '\n')
+
+
+    def linking_error(error_text, request_result):
+        log_linking_error(error_text, request_result)
+        return HttpResponse(error_text.replace('\n', '<br>'), status=200)    # <br> - новая строка в html
+
+    def linking_error_url(error_text):
+        log_linking_error_url(error_text)
+        return HttpResponse(error_text.replace('\n', '<br>'), status=200)    # <br> - новая строка в html
+
+
     # ========================================= ПОЛУЧЕНИЕ PROJECT_ID РЕДМАЙНА ==========================================
 
 
@@ -75,12 +105,22 @@ def link_projects(payload):
         request_result = requests.get(api_url_rm,
                                       headers=headers_gh)
 
+        if (request_result.status_code != 200):
+            error_text = 'Something went wrong in REDMINE.\n' +\
+                         'Please, check if the URL is correct.\n' +\
+                         'Aborting action, in order to prevent a perpetual loop.\n' +\
+                         'If the URL are correct, then try again sometime later.'
+            return linking_error(error_text, request_result)
+
         project_id_rm = json.loads(request_result.text)['project']['id']
 
     # TODO: связь по id
     else:
-        #project_id_rm = payload['project_id_rm']
-        return 0
+        error_text = "You didn't input REDMINE's URL.\n" +\
+                     'The linking by id has not been implemented (yet).\n' +\
+                     'Please, input the URL.\n' +\
+                     'Aborting action, in order to prevent a perpetual loop.'
+        return linking_error_url(error_text)
 
 
     # ========================================== ПОЛУЧЕНИЕ REPOS_ID ГИТХАБА ============================================
@@ -95,12 +135,22 @@ def link_projects(payload):
         request_result = requests.get(api_url_gh,
                                       headers=headers_gh)
 
+        if (request_result.status_code != 200):
+            error_text = 'Something went wrong in GITHUB.\n' +\
+                         'Please, check if the URL is correct.\n' +\
+                         'Aborting action, in order to prevent a perpetual loop.\n' +\
+                         'If the URL are correct, then try again sometime later.'
+            return linking_error(error_text, request_result)
+
         repos_id_gh = json.loads(request_result.text)['id']
 
     # TODO: связь по id
     else:
-        #repos_id_gh = payload['repos_id_gh']
-        return 0
+        error_text = "You didn't input REDMINE's URL.\n" +\
+                     'The linking by id has not been implemented (yet).\n' +\
+                     'Please, input the URL.\n' +\
+                     'Aborting action, in order to prevent a perpetual loop.'
+        return linking_error_url(error_text)
 
 
     # ============================================= СОХРАНЕНИЕ ID-ШНИКОВ ===============================================

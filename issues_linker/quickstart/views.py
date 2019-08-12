@@ -166,7 +166,6 @@ class Linked_Projects_ViewSet(viewsets.ModelViewSet):
     """
     Linked_Projects_ViewSet.\n
     Здесь хранится информация о том, какие проекты связаны между собой.\n
-    Пожалуйста, используйте или ссылки, или id (иначе всё может сломаться).\n
     Максимальная длина url_rm: 256\n
     Максимальная длина url_gh: 256\n
     """
@@ -177,7 +176,9 @@ class Linked_Projects_ViewSet(viewsets.ModelViewSet):
         payload = json.dumps(request.data)  # превращаем QueryDict в JSON - сериализуемую строку
 
         put_task_in_queue(payload, 1)            # добавление задачи в очередь на обработку
-        return standard_server_response('YOU')
+
+        server_response = 'you. Check the server logs for more detailed information.'
+        return standard_server_response(server_response)
 
     queryset = Linked_Projects.objects.all()
     serializer_class = Linked_Projects_Serializer
