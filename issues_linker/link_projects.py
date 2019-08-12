@@ -26,8 +26,6 @@ from issues_linker.query_data_gh_to_rm import query_data_gh_to_rm   # запро
 # TODO: при связи проектов, проверять: а не связани ли они уже
 def link_projects(payload):
 
-    payload = json.loads(payload)   # превращаем payload в JSON
-
 
     # =================================================== ПОДГОТОВКА ===================================================
 

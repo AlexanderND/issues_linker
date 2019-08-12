@@ -174,8 +174,9 @@ class Linked_Projects_ViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
 
         payload = json.dumps(request.data)  # превращаем QueryDict в JSON - сериализуемую строку
+        payload = json.loads(payload)       # превращаем payload в JSON
 
-        put_task_in_queue(payload, 1)            # добавление задачи в очередь на обработку
+        put_task_in_queue(payload, 1)       # добавление задачи в очередь на обработку
 
         server_response = 'you. Check the server logs for more detailed information.'
         return standard_server_response(server_response)

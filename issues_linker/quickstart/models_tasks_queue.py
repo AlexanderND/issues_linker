@@ -1,6 +1,7 @@
 from collections import deque                           # двухсторонняя очередь в питоне
 
 from django.db import models
+import json
 
 from issues_linker.my_functions import WRITE_LOG        # ведение логов
 from issues_linker.my_functions import WRITE_LOG_WAR    # ведение логов (предупреждения)
@@ -302,15 +303,14 @@ class Task_In_Queue():
 
     def __init__(self, payload, payload_type):
         self.payload = payload
-        #WRITE_LOG(type(payload))
-        #WRITE_LOG(type(payload_type))
+        WRITE_LOG(type(payload))
 
         ''' 1 - link_projects '''
         ''' 2 - process_payload_from_rm '''
         ''' 3 - process_payload_from_gh '''
         ''' 4 - process_comment_payload_from_gh '''
         ''' 5 - relink_projects '''
-        self.type = payload_type
+        self.process_type = payload_type
 
 ''' Класс "Tasks_Queue" - очередь обработки задач '''
 class Tasks_Queue_Manager(models.Manager):
@@ -351,10 +351,10 @@ class Tasks_Queue(models.Model):
         while (len(self.queue) > 0):
 
             payload = self.queue[0].payload
-            type = self.queue[0].type
+            process_type = self.queue[0].process_type
 
             try:
-                process_result = self.process_payload(payload, type)
+                process_result = self.process_payload(payload, process_type)
 
                 # определяем результат обработки
                 if (process_result.status_code == 200 or process_result.status_code == 201):
@@ -395,30 +395,30 @@ class Tasks_Queue(models.Model):
                                   daemon=True)
         daemon.start()
 
-    def process_payload(self, payload, type):
+    def process_payload(self, payload, process_type):
 
         # определяем тип обработки
-        if (type == 1):
+        if (process_type == 1):
             process_result = link_projects(payload)
 
-        elif (type == 2):
+        elif (process_type == 2):
             process_result = process_payload_from_rm(payload)
 
-        elif (type == 3):
+        elif (process_type == 3):
             process_result = process_payload_from_gh(payload)
 
-        elif (type == 4):
+        elif (process_type == 4):
             process_result = process_comment_payload_from_gh(payload)
 
-        else:  # type == 5
+        else:  # process_type == 5
             process_result = relink_projects(payload)
 
         return process_result
 
-    def put_in_queue(self, payload, type):
+    def put_in_queue(self, payload, process_type):
 
         # создаём задачу на обработку в базе данных
-        task_in_queue = Task_In_Queue(payload, type)
+        task_in_queue = Task_In_Queue(payload, process_type)
 
         while True:
             try:
