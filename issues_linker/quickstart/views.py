@@ -11,13 +11,16 @@ from issues_linker.quickstart.serializers import Linked_Projects_Serializer, Lin
 
 # мои модели (очередь обработки задач)
 #from issues_linker.quickstart.serializers import Task_In_Queue_Serializer, Tasks_Queue_Serializer
-from issues_linker.quickstart.serializers import Tasks_Queue_Serializer
-from issues_linker.quickstart.models_tasks_queue import Task_In_Queue, Tasks_Queue
+#from issues_linker.quickstart.serializers import Task_In_Queue_Serializer, Tasks_Queue_Serializer
+#from issues_linker.quickstart.models_tasks_queue import Tasks_Queue, Tasks_Queue_Manager
+from issues_linker.quickstart.models_tasks_queue import put_task_in_queue
 
 from django.http import HttpResponse    # ответы серверу
 
 from issues_linker.my_functions import WRITE_LOG_ERR    # ведение логов ошибок
+from issues_linker.my_functions import WRITE_LOG        # ведение логов
 import json
+
 
 '''# testing
 class UserViewSet(viewsets.ModelViewSet):
@@ -47,37 +50,45 @@ def standard_server_response(sender):
 # ================================================ ОЧЕРЕДЬ ОБРАБОТКИ ЗАДАЧ =============================================
 
 
-''' задачи в очереди обработки задач '''
-'''class Task_In_Queue_ViewSet(viewsets.ModelViewSet):
-    """
-    Tasks_In_Queue_ViewSet.\n
-    Здесь хранится информация о том, какие проекты задачи ожидают обработку\n
-    """
+"""
+''' задача в очереди обработки задач '''
+class Task_In_Queue_ViewSet(viewsets.ModelViewSet):
+    '''
+    Task_In_Queue_ViewSet.\n
+    Здесь хранится информация о том, какие задачи ожидают обработку\n
+    '''
+    
+    queryset = Tasks_Queue.objects.all()
+    serializer_class = Task_In_Queue_Serializer
 
-    # переопределение create
-    def create(self, request, *args, **kwargs):
-        return 'no'
+''' очередь '''
+class Queue_ViewSet(viewsets.ModelViewSet):
+    '''
+    Queue_ViewSet.\n
+    Здесь хранится очередь\n
+    '''
 
-    queryset = Task_In_Queue.objects.all()
-    serializer_class = Task_In_Queue_Serializer'''
-
+    queryset = Tasks_Queue.objects.all()
+    serializer_class = Queue_Serializer
+"""
+"""
 ''' очередь обработки задач '''
 class Tasks_Queue_ViewSet(viewsets.ModelViewSet):
-    """
+    '''
     Tasks_Queue_ViewSet.\n
     Здесь хранится информация о том, какие задачи ожидают обработку\n
-    """
-
-    # переопределение create
-    def create(self, request, *args, **kwargs):
-        return 'no'
+    '''
 
     queryset = Tasks_Queue.objects.all()
     serializer_class = Tasks_Queue_Serializer
+"""
 
-def put_task_in_queue(payload, type):
+
+"""def put_task_in_queue(payload, process_type):
     tasks_queue = Tasks_Queue.load()
-    tasks_queue.put_in_queue(payload, type)
+    tasks_queue.put_in_queue(payload, process_type)
+    #tasks_queue_manager = Tasks_Queue_Manager()
+    #tasks_queue_manager.put_in_queue(payload, process_type)"""
 
 
 # ======================================================= GITHUB =======================================================
@@ -166,8 +177,6 @@ class Linked_Projects_ViewSet(viewsets.ModelViewSet):
     """
     Linked_Projects_ViewSet.\n
     Здесь хранится информация о том, какие проекты связаны между собой.\n
-    Максимальная длина url_rm: 256\n
-    Максимальная длина url_gh: 256\n
     """
 
     # переопределение create, чтобы получить id проектов из ссылок

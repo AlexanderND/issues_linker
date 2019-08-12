@@ -11,8 +11,10 @@ from issues_linker.my_functions import allow_projects_relinking
 # мои модели (связь)
 from issues_linker.quickstart.models import Linked_Projects, Linked_Issues, Linked_Comments
 
+from issues_linker.quickstart.models_tasks_queue import start_queue_daemon
+
 # мои модели (очередь обработки задач)
-from issues_linker.quickstart.models_tasks_queue import Tasks_Queue
+#from issues_linker.quickstart.models_tasks_queue import Tasks_Queue
 
 def server_startup():
 
@@ -38,10 +40,11 @@ def server_startup():
 
         log_server_startup_begin(num_projects, num_issues, num_comments)
 
-        tasks_queue = Tasks_Queue.load()
+        #tasks_queue = Tasks_Queue.load()
 
         # перезапуск демона очереди
-        tasks_queue.start_queue_daemon()
+        #tasks_queue.start_queue_daemon()
+        start_queue_daemon()
 
         # отправка в очередь задач на повторную связь проектов
         '''if (len(linked_projects) > 0):

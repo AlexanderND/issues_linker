@@ -82,39 +82,26 @@ def log_connection_refused(queue, try_count, sleep_time):
 # ================================================ ОЧЕРЕДЬ ОБРАБОТКИ ЗАДАЧ =============================================
 
 
-"""''' Класс "Tasks_In_Queue" - задача в очереди обработки задач '''
-class Task_In_Queue_Manager(models.Manager):
+''' Класс "Task_In_Queue" - задачи очереди обработки задач '''
+class Tasks_In_Queue_Manager(models.Manager):
     use_in_migrations = True
 
-    def create_task_in_queue(self, payload, type):
+    def create_task_in_queue(self, payload, process_type):
 
-        # определяем тип обработки
-        if (type == 1):
-            payload_parsed = payload
-            task_in_queue = self.model(payload=payload_parsed,
-                                       type=type)
-
-        elif (type == 2):
-            payload_parsed = Payload_RM.objects.create_parsed_payload(payload)
-            task_in_queue = self.model(payload_rm=payload_parsed,
-                                       type=type)
-
-        elif (type == 3):
-            payload_parsed = Payload_GH.objects.create_parsed_payload(payload)
-            task_in_queue = self.model(payload_gh=payload_parsed,
-                                       type=type)
-
-        else:  # type == 4
-            payload_parsed = Comment_Payload_GH.objects.create_parsed_payload(payload)
-            task_in_queue = self.model(comment_payload_gh=payload_parsed,
-                                       type=type)
-
+        WRITE_LOG(4)
+        WRITE_LOG(type(self))
+        payload_parced = json.dumps(payload)
+        task_in_queue = self.model(payload_parced,
+                                   process_type)
+        WRITE_LOG(5)
+        WRITE_LOG(type(task_in_queue))
 
         task_in_queue.save()    # сохранение task_in_queue в бвзе данных
         return task_in_queue
 
     def get_by_natural_key(self, id):
         return self.get(id=id)
+
 
     def get_all(self):
 
@@ -125,193 +112,158 @@ class Task_In_Queue_Manager(models.Manager):
 
         return tasks_in_queue
 
-class Task_In_Queue(models.Model):
+    def get_first_task(self):
 
-    # payload комментарии с гитхаба
-    comment_payload_gh = models.OneToOneField(
-        Comment_Payload_GH,
-        on_delete=models.CASCADE,
-        default=None)
+        tasks_in_queue = self.get_all()
 
-    # payload с гитхаба
-    payload_gh = models.OneToOneField(
-        Payload_GH,
-        on_delete=models.CASCADE,
-        default=None)
+        if (tasks_in_queue != None):
+            first_task = tasks_in_queue[0]
 
-    # payload с редмайна
-    payload_rm = models.OneToOneField(
-        Payload_RM,
-        on_delete=models.CASCADE,
-        default=None)
+            for i in range(len(tasks_in_queue)):
+                if (tasks_in_queue[i].id < first_task):
+                    first_task = tasks_in_queue[i]
 
-    # payload создание связи между проектами
-    payload = models.TextField(blank=1)
+            return first_task
 
-    type = models.SmallIntegerField()               # id issue в гитхабе
-
-    db_table = 'tasks_in_queue'
-    objects = Task_In_Queue_Manager()
-
-    class Meta:
-        verbose_name = 'task_in_queue'
-        verbose_name_plural = 'tasks_in_queue'
-
-''' Класс "Tasks_Queue" - очередь обработки задач '''
-class Tasks_Queue_Manager(models.Manager):
-
-    use_in_migrations = True
-
-
-    def create_tasks_queue(self):
-
-        tasks_queue = self.model()
-        tasks_queue.save()      # сохранение tasks_queue в базе данных
-
-        return tasks_queue
-
-    def update_tasks_queue(self):
-
-        self.save()             # сохранение tasks_queue в базе данных
-        return self
-
-    def get_queue(self):
-
-        tasks_queue = self.all()
-
-        if (len(tasks_queue) < 1):
+        else:
             return None
 
-        elif (len(tasks_queue) > 1):
-            for i in range(len(tasks_queue)):
-                tasks_queue[i].delete()
 
-            return None
-
-        return tasks_queue[0]
-
-class Tasks_Queue(models.Model):
-
-    tasks_in_queue = models.ManyToManyField(Task_In_Queue, blank=1)
-    
-
-    def tasks_queue_daemon(self, sleep_retry):
-        WRITE_LOG('daemon')
-        retry_wait = 0
-
-        # продолжаем брать задачи из очереди, пока есть задачи
-        tasks = Task_In_Queue.objects.get_all()
-        while (tasks != None):
-
-            payload = tasks[0].payload
-            type = tasks[0].type
-
-            try:
-                process_result = self.process_payload(payload, type)
-
-                # определяем результат обработки
-                if (process_result.status_code == 200 or process_result.status_code == 201):
-
-                    retry_wait = 0      # сброс времени ожидания перед повторным запуском
-
-                    tasks[0].delete()   # удаляем задачу из очереди
-
-                else:
-                    retry_wait += sleep_retry   # увеличение времени ожидания (чтобы не перегружать сервер)
-
-            # пропускаем ошибку 'database is locked'
-            except OperationalError:
-                retry_wait += sleep_retry       # увеличение времени ожидания (чтобы не перегружать сервер)
-                pass
-
-            tasks = Task_In_Queue.objects.get_all()
-            time.sleep(retry_wait)  # ждём перед следующим запуском
-
-    def start_queue_daemon(self):
-        sleep_retry = 2
-        daemon = threading.Thread(target=self.tasks_queue_daemon,
-                                  args=(sleep_retry,),
-                                  daemon=True)
-        daemon.start()
-
-
-    def process_payload(self, payload, type):
-
-        # определяем тип обработки
-        if (type == 1):
-            process_result = link_projects(payload)
-
-        elif (type == 2):
-            process_result = process_payload_from_rm(payload)
-
-        elif (type == 3):
-            process_result = process_payload_from_gh(payload)
-
-        else:  # type == 4
-            process_result = process_comment_payload_from_gh(payload)
-
-        return process_result
-
-    def put_in_queue(self, payload, type):
-
-        # создаём задачу на обработку в базе данных
-        task_in_queue = Task_In_Queue.objects.create_task_in_queue(
-            payload,
-            type)
-
-        while True:
-            try:
-                self.tasks_in_queue.add(task_in_queue)
-
-                # запускаем демона, отчищающего очередь, если в очереди только 1 элемент (только что добавили)
-                tasks = Task_In_Queue.objects.get_all()
-                if (len(tasks) == 1):
-                    self.start_queue_daemon()
-
-                break   # выходим из цикла
-
-            # пропускаем ошибку 'database is locked'
-            except OperationalError:
-                #time.sleep(0.02)
-                pass
-
+    def append(self, payload, process_type):
+        WRITE_LOG(3)
+        WRITE_LOG(type(self))
+        task_in_queue = self.create_task_in_queue(payload, process_type)
         return task_in_queue
 
+    def popleft(self):
+        first_task = self.get_first_task()
+        first_task.delete()
 
-    # ЗАГРУЗКА ОЧЕРЕДИ (если не создана - создаём, если создана - отправляем)
-    @classmethod
-    def load(self):
+    def peekleft(self):
+        first_task = self.get_first_task()
+        return first_task
 
-        queue = self.objects.get_queue()
+class Tasks_In_Queue(models.Model):
 
-        if (queue == None):
-            queue = Tasks_Queue.objects.create_tasks_queue()
+    payload = models.TextField(blank=1)
 
-        return queue
+    ''' 1 - link_projects '''
+    ''' 2 - process_payload_from_rm '''
+    ''' 3 - process_payload_from_gh '''
+    ''' 4 - process_comment_payload_from_gh '''
+    ''' 5 - relink_projects '''
+    process_type = models.IntegerField(blank=1, null=1)
 
-
-    db_table = 'tasks_queue'
-    objects = Tasks_Queue_Manager()
+    db_table = 'tasks_in_queue'
+    objects = Tasks_In_Queue_Manager()
 
     class Meta:
-        verbose_name = 'tasks_queues'
-        verbose_name_plural = 'tasks_queue'"""
+        verbose_name = 'tasks_in_queue'
+        verbose_name_plural = 'tasks_in_queue'
 
-# TODO: заменить type с
-''' Класс "Tasks_In_Queue" - задача в очереди обработки задач '''
-class Task_In_Queue():
 
-    def __init__(self, payload, payload_type):
-        self.payload = payload
-        WRITE_LOG(type(payload))
+def tasks_queue_daemon(sleep_retry):
 
-        ''' 1 - link_projects '''
-        ''' 2 - process_payload_from_rm '''
-        ''' 3 - process_payload_from_gh '''
-        ''' 4 - process_comment_payload_from_gh '''
-        ''' 5 - relink_projects '''
-        self.process_type = payload_type
+    queue = Tasks_In_Queue_Manager()
 
+    retry_wait = 0
+    try_count = 0
+
+    # продолжаем брать задачи из очереди, пока есть задачи
+    while (len(queue.get()) > 0):
+
+        payload = queue.peekleft().payload
+        process_type = queue.peekleft().process_type
+
+        try:
+            process_result = process_payload(payload, process_type)
+
+            # определяем результат обработки
+            if (process_result.status_code == 200 or process_result.status_code == 201):
+
+                retry_wait = 0  # сброс времени ожидания перед повторным запуском
+                try_count = 0  # сброс счётчика попыток
+
+                queue.popleft()  # удаляем задачу из очереди
+
+            else:
+
+                retry_wait += sleep_retry  # увеличение времени ожидания (чтобы не перегружать сервер)
+
+                try_count += 1
+                log_process_error(queue.get(), try_count, retry_wait, process_result)
+
+        # пропускаем ошибку 'database is locked'
+        except OperationalError:
+            time.sleep(0.02)  # ждём перед следующим запуском
+            continue
+
+        # пропускаем ошибку 'Connection refused' (сервер упал)
+        except RequestException:
+
+            retry_wait += sleep_retry  # увеличение времени ожидания (чтобы не перегружать сервер)
+
+            try_count += 1
+            log_connection_refused(queue.get(), try_count, retry_wait)
+
+            pass
+
+        time.sleep(retry_wait)  # ждём перед следующим запуском
+
+def start_queue_daemon():
+    sleep_retry = 2
+    daemon = threading.Thread(target=tasks_queue_daemon,
+                              args=(sleep_retry,),
+                              daemon=True)
+    daemon.start()
+
+def process_payload(payload, process_type):
+    # определяем тип обработки
+    if (process_type == 1):
+        process_result = link_projects(payload)
+
+    elif (process_type == 2):
+        process_result = process_payload_from_rm(payload)
+
+    elif (process_type == 3):
+        process_result = process_payload_from_gh(payload)
+
+    elif (process_type == 4):
+        process_result = process_comment_payload_from_gh(payload)
+
+    else:  # process_type == 5
+        process_result = relink_projects(payload)
+
+    return process_result
+
+def put_task_in_queue(payload, process_type):
+    queue = Tasks_In_Queue_Manager()
+    WRITE_LOG(1)
+    WRITE_LOG(type(queue))
+
+    while True:
+        try:
+
+            WRITE_LOG(2)
+            WRITE_LOG(type(queue))
+            # создаём задачу на обработку в базе данных
+            queue.append(payload, process_type)
+            WRITE_LOG(10)
+            WRITE_LOG(type(queue))
+
+            # запускаем демона, отчищающего очередь, если в очереди только 1 элемент (только что добавили)
+            if (len(queue.get()) == 1):
+                start_queue_daemon()
+
+            break  # выходим из цикла
+
+        # пропускаем ошибку 'database is locked'
+        except OperationalError:
+            time.sleep(0.02)  # ждём перед следующим запуском
+            continue
+
+
+"""
 ''' Класс "Tasks_Queue" - очередь обработки задач '''
 class Tasks_Queue_Manager(models.Manager):
     use_in_migrations = True
@@ -323,7 +275,7 @@ class Tasks_Queue_Manager(models.Manager):
 
         return tasks_queue
 
-    def get_queue(self):
+    def get_tasks_queue(self):
 
         tasks_queue = self.all()
 
@@ -338,9 +290,6 @@ class Tasks_Queue_Manager(models.Manager):
 
         return tasks_queue[0]
 
-class Tasks_Queue(models.Model):
-
-    queue = deque()
 
     def tasks_queue_daemon(self, sleep_retry):
 
@@ -348,10 +297,10 @@ class Tasks_Queue(models.Model):
         try_count = 0
 
         # продолжаем брать задачи из очереди, пока есть задачи
-        while (len(self.queue) > 0):
+        while (len(self.queue.get()) > 0):
 
-            payload = self.queue[0].payload
-            process_type = self.queue[0].process_type
+            payload = self.queue.peekleft().payload
+            process_type = self.queue.peekleft().process_type
 
             try:
                 process_result = self.process_payload(payload, process_type)
@@ -369,7 +318,7 @@ class Tasks_Queue(models.Model):
                     retry_wait += sleep_retry   # увеличение времени ожидания (чтобы не перегружать сервер)
 
                     try_count += 1
-                    log_process_error(self.queue, try_count, retry_wait, process_result)
+                    log_process_error(self.queue.get(), try_count, retry_wait, process_result)
 
             # пропускаем ошибку 'database is locked'
             except OperationalError:
@@ -382,7 +331,287 @@ class Tasks_Queue(models.Model):
                 retry_wait += sleep_retry   # увеличение времени ожидания (чтобы не перегружать сервер)
 
                 try_count += 1
-                log_connection_refused(self.queue, try_count, retry_wait)
+                log_connection_refused(self.queue.get(), try_count, retry_wait)
+
+                pass
+
+            time.sleep(retry_wait)  # ждём перед следующим запуском
+
+    def start_queue_daemon(self):
+        sleep_retry = 2
+        daemon = threading.Thread(target=self.tasks_queue_daemon,
+                                  args=(sleep_retry,),
+                                  daemon=True)
+        daemon.start()
+
+    def process_payload(self, payload, process_type):
+
+        # определяем тип обработки
+        if (process_type == 1):
+            process_result = link_projects(payload)
+
+        elif (process_type == 2):
+            process_result = process_payload_from_rm(payload)
+
+        elif (process_type == 3):
+            process_result = process_payload_from_gh(payload)
+
+        elif (process_type == 4):
+            process_result = process_comment_payload_from_gh(payload)
+
+        else:  # process_type == 5
+            process_result = relink_projects(payload)
+
+        return process_result
+
+    def put_in_queue(self, payload, process_type):
+
+        while True:
+            try:
+                # создаём задачу на обработку в базе данных
+                self.queue.objects.append(payload, process_type)
+
+                # запускаем демона, отчищающего очередь, если в очереди только 1 элемент (только что добавили)
+                if (len(self.queue.get()) == 1):
+                    self.start_queue_daemon()
+
+                break  # выходим из цикла
+
+            # пропускаем ошибку 'database is locked'
+            except OperationalError:
+                time.sleep(0.02)    # ждём перед следующим запуском
+                continue
+
+class Tasks_Queue(models.Model):
+
+    #queue = models.ManyToManyField(Tasks_In_Queue)
+    queue = Tasks_In_Queue_Manager()
+
+    '''
+    def start_queue_daemon(self):
+        self.objects.start_queue_daemon()
+
+    def put_in_queue(self, payload, process_type):
+        self.objects.put_in_queue(payload, process_type)
+    '''
+
+
+    def tasks_queue_daemon(self, sleep_retry):
+
+        retry_wait = 0
+        try_count = 0
+
+        # продолжаем брать задачи из очереди, пока есть задачи
+        while (len(self.queue.get()) > 0):
+
+            payload = self.queue.peekleft().payload
+            process_type = self.queue.peekleft().process_type
+
+            try:
+                process_result = self.process_payload(payload, process_type)
+
+                # определяем результат обработки
+                if (process_result.status_code == 200 or process_result.status_code == 201):
+
+                    retry_wait = 0          # сброс времени ожидания перед повторным запуском
+                    try_count = 0           # сброс счётчика попыток
+
+                    self.queue.popleft()    # удаляем задачу из очереди
+
+                else:
+
+                    retry_wait += sleep_retry   # увеличение времени ожидания (чтобы не перегружать сервер)
+
+                    try_count += 1
+                    log_process_error(self.queue.get(), try_count, retry_wait, process_result)
+
+            # пропускаем ошибку 'database is locked'
+            except OperationalError:
+                time.sleep(0.02)    # ждём перед следующим запуском
+                continue
+
+            # пропускаем ошибку 'Connection refused' (сервер упал)
+            except RequestException:
+
+                retry_wait += sleep_retry   # увеличение времени ожидания (чтобы не перегружать сервер)
+
+                try_count += 1
+                log_connection_refused(self.queue.get(), try_count, retry_wait)
+
+                pass
+
+            time.sleep(retry_wait)  # ждём перед следующим запуском
+
+    def start_queue_daemon(self):
+        sleep_retry = 2
+        daemon = threading.Thread(target=self.tasks_queue_daemon,
+                                  args=(sleep_retry,),
+                                  daemon=True)
+        daemon.start()
+
+    def process_payload(self, payload, process_type):
+
+        # определяем тип обработки
+        if (process_type == 1):
+            process_result = link_projects(payload)
+
+        elif (process_type == 2):
+            process_result = process_payload_from_rm(payload)
+
+        elif (process_type == 3):
+            process_result = process_payload_from_gh(payload)
+
+        elif (process_type == 4):
+            process_result = process_comment_payload_from_gh(payload)
+
+        else:  # process_type == 5
+            process_result = relink_projects(payload)
+
+        return process_result
+
+    def put_in_queue(self, payload, process_type):
+
+        while True:
+            try:
+                # создаём задачу на обработку в базе данных
+                self.queue.append(payload, process_type)
+
+                # запускаем демона, отчищающего очередь, если в очереди только 1 элемент (только что добавили)
+                if (len(self.queue.get()) == 1):
+                    self.start_queue_daemon()
+
+                break  # выходим из цикла
+
+            # пропускаем ошибку 'database is locked'
+            except OperationalError:
+                time.sleep(0.02)    # ждём перед следующим запуском
+                continue
+
+
+    # ЗАГРУЗКА ОЧЕРЕДИ (если не создана - создаём, если создана - отправляем)
+    @classmethod
+    def load(self):
+
+        tasks_queue = self.objects.get_tasks_queue()
+
+        if (tasks_queue == None):
+            tasks_queue = Tasks_Queue.objects.create_tasks_queue()
+
+        return tasks_queue
+
+
+    db_table = 'tasks_queue'
+    objects = Tasks_Queue_Manager()
+
+    class Meta:
+        verbose_name = 'tasks_queues'
+        verbose_name_plural = 'tasks_queue'"""
+
+"""
+''' Класс "Tasks_In_Queue" - задача в очереди обработки задач '''
+class Task_In_Queue():
+
+    def __init__(self, payload, payload_type):
+        self.payload = payload
+
+        ''' 1 - link_projects '''
+        ''' 2 - process_payload_from_rm '''
+        ''' 3 - process_payload_from_gh '''
+        ''' 4 - process_comment_payload_from_gh '''
+        ''' 5 - relink_projects '''
+        self.process_type = payload_type
+
+
+''' Класс "Queue" - "очередь" '''
+class Queue():
+
+    def __init__(self):
+        self.queue = []
+
+    def append(self, item):
+        return self.queue.append(item)
+
+    def popleft(self):
+        return self.queue.pop(0)
+
+    def peekleft(self):
+        return self.queue[0]
+
+    def get(self):
+        return self.queue
+    
+    
+''' Класс "Tasks_Queue" - очередь обработки задач '''
+class Tasks_Queue_Manager(models.Manager):
+    use_in_migrations = True
+
+    def create_tasks_queue(self):
+
+        tasks_queue = self.model()
+        tasks_queue.save()  # сохранение tasks_queue в базе данных
+
+        return tasks_queue
+
+    def get_tasks_queue(self):
+
+        tasks_queue = self.all()
+
+        if (len(tasks_queue) < 1):
+            return None
+
+        elif (len(tasks_queue) > 1):
+            for i in range(len(tasks_queue)):
+                tasks_queue[i].delete()
+
+            return None
+
+        return tasks_queue[0]
+
+class Tasks_Queue(models.Model):
+
+    queue = Queue()
+
+    def tasks_queue_daemon(self, sleep_retry):
+
+        retry_wait = 0
+        try_count = 0
+
+        # продолжаем брать задачи из очереди, пока есть задачи
+        while (len(self.queue.get()) > 0):
+
+            payload = self.queue.peekleft().payload
+            process_type = self.queue.peekleft().process_type
+
+            try:
+                process_result = self.process_payload(payload, process_type)
+
+                # определяем результат обработки
+                if (process_result.status_code == 200 or process_result.status_code == 201):
+
+                    retry_wait = 0          # сброс времени ожидания перед повторным запуском
+                    try_count = 0           # сброс счётчика попыток
+
+                    self.queue.popleft()    # удаляем задачу из очереди
+
+                else:
+
+                    retry_wait += sleep_retry   # увеличение времени ожидания (чтобы не перегружать сервер)
+
+                    try_count += 1
+                    log_process_error(self.queue.get(), try_count, retry_wait, process_result)
+
+            # пропускаем ошибку 'database is locked'
+            except OperationalError:
+                time.sleep(0.02)    # ждём перед следующим запуском
+                continue
+
+            # пропускаем ошибку 'Connection refused' (сервер упал)
+            except RequestException:
+
+                retry_wait += sleep_retry   # увеличение времени ожидания (чтобы не перегружать сервер)
+
+                try_count += 1
+                log_connection_refused(self.queue.get(), try_count, retry_wait)
 
                 pass
 
@@ -425,7 +654,7 @@ class Tasks_Queue(models.Model):
                 self.queue.append(task_in_queue)
 
                 # запускаем демона, отчищающего очередь, если в очереди только 1 элемент (только что добавили)
-                if (len(self.queue) == 1):
+                if (len(self.queue.get()) == 1):
                     self.start_queue_daemon()
 
                 break  # выходим из цикла
@@ -441,12 +670,12 @@ class Tasks_Queue(models.Model):
     @classmethod
     def load(self):
 
-        queue = self.objects.get_queue()
+        tasks_queue = self.objects.get_tasks_queue()
 
-        if (queue == None):
-            queue = Tasks_Queue.objects.create_tasks_queue()
+        if (tasks_queue == None):
+            tasks_queue = Tasks_Queue.objects.create_tasks_queue()
 
-        return queue
+        return tasks_queue
 
     db_table = 'tasks_queue'
     objects = Tasks_Queue_Manager()
@@ -454,3 +683,4 @@ class Tasks_Queue(models.Model):
     class Meta:
         verbose_name = 'tasks_queues'
         verbose_name_plural = 'tasks_queue'
+"""

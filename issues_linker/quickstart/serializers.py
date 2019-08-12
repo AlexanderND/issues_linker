@@ -9,7 +9,7 @@ from issues_linker.quickstart.models import Linked_Projects, Linked_Issues, Link
 from issues_linker.quickstart.models import Linked_Projects_Manager, Linked_Issues_Manager, Linked_Comments_Manager
 
 # мои модели (очередь обработки задач)
-from issues_linker.quickstart.models_tasks_queue import Task_In_Queue, Tasks_Queue
+#from issues_linker.quickstart.models_tasks_queue import Tasks_In_Queue, Tasks_Queue
 
 # последовательность действий при запуске сервера
 from issues_linker.quickstart.server_startup import server_startup
@@ -191,22 +191,42 @@ class Linked_Projects_Serializer(serializers.HyperlinkedModelSerializer):
 # ================================================ ОЧЕРЕДЬ ОБРАБОТКИ ЗАДАЧ =============================================
 
 
+"""
 ''' задача в очереди обработки задач '''
-"""class Task_In_Queue_Serializer(serializers.HyperlinkedModelSerializer):
+class Task_In_Queue_Serializer(serializers.HyperlinkedModelSerializer):
+
+    id = serializers.IntegerField(read_only=True)
+    type = serializers.IntegerField(read_only=True)
+    payload = serializers.CharField(read_only=True)
+
     class Meta:
-        model = Task_In_Queue
-        fields = ('type', 'payload')"""
+        model = Tasks_In_Queue
+        fields = ('id', 'type', 'payload')
+        
+
+''' очередь '''
+class Queue_Serializer(serializers.HyperlinkedModelSerializer):
+
+    id = serializers.IntegerField(read_only=True)
+    type = serializers.IntegerField(read_only=True)
+    queue = Task_In_Queue_Serializer(read_only=True)
+
+    class Meta:
+        model = Tasks_Queue
+        fields = ('id', 'type', 'payload')
+
 
 ''' очередь обработки задач '''
 class Tasks_Queue_Serializer(serializers.HyperlinkedModelSerializer):
 
     id = serializers.IntegerField(read_only=True)
-    #tasks_in_queue = Task_In_Queue_Serializer(many=True, read_only=True)
+    #queue = Queue_Serializer(read_only=True)
+    queue = Task_In_Queue_Serializer(read_only=True)
 
     class Meta:
         model = Tasks_Queue
-        #fields = (['tasks_in_queue'])
         fields = ('id', 'queue')
+"""
 
 
 # =================================================== ЗАГРУЗКА СЕРВЕРА =================================================
