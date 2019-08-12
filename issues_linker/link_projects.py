@@ -342,7 +342,7 @@ def relink_projects(linked_projects):
     url_rm = linked_projects.url_rm
 
 
-    def log_link_projects_start():
+    def log_relink_projects_start():
 
         if (not allow_log_project_linking):
             return 0
@@ -356,7 +356,7 @@ def relink_projects(linked_projects):
                       '             | project_id:   ' + str(project_id_rm) + '\n' +
                       '             | project_url:  ' + url_rm)
 
-    def log_link_projects_finish():
+    def log_relink_projects_finish():
 
         if (not allow_log_project_linking):
             return 0
@@ -370,7 +370,7 @@ def relink_projects(linked_projects):
                       '             | project_url:  ' + url_rm + '\n' +
                       '\n' + '=' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 35 + '\n')
 
-    log_link_projects_start()
+    log_relink_projects_start()
 
 
     # ================================ ЗАГРУЗКА ВСЕХ НОВЫХ ISSUE ИЗ ГИТХАБА В РЕДМАЙН ==================================
@@ -379,7 +379,7 @@ def relink_projects(linked_projects):
     # запрос issues и комментариев к ним из гитхаба и отправка в редмайн
     query_data_gh_to_rm(linked_projects)
 
-    log_link_projects_finish()
+    log_relink_projects_finish()
 
     response_text = "re-linking projects successfully!"
 

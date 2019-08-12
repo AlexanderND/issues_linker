@@ -300,15 +300,17 @@ class Tasks_Queue(models.Model):
 ''' Класс "Tasks_In_Queue" - задача в очереди обработки задач '''
 class Task_In_Queue():
 
-    def __init__(self, payload, type):
+    def __init__(self, payload, payload_type):
         self.payload = payload
+        #WRITE_LOG(type(payload))
+        #WRITE_LOG(type(payload_type))
 
         ''' 1 - link_projects '''
         ''' 2 - process_payload_from_rm '''
         ''' 3 - process_payload_from_gh '''
         ''' 4 - process_comment_payload_from_gh '''
         ''' 5 - relink_projects '''
-        self.type = type
+        self.type = payload_type
 
 ''' Класс "Tasks_Queue" - очередь обработки задач '''
 class Tasks_Queue_Manager(models.Manager):

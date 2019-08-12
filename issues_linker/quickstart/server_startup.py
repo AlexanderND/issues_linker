@@ -40,15 +40,13 @@ def server_startup():
 
         tasks_queue = Tasks_Queue.load()
 
-        if (len(linked_projects) > 0):
+        # перезапуск демона очереди
+        tasks_queue.start_queue_daemon()
 
-            WRITE_LOG("re-linking projects in progress...")
-
+        # отправка в очередь задач на повторную связь проектов
+        '''if (len(linked_projects) > 0):
             for linked_projects_ in linked_projects:
-                tasks_queue.put_in_queue(linked_projects_, 5)
-
-        else:
-            WRITE_LOG("there are no projects to re-link!")
+                tasks_queue.put_in_queue(linked_projects_, 5)'''
 
     else:
 
