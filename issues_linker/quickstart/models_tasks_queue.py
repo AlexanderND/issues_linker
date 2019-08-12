@@ -145,7 +145,7 @@ class Task_In_Queue(models.Model):
         default=None)
 
     # payload создание связи между проектами
-    payload = models.CharField(blank=1, max_length=1024)
+    payload = models.TextField(blank=1)
 
     type = models.SmallIntegerField()               # id issue в гитхабе
 

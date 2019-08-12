@@ -59,17 +59,17 @@ class Comment_Payload_GH_Manager(models.Manager):
 class Comment_Payload_GH(models.Model):
 
     # совершённое действие и его автор
-    action = models.CharField(blank=1, max_length=256)
+    action = models.TextField(blank=1)
     sender_id = models.IntegerField(blank=1, null=1)
-    sender_login = models.CharField(blank=1, max_length=256)
+    sender_login = models.TextField(blank=1)
 
     # автор issue
     issue_author_id = models.IntegerField(blank=1, null=1)
-    issue_author_login = models.CharField(blank=1, max_length=256)
+    issue_author_login = models.TextField(blank=1)
 
     # поля issue
-    issue_title = models.CharField(blank=1, max_length=512)
-    issue_body = models.CharField(blank=1, max_length=65536)
+    issue_title = models.TextField(blank=1)
+    issue_body = models.TextField(blank=1)
 
     # идентификаторы (для связи и логов)
     issue_id = models.IntegerField(blank=1, null=1)
@@ -77,17 +77,17 @@ class Comment_Payload_GH(models.Model):
     issue_number = models.IntegerField(blank=1, null=1)
 
     # ссылка на issue (для фразы бота и логов)
-    issue_url = models.CharField(blank=1, max_length=512)
+    issue_url = models.TextField(blank=1, max_length=512)
 
     # тело комментария
-    comment_body = models.CharField(blank=1, max_length=65536)
+    comment_body = models.TextField(blank=1)
 
     # id комментария (для связи и логов)
     comment_id = models.IntegerField(blank=1, null=1)
 
     # автор комментария
     comment_author_id = models.IntegerField(blank=1, null=1)
-    comment_author_login = models.CharField(blank=1, max_length=256)
+    comment_author_login = models.TextField(blank=1)
 
 
     db_table = 'payloads_from_rm'
@@ -137,17 +137,17 @@ class Payload_GH_Manager(models.Manager):
 class Payload_GH(models.Model):
 
     # совершённоедействие и его автор
-    action = models.CharField(blank=1, max_length=256)
-    sender_id = models.IntegerField(blank=1, null=1)
-    sender_login = models.CharField(blank=1, max_length=256)
+    action = models.TextField(blank=1)
+    sender_id = models.TextField(blank=1)
+    sender_login = models.TextField(blank=1)
 
     # поля issue
-    issue_title = models.CharField(blank=1, max_length=512)
-    issue_body = models.CharField(blank=1, max_length=65536)
+    issue_title = models.TextField(blank=1)
+    issue_body = models.TextField(blank=1)
 
     #автор issue
     issue_author_id = models.IntegerField(blank=1, null=1)
-    issue_author_login = models.CharField(blank=1, max_length=256)
+    issue_author_login = models.TextField(blank=1)
 
     # идентификаторы (для связи и логов)
     issue_id = models.IntegerField(blank=1, null=1)
@@ -155,9 +155,9 @@ class Payload_GH(models.Model):
     issue_number = models.IntegerField(blank=1, null=1)
 
     # ссылка на issue (для фразы бота и логов)
-    issue_url = models.CharField(blank=1, max_length=512)
+    issue_url = models.TextField(blank=1)
 
-    issue_label = models.CharField(blank=1, max_length=256)
+    issue_label = models.TextField(blank=1)
 
 
     db_table = 'payloads_from_gh'
@@ -225,29 +225,29 @@ class Payload_RM_Manager(models.Manager):
 class Payload_RM(models.Model):
 
     # совершённое действие
-    action = models.CharField(blank=1, max_length=256)
+    action = models.TextField(blank=1)
 
     # автор issue
     issue_author_id = models.IntegerField(blank=1, null=1)
-    issue_author_login = models.CharField(blank=1, max_length=256)
-    issue_author_firstname = models.CharField(blank=1, max_length=256)
-    issue_author_lastname = models.CharField(blank=1, max_length=256)
+    issue_author_login = models.TextField(blank=1)
+    issue_author_firstname = models.TextField(blank=1)
+    issue_author_lastname = models.TextField(blank=1)
 
     # тело комментария
-    comment_body = models.CharField(blank=1, max_length=65536)
+    comment_body = models.TextField(blank=1)
 
     # id комментария (для связи и логов)
     comment_id = models.IntegerField(blank=1, null=1)
 
     # автор комментария
     comment_author_id = models.IntegerField(blank=1, null=1)
-    comment_author_login = models.CharField(blank=1, max_length=256)
-    comment_author_firstname = models.CharField(blank=1, max_length=256)
-    comment_author_lastname = models.CharField(blank=1, max_length=256)
+    comment_author_login = models.TextField(blank=1)
+    comment_author_firstname = models.TextField(blank=1)
+    comment_author_lastname = models.TextField(blank=1)
 
     # поля issue
-    issue_title = models.CharField(blank=1, max_length=512)
-    issue_body = models.CharField(blank=1, max_length=65536)
+    issue_title = models.TextField(blank=1)
+    issue_body = models.TextField(blank=1)
     tracker_id = models.IntegerField(blank=1, null=1)
     status_id = models.IntegerField(blank=1, null=1)
     priority_id = models.IntegerField(blank=1, null=1)
@@ -257,7 +257,7 @@ class Payload_RM(models.Model):
     project_id = models.IntegerField(blank=1, null=1)
 
     # ссылка на issue (для фразы бота и логов)
-    issue_url = models.CharField(blank=1, max_length=512)
+    issue_url = models.TextField(blank=1)
 
 
     db_table = 'payloads_from_rm'
@@ -425,14 +425,14 @@ class Linked_Projects_Manager(models.Manager):
 class Linked_Projects(models.Model):
 
     # используются для привязки проектов
-    project_id_rm = models.IntegerField(blank=1, null=1)         # id проекта в редмайне
-    repos_id_gh = models.IntegerField(blank=1, null=1)           # id репозитория в гитхабе
+    project_id_rm = models.IntegerField(blank=1, null=1)    # id проекта в редмайне
+    repos_id_gh = models.IntegerField(blank=1, null=1)      # id репозитория в гитхабе
 
     # ссылки - используются лишь для получения id проектов, но более удобны лдя человека
-    url_rm = models.CharField(blank=1, max_length=256)              # ссылка на проект в редмайне
-    url_gh = models.CharField(blank=1, max_length=256)              # ссылка на проект в гитхабе
+    url_rm = models.TextField(blank=1)                      # ссылка на проект в редмайне
+    url_gh = models.TextField(blank=1)                      # ссылка на проект в гитхабе
 
-    issues = models.ManyToManyField(Linked_Issues, blank=1)         # задачи в проекте
+    issues = models.ManyToManyField(Linked_Issues, blank=1) # задачи в проекте
 
     # время последней связи используется для повторной привязки проектов
     #last_link_time = models.DateTimeField(default=datetime.datetime.today())
