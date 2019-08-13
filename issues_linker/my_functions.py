@@ -22,6 +22,7 @@ detailed_log_project_linking = True
 # TODO: не транслировать в редмайн и не сохранять на сервере изменения трекера
 allow_correct_github_labels = True
 
+allow_queue_daemon_restarting = True
 allow_projects_relinking = True
 
 
