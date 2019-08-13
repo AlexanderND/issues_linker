@@ -10,9 +10,8 @@ from issues_linker.quickstart.models import Linked_Projects, Linked_Issues, Link
 from issues_linker.quickstart.serializers import Linked_Projects_Serializer, Linked_Issues_Serializer, Linked_Comments_Serializer
 
 # мои модели (очередь обработки задач)
-#from issues_linker.quickstart.serializers import Task_In_Queue_Serializer, Tasks_Queue_Serializer
-#from issues_linker.quickstart.serializers import Task_In_Queue_Serializer, Tasks_Queue_Serializer
-#from issues_linker.quickstart.models_tasks_queue import Tasks_Queue, Tasks_Queue_Manager
+from issues_linker.quickstart.serializers import Tasks_In_Queue_Serializer
+from issues_linker.quickstart.models_tasks_queue import Tasks_In_Queue, Tasks_In_Queue_Manager
 from issues_linker.quickstart.models_tasks_queue import put_task_in_queue
 
 from django.http import HttpResponse    # ответы серверу
@@ -50,17 +49,16 @@ def standard_server_response(sender):
 # ================================================ ОЧЕРЕДЬ ОБРАБОТКИ ЗАДАЧ =============================================
 
 
-"""
 ''' задача в очереди обработки задач '''
-class Task_In_Queue_ViewSet(viewsets.ModelViewSet):
+class Tasks_In_Queue_ViewSet(viewsets.ModelViewSet):
     '''
-    Task_In_Queue_ViewSet.\n
+    Tasks_In_Queue_ViewSet.\n
     Здесь хранится информация о том, какие задачи ожидают обработку\n
     '''
     
-    queryset = Tasks_Queue.objects.all()
-    serializer_class = Task_In_Queue_Serializer
-
+    queryset = Tasks_In_Queue.objects.all()
+    serializer_class = Tasks_In_Queue_Serializer
+"""
 ''' очередь '''
 class Queue_ViewSet(viewsets.ModelViewSet):
     '''
@@ -70,8 +68,8 @@ class Queue_ViewSet(viewsets.ModelViewSet):
 
     queryset = Tasks_Queue.objects.all()
     serializer_class = Queue_Serializer
-"""
-"""
+
+
 ''' очередь обработки задач '''
 class Tasks_Queue_ViewSet(viewsets.ModelViewSet):
     '''
@@ -82,13 +80,6 @@ class Tasks_Queue_ViewSet(viewsets.ModelViewSet):
     queryset = Tasks_Queue.objects.all()
     serializer_class = Tasks_Queue_Serializer
 """
-
-
-"""def put_task_in_queue(payload, process_type):
-    tasks_queue = Tasks_Queue.load()
-    tasks_queue.put_in_queue(payload, process_type)
-    #tasks_queue_manager = Tasks_Queue_Manager()
-    #tasks_queue_manager.put_in_queue(payload, process_type)"""
 
 
 # ======================================================= GITHUB =======================================================
