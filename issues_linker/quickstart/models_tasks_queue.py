@@ -32,8 +32,9 @@ from issues_linker.quickstart.models import Comment_Payload_GH, Payload_GH, Payl
 
 def log_process_error(queue, try_count, sleep_time, process_result):
 
-    type = queue[0].type
-    queue_len = len(queue)
+    first_task = queue.objects.peekleft()
+    type = first_task.process_type
+    queue_len = queue.objects.get_queue_len()
 
     if (type == 1):
         action = 'link_projects'
@@ -41,10 +42,12 @@ def log_process_error(queue, try_count, sleep_time, process_result):
         action = 'process_payload_from_rm'
     elif (type == 3):
         action = 'process_payload_from_gh'
-    else:   # type == 4
+    elif (type == 4):
         action = 'process_comment_payload_from_gh'
+    else:   # type == 5
+        action = 'relink_projects'
 
-    error_text = 'encountered some process_error'
+    error_text = 'encountered some internal server error (process_error)'
 
     WRITE_LOG('\n' + '=' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 35 + '\n' +
               'WARNING: Tried to ' + action + ', but ' + error_text + '\n' +
@@ -52,12 +55,13 @@ def log_process_error(queue, try_count, sleep_time, process_result):
               ' | try_count:    ' + str(try_count) + '\n' +
               ' | retrying in:  ' + str(sleep_time) + '\n' +
               ' | error_code:   ' + str(process_result.status_code) + '\n' +
-              ' | error_text:   ' + str(process_result.text))
+              ' | error_text:   ' + str(process_result.text) + '\n')
 
 def log_connection_refused(queue, try_count, sleep_time):
 
-    type = queue[0].type
-    queue_len = len(queue)
+    first_task = queue.objects.peekleft()
+    type = first_task.process_type
+    queue_len = queue.objects.get_queue_len()
 
     if (type == 1):
         action = 'link_projects'
@@ -68,15 +72,18 @@ def log_connection_refused(queue, try_count, sleep_time):
     elif (type == 3):
         action = 'process_payload_from_gh'
         error_text = 'REDMINE is not responding'
-    else:   # type == 4
+    elif (type == 4):
         action = 'process_comment_payload_from_gh'
+        error_text = 'REDMINE is not responding'
+    else:   # type == 5
+        action = 'relink_projects'
         error_text = 'REDMINE is not responding'
 
     WRITE_LOG('\n' + '=' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 35 + '\n' +
               'WARNING: Tried to ' + action + ', but ' + error_text + '\n' +
               ' | queue_len:    ' + str(queue_len) + '\n' +
               ' | try_count:    ' + str(try_count) + '\n' +
-              ' | retrying in:  ' + str(sleep_time))
+              ' | retrying in:  ' + str(sleep_time) + '\n')
 
 
 # ================================================ ОЧЕРЕДЬ ОБРАБОТКИ ЗАДАЧ =============================================
@@ -191,7 +198,7 @@ def tasks_queue_daemon(sleep_retry):
                 retry_wait += sleep_retry  # увеличение времени ожидания (чтобы не перегружать сервер)
 
                 try_count += 1
-                log_process_error(queue.objects.get(), try_count, retry_wait, process_result)
+                log_process_error(queue, try_count, retry_wait, process_result)
 
         # пропускаем ошибку 'database is locked'
         except OperationalError:
@@ -204,7 +211,7 @@ def tasks_queue_daemon(sleep_retry):
             retry_wait += sleep_retry  # увеличение времени ожидания (чтобы не перегружать сервер)
 
             try_count += 1
-            log_connection_refused(queue.objects.get(), try_count, retry_wait)
+            log_connection_refused(queue, try_count, retry_wait)
 
             pass
 

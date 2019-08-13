@@ -183,28 +183,27 @@ def link_projects(payload):
                       '=' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 35 + '\n')
 
     # проверка, что проекты уже связаны
-    def clear_linked_projects(project_id_rm, repos_id_gh):
+    def load_linked_projects(project_id_rm, repos_id_gh):
 
         linked_projects = Linked_Projects.objects.get_linked_projects(project_id_rm, repos_id_gh)
 
         if (len(linked_projects) < 1):
-            return 0
 
-        for i in range(len(linked_projects)):
-            linked_projects[i].delete()     # удаляем информацию из базы данных
+            linked_projects = Linked_Projects.objects.create_linked_projects(
+                project_id_rm,
+                repos_id_gh,
+                url_rm,
+                url_gh)
+            return linked_projects
+
+        else:
+            return linked_projects[0]   # будет только один связанный проект
 
 
     log_link_projects_start()
 
-    # удаляем информацию о связи из базы данных, если проекты уже связаны
-    clear_linked_projects(project_id_rm, repos_id_gh)
-
     # занесение в базу данных информацию о том, что данные проекты связаны
-    linked_projects = Linked_Projects.objects.create_linked_projects(
-        project_id_rm,
-        repos_id_gh,
-        url_rm,
-        url_gh)
+    linked_projects = load_linked_projects(project_id_rm, repos_id_gh)
 
 
     # ============================== СОЗДАНИЕ НЕОБХОДИМЫХ ДЛЯ РАБОТЫ LABEL-ОВ В ГИТХАБЕ ================================
