@@ -173,7 +173,7 @@ def link_projects(payload):
         if (not allow_log_project_linking):
             return 0
 
-        WRITE_LOG_GRN('FINISHED LINKING PROJECTS' + '\n' +
+        WRITE_LOG_GRN('LINKING PROJECTS FINISHED' + '\n' +
                       'GITHUB       | ---------------------------------------' + '\n' +
                       '             | repos_id:     ' + str(repos_id_gh) + '\n' +
                       '             | repos_url:    ' + url_gh + '\n' +
@@ -238,12 +238,6 @@ def link_projects(payload):
 
         log_text = '\n' + '-' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '-' * 35 + '\n' +\
                    'POSTing new label to GITHUB:' + '\n' +\
-                   'GITHUB       | ---------------------------------------' + '\n' +\
-                   '             | repos_id:     ' + str(repos_id_gh) + '\n' +\
-                   '             | repos_url:    ' + url_gh + '\n' +\
-                   'REDMINE      | ---------------------------------------' + '\n' +\
-                   '             | project_id:   ' + str(project_id_rm) + '\n' +\
-                   '             | project_url:  ' + url_rm + '\n' +\
                    'LABEL        | ---------------------------------------' + '\n' +\
                    '             | name:         ' + label['name'] + '\n' +\
                    '             | description:  ' + label['description'] + '\n' +\
@@ -252,7 +246,6 @@ def link_projects(payload):
                    'POST RESULT  | ---------------------------------------' + '\n' +\
                    '             | status:       ' + str(post_result) + '\n' +\
                    '             | text:         ' + post_result_text + '\n'
-                   #'-' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '-' * 35 + '\n'
 
         if (post_result.status_code == 201):
             WRITE_LOG(log_text)

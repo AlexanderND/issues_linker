@@ -58,28 +58,6 @@ class Tasks_In_Queue_ViewSet(viewsets.ModelViewSet):
     
     queryset = Tasks_In_Queue.objects.all()
     serializer_class = Tasks_In_Queue_Serializer
-"""
-''' очередь '''
-class Queue_ViewSet(viewsets.ModelViewSet):
-    '''
-    Queue_ViewSet.\n
-    Здесь хранится очередь\n
-    '''
-
-    queryset = Tasks_Queue.objects.all()
-    serializer_class = Queue_Serializer
-
-
-''' очередь обработки задач '''
-class Tasks_Queue_ViewSet(viewsets.ModelViewSet):
-    '''
-    Tasks_Queue_ViewSet.\n
-    Здесь хранится информация о том, какие задачи ожидают обработку\n
-    '''
-
-    queryset = Tasks_Queue.objects.all()
-    serializer_class = Tasks_Queue_Serializer
-"""
 
 
 # ======================================================= GITHUB =======================================================
