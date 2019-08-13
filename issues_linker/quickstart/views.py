@@ -63,7 +63,6 @@ class Tasks_In_Queue_ViewSet(viewsets.ModelViewSet):
 # ======================================================= GITHUB =======================================================
 
 
-# TODO: добавлять в очередь
 ''' payloads от гитхаба '''
 class Payload_From_GH_ViewSet(viewsets.ModelViewSet):
     """
@@ -80,7 +79,6 @@ class Payload_From_GH_ViewSet(viewsets.ModelViewSet):
         put_task_in_queue(payload, 3)    # добавление задачи в очередь на обработку
         return standard_server_response('Github')
 
-# TODO: добавлять в очередь
 ''' payloads от гитхаба (комментарии) '''
 class Comment_Payload_From_GH_ViewSet(viewsets.ModelViewSet):
     """
@@ -101,7 +99,6 @@ class Comment_Payload_From_GH_ViewSet(viewsets.ModelViewSet):
 # ======================================================= REDMINE ======================================================
 
 
-# TODO: добавлять в очередь
 ''' payloads от редмайна '''
 class Payload_From_RM_ViewSet(viewsets.ModelViewSet):
     """

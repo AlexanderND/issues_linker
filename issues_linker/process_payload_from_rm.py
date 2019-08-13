@@ -356,7 +356,6 @@ def process_payload_from_rm(payload):
 
         return request_result
 
-    # TODO: rejected в редмайне -> удаление в гитхабе?
     def edit_issue(linked_projects, issue):
 
 

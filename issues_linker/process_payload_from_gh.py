@@ -704,7 +704,7 @@ def process_payload_from_gh(payload):
         request_result = correct_gh_labels(issue, tracker, linked_issues)  # корректируем label-ы в гитхабе
 
         # TODO: похоже, он не успевает изменить linked_issues.tracker_id_rm: вебхуки приходят почти одновременно
-        # проверяем, был ли изменён трекер и предотвращаем двойную отправку сообщений в гитхаб
+        # проверяем, был ли изменён трекер и предотвращаем множественную отправку сообщений в гитхаб
         if ((tracker_id_rm != linked_issues.tracker_id_rm) & (issue['action'] == 'labeled')):
 
             # обновляем информацию в таблице

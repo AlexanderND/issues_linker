@@ -41,8 +41,6 @@ from issues_linker.my_functions import detailed_log_project_linking # подро
 from issues_linker.my_functions import allow_correct_github_labels  # разрешение корректировки labl-ов в гитхабе
 
 
-# TODO: переписать post_... ? (чтобы выводило меньше информации в логах)
-# TODO: исправить лог комментариев
 def query_data_gh_to_rm(linked_projects):
 
 
@@ -668,7 +666,6 @@ def query_data_gh_to_rm(linked_projects):
 
                 continue
 
-            # TODO: обработка ошибок
             post_result = post_issue(linked_projects, issue)
 
             # если успешно создали новую задачу в редмайне, осуществляем привязку комментариев

@@ -27,11 +27,7 @@ from issues_linker.my_functions import del_bot_phrase               # удале
 from issues_linker.my_functions import align_request_result         # создание корректного ответа серверу
 
 
-# TODO: ИЗМЕНИТЬ ЛОГИКУ ПАРСИНГА??
 def process_comment_payload_from_gh(payload):
-
-    #payload.replace("'", '"')
-    #payload = json.loads(payload)   # превращаем payload в JSON
 
 
     # =================================================== ПОДГОТОВКА ===================================================

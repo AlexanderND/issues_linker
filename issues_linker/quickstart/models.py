@@ -9,7 +9,6 @@ from django.core.exceptions import ObjectDoesNotExist   # обработка и�
 
 import datetime
 
-# TODO: СТАНДАРТИЗАЦИЯ: GET_BY_... -> GET_..._BY_...
 # ======================================================= GITHUB =======================================================
 
 
@@ -314,7 +313,7 @@ class Linked_Comments(models.Model):
 # ===================================================== СВЯЗЬ ISSUES ===================================================
 
 
-# TODO: linked_comments - ForeignKey (https://stackoverflow.com/questions/3937194/django-cascade-deletion-in-manytomanyrelation)
+# TODO: linked_comments - ForeignKey (https://stackoverflow.com/questions/3937194/django-cascade-deletion-in-manytomanyrelation) (?)
 ''' Класс "Linked_Issues" - связанные issues (issue_id_rm - repo_id_gh, issue_id_gh) '''
 class Linked_Issues_Manager(models.Manager):
     use_in_migrations = True
@@ -389,7 +388,7 @@ class Linked_Issues(models.Model):
 # ==================================================== СВЯЗЬ PROJECTS ==================================================
 
 
-# TODO: linked_issues - ForeignKey (https://stackoverflow.com/questions/3937194/django-cascade-deletion-in-manytomanyrelation)
+# TODO: linked_issues - ForeignKey (https://stackoverflow.com/questions/3937194/django-cascade-deletion-in-manytomanyrelation) (?)
 ''' Класс "Linked_Projects" - связанные projects (project_id_rm - repo_id_gh) '''
 class Linked_Projects_Manager(models.Manager):
 
