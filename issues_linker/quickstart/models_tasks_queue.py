@@ -29,6 +29,9 @@ import datetime
 # мои модели (хранение на сервере)
 from issues_linker.quickstart.models import Comment_Payload_GH, Payload_GH, Payload_RM
 
+# мои модели (связь)
+from issues_linker.quickstart.models import Linked_Projects
+
 
 def log_process_error(queue, try_count, sleep_time, process_result):
 
@@ -93,9 +96,9 @@ def log_connection_refused(queue, try_count, sleep_time):
 class Tasks_In_Queue_Manager(models.Manager):
     use_in_migrations = True
 
-    def create_task_in_queue(self, payload, process_type):
+    def create_task_in_queue(self, item, process_type):
 
-        payload_parced = json.dumps(payload)
+        payload_parced = json.dumps(item)
         task_in_queue = self.model(payload=payload_parced,
                                    process_type=process_type)
 
@@ -239,7 +242,7 @@ def process_payload(payload, process_type):
         process_result = process_comment_payload_from_gh(payload)
 
     else:  # process_type == 5
-        process_result = relink_projects(payload)
+        process_result = relink_projects()
 
     return process_result
 
