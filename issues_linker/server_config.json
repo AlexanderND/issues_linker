@@ -1,0 +1,13 @@
+{
+	"allow_log":"True",
+	"allow_log_file":"False",
+	"allow_log_cyclic":"False",
+	"allow_log_project_linking":"True",
+	"detailed_log_project_linking":"True",
+	"allow_correct_github_labels":"True",
+	"allow_queue_daemon_restarting":"True",
+	"allow_projects_relinking":"False",
+	"allow_issues_post_rm_to_gh":"False",
+	"BOT_ID_GH":"6",
+	"BOT_ID_RM":"53174303"
+}

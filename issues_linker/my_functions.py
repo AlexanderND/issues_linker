@@ -1,5 +1,6 @@
 import os
 import datetime
+import json
 
 from django.http import HttpResponse    # ответы серверу
 
@@ -8,22 +9,59 @@ from collections import deque           # двухсторонняя очере�
 #from issues_linker.quickstart.models import Linked_Issues, Linked_Comments
 
 
+# чтение файла
+def read_file(file_path):
+    # получение абсолютного пути до файла
+    script_dir = os.path.dirname(__file__)  # <-- absolute dir the script is in
+
+    file_path_absolute = os.path.join(script_dir, file_path)
+    file_contents = open(file_path_absolute, 'r').read()    # загрузка данных из файла в строку
+
+    return file_contents
+
+server_config = read_file('server_config.json')
+server_config = json.loads(server_config)
+
+def configure_server_constant_bool(constant_name):
+
+    if (server_config[constant_name] == 'True'):
+        constant_bool = True
+
+    else:
+        constant_bool = False
+    return constant_bool
+
+def configure_server_constant_int(constant_name):
+
+    constant_int = int(server_config[constant_name])
+    return constant_int
+
+
 # =================================================== КОНСТАНТЫ СЕРВЕРА ================================================
 
 
 # константы запрета ведения логов
-allow_log = True
-allow_log_file = False
-allow_log_cyclic = False
+allow_log = configure_server_constant_bool('allow_log')
+allow_log_file = configure_server_constant_bool('allow_log_file')
+allow_log_cyclic = configure_server_constant_bool('allow_log_cyclic')
 
-allow_log_project_linking = True
-detailed_log_project_linking = True
+allow_log_project_linking = configure_server_constant_bool('allow_log_project_linking')
+detailed_log_project_linking = configure_server_constant_bool('detailed_log_project_linking')
 
 # TODO: не транслировать в редмайн и не сохранять на сервере изменения трекера
-allow_correct_github_labels = True
+allow_correct_github_labels = configure_server_constant_bool('allow_correct_github_labels')
 
-allow_queue_daemon_restarting = True    # установить False для пересоздания базы данных
-allow_projects_relinking = False
+# установить False для пересоздания базы данных
+allow_queue_daemon_restarting = configure_server_constant_bool('allow_queue_daemon_restarting')
+allow_projects_relinking = configure_server_constant_bool('allow_projects_relinking')
+
+allow_issues_post_rm_to_gh = configure_server_constant_bool('allow_issues_post_rm_to_gh')
+
+# id бота в редмайне (предотвращение зацикливания)
+BOT_ID_RM = configure_server_constant_int('BOT_ID_RM')
+
+# id бота в гитхабе (предотвращение зацикливания)
+BOT_ID_GH = configure_server_constant_int('BOT_ID_GH')
 
 
 # ===================================================== СПЕЦ. ФУНКЦИИ ==================================================
@@ -114,16 +152,6 @@ def align_special_symbols(str):
     str = str.replace('\t', '\\t')
 
     return str
-
-# чтение файла
-def read_file(file_path):
-    # получение абсолютного пути до файла
-    script_dir = os.path.dirname(__file__)  # <-- absolute dir the script is in
-
-    file_path_absolute = os.path.join(script_dir, file_path)
-    file_contents = open(file_path_absolute, 'r').read()    # загрузка данных из файла в строку
-
-    return file_contents
 
 # удаление фразы бота из текста
 def del_bot_phrase(body):
@@ -275,7 +303,6 @@ def match_priority_to_gh(priority_id_rm):
 
 # ------------------------------------------- КОНСТАНТЫ (локальный сервер) ---------------------------------------
 
-BOT_ID_RM = 6           # id бота в редмайне (предотвращение зацикливания)
 
 '''
 0 (4)  - Задача                         | Tracker: task
@@ -486,10 +513,6 @@ def log_link_comment_crutch(issue, linked_comments):
 
 # ======================================================== GITHUB ======================================================
 
-
-# ---------------------------------------------------- КОНСТАНТЫ -------------------------------------------------
-
-BOT_ID_GH = 53174303    # id бота в гитхабе (предотвращение зацикливания)
 
 # ----------------------------------------------------- ФУНКЦИИ --------------------------------------------------
 

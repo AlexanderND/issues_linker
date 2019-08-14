@@ -38,6 +38,8 @@ from issues_linker.my_functions import status_ids_rm                # ids ста
 from issues_linker.my_functions import priority_ids_rm              # ids приоритетов задачи в редмайне
 from issues_linker.my_functions import url_rm                       # ссылка на сервер редмайна
 
+from issues_linker.my_functions import allow_issues_post_rm_to_gh
+
 
 def process_payload_from_rm(payload):
 
@@ -519,8 +521,6 @@ def process_payload_from_rm(payload):
     # ============================================ ЗАГРУЗКА ISSUE В GITHUB =============================================
 
 
-    block_action_opened = True  # запрет копирования задач: RM -> GH
-
     linked_projects = Linked_Projects.objects.get_project_by_id_rm(issue['project_id'])
 
     if (issue['action'] == 'opened'):
@@ -530,7 +530,7 @@ def process_payload_from_rm(payload):
             error_text = prevent_cyclic_issue_rm(issue)
             return HttpResponse(error_text, status=200)
 
-        if (block_action_opened):
+        if (allow_issues_post_rm_to_gh):
 
             error_text = "WARNING: process_payload_from_rm\n" + \
                          "PROHIBITED ACTION"
