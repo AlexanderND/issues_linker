@@ -1,0 +1,12 @@
+<html>
+	<body>
+		<h1>Profiles</h1>
+		<ul>
+			  {% for linked_project in linked_projects %}
+			  <li>{{ linked_project.id }}</li>
+			  <li>{{ linked_project.url_rm }}</li>
+			  <li>{{ linked_project.url_gh }}</li>
+			  {% endfor %}
+		</ul>
+	</body>
+</html>

@@ -1,0 +1,19 @@
+{% load rest_framework %}
+
+<html>
+	<body>
+
+		<h1>Linked_Project - {{ linked_project.id }}</h1>
+		<h1>url_RM         - {{ linked_project.url_rm }}</h1>
+		<h1>url_GH         - {{ linked_project.url_gh }}</h1>
+		<h1>id_RM          - {{ linked_project.project_id_rm }}</h1>
+		<h1>id.GH          - {{ linked_project.repos_id_gh }}</h1>
+
+		<form action="{% url 'linked_project-detail' pk=profile.pk %}" method="POST">
+			{% csrf_token %}
+			{% render_form serializer %}
+			<input type="submit" value="Save">
+		</form>
+
+	</body>
+</html>

@@ -20,6 +20,12 @@ from issues_linker.my_functions import WRITE_LOG_ERR    # ведение лог�
 from issues_linker.my_functions import WRITE_LOG        # ведение логов
 import json
 
+from rest_framework.renderers import TemplateHTMLRenderer
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from django.shortcuts import get_object_or_404, redirect
+
+import os
 
 '''# testing
 class UserViewSet(viewsets.ModelViewSet):
@@ -158,3 +164,40 @@ class Linked_Projects_ViewSet(viewsets.ModelViewSet):
 
     queryset = Linked_Projects.objects.all()
     serializer_class = Linked_Projects_Serializer
+
+
+# ================================================= ФОРМА СВЯЗИ ПРОЕКТОВ ===============================================
+
+
+class Linked_Projects_List(APIView):
+
+    renderer_classes = [TemplateHTMLRenderer]
+
+    script_dir = os.path.dirname(__file__)  # <-- absolute dir the script is in
+    template_name = os.path.join(script_dir, 'data/linked_projects_list.html')
+
+
+    def get(self, request):
+        queryset = Linked_Projects.objects.all()
+        return Response({'linked_projects': queryset})
+
+class Linked_Project_Detail(APIView):
+
+    renderer_classes = [TemplateHTMLRenderer]
+
+    script_dir = os.path.dirname(__file__)  # <-- absolute dir the script is in
+    template_name = os.path.join(script_dir, 'data/linked_project_detail.html')
+
+
+    def get(self, request, pk):
+        linked_project = get_object_or_404(Linked_Projects, pk=pk)
+        serializer = Linked_Projects_Serializer(linked_project)
+        return Response({'serializer': serializer, 'profile': linked_project})
+
+    def post(self, request, pk):
+        linked_project = get_object_or_404(Linked_Projects, pk=pk)
+        serializer = Linked_Projects_Serializer(linked_project, data=request.data)
+        if not serializer.is_valid():
+            return Response({'serializer': serializer, 'linked_project': linked_project})
+        serializer.save()
+        return redirect('linked_projects_list')

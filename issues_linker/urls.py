@@ -25,6 +25,9 @@ from issues_linker.quickstart.views import Linked_Projects_ViewSet, Linked_Issue
 # мои модели (очередь обработки задач)
 from issues_linker.quickstart.views import Tasks_In_Queue_ViewSet
 
+# форма связи проектов
+from issues_linker.quickstart.views import Linked_Projects_List, Linked_Project_Detail
+
 router = routers.DefaultRouter()
 
 '''# testing
@@ -46,6 +49,11 @@ router.register(r'linked_comments', Linked_Comments_ViewSet)
 
 # ОЧЕРЕДЬ ОБРАБОТКИ ЗАДАЧ
 router.register(r'queue_task', Tasks_In_Queue_ViewSet)
+
+
+# ФОРМА СВЯЗИ ПРОЕКТОВ
+#router.register(r'linked_projects_list', Linked_Projects_List)
+#router.register(r'linked_project_detail', Linked_Project_Detail)
 
 
 # Wire up our API using automatic URL routing.

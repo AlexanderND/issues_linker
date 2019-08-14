@@ -23,7 +23,8 @@ from issues_linker.query_data_gh_to_rm import query_data_gh_to_rm   # запро
 #from issues_linker.quickstart.models import Queue
 
 
-# TODO: при связи проектов, проверять: а не связани ли они уже
+# TODO: автоматический POST вебхуков в гитхаб и редмайн при первоначальной привязке
+# TODO: привязка по id (?)
 def link_projects(payload):
 
 
