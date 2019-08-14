@@ -29,6 +29,12 @@ from issues_linker.my_functions import align_request_result         # созда
 
 def process_comment_payload_from_gh(payload):
 
+    try:
+        hook = payload['hook']
+        return HttpResponse('This is the first hook', status=200)
+    except:
+        pass
+
 
     # =================================================== ПОДГОТОВКА ===================================================
 
@@ -38,29 +44,29 @@ def process_comment_payload_from_gh(payload):
         payload_parsed = {}  # словарь issue (название, описание, ссылка)
 
         # действие и его автор
-        payload_parsed['action'] = payload.action
-        payload_parsed['sender_id'] = payload.sender_id
-        payload_parsed['sender_login'] = payload.sender_login
+        payload_parsed['action'] = payload['action']
+        payload_parsed['sender_id'] = payload['sender']['id']  # sender - тот, кто совершил действие
+        payload_parsed['sender_login'] = payload['sender']['login']
 
         # заполение полей issue
-        payload_parsed['issue_title'] = payload.issue_title
-        payload_parsed['issue_body'] = payload.issue_body
-        payload_parsed['issue_author_id'] = payload.issue_author_id
-        payload_parsed['issue_author_login'] = payload.issue_author_login
+        payload_parsed['issue_title'] = payload['issue']['title']
+        payload_parsed['issue_body'] = payload['issue']['body']
+        payload_parsed['issue_author_id'] = payload['issue']['user']['id']
+        payload_parsed['issue_author_login'] = payload['issue']['user']['login']
 
         # идентификаторы (для связи и логов)
-        payload_parsed['issue_id'] = payload.issue_id
-        payload_parsed['repos_id'] = payload.repos_id
-        payload_parsed['issue_number'] = payload.issue_number
+        payload_parsed['issue_id'] = payload['issue']['id']
+        payload_parsed['repos_id'] = payload['repository']['id']
+        payload_parsed['issue_number'] = payload['issue']['number']
 
         # ссылка на issue (для фразы бота и логов)
-        payload_parsed['issue_url'] = payload.issue_url
+        payload_parsed['issue_url'] = payload['issue']['html_url']
 
         # комментарий
-        payload_parsed['comment_body'] = payload.comment_body
-        payload_parsed['comment_id'] = payload.comment_id
-        payload_parsed['comment_author_id'] = payload.comment_author_id
-        payload_parsed['comment_author_login'] = payload.comment_author_login
+        payload_parsed['comment_body'] = payload['comment']['body']
+        payload_parsed['comment_id'] = payload['comment']['id']
+        payload_parsed['comment_author_id'] = payload['comment']['user']['id']
+        payload_parsed['comment_author_login'] = payload['comment']['user']['login']
 
         return payload_parsed
 

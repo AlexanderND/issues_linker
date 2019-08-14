@@ -41,8 +41,12 @@ from issues_linker.my_functions import url_rm                       # ссылк
 
 def process_payload_from_rm(payload):
 
-    #payload.replace("'", '"')
-    #payload = json.loads(payload)   # превращаем payload в JSON
+    try:
+        hook = payload['hook']
+        return HttpResponse('This is the first hook', status=200)
+    except:
+        pass
+
     payload = payload['payload']    # достаём содержимое payload. payload payload. payload? payload!
 
 
@@ -188,7 +192,7 @@ def process_payload_from_rm(payload):
         # если rejected
         if (issue['status_id'] == status_ids_rm[4]):
             linked_issues.is_opened = False
-            linked_issues.status_id_rm = issue['priority_id']
+            linked_issues.status_id_rm = issue['status_id']
 
         # если closed
         elif (issue['status_id'] == status_ids_rm[5]):
@@ -197,7 +201,7 @@ def process_payload_from_rm(payload):
         # иначе - открываем
         else:
             linked_issues.is_opened = True
-            linked_issues.status_id_rm = issue['priority_id']
+            linked_issues.status_id_rm = issue['status_id']
 
         linked_issues.save()
 
@@ -389,10 +393,8 @@ def process_payload_from_rm(payload):
 
         # добавление label-ов
         state_gh = "opened"  # открыть / закрыть issue
-        if (issue['tracker_id'] != linked_issues.tracker_id_rm):
-            tracker = match_tracker_to_gh(issue['tracker_id'])
-        else:
-            tracker = match_tracker_to_gh(linked_issues.tracker_id_rm)
+        tracker = match_tracker_to_gh(issue['tracker_id'])
+        priority = match_priority_to_gh(issue['priority_id'])
 
         if (issue['status_id'] != linked_issues.status_id_rm):
             status = match_status_to_gh(issue['status_id'])
@@ -406,10 +408,6 @@ def process_payload_from_rm(payload):
         else:
             status = match_status_to_gh(linked_issues.status_id_rm)
 
-        if (issue['priority_id'] != linked_issues.priority_id_rm):
-            priority = match_priority_to_gh(issue['priority_id'])
-        else:
-            priority = match_priority_to_gh(linked_issues.priority_id_rm)
 
         post_comment(linked_issues, issue, url_gh)     # ОТПРАВЛЯЕМ КОММЕНТАРИЙ В ГИТХАБ
 

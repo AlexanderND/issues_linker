@@ -54,11 +54,10 @@ def log_process_error(queue, try_count, sleep_time, process_result):
 
     WRITE_LOG('\n' + '=' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 35 + '\n' +
               'WARNING: Tried to ' + action + ', but ' + error_text + '\n' +
-              ' | queue_len:    ' + str(queue_len) + '\n' +
-              ' | try_count:    ' + str(try_count) + '\n' +
-              ' | retrying in:  ' + str(sleep_time) + '\n' +
-              ' | error_code:   ' + str(process_result.status_code) + '\n' +
-              ' | error_text:   ' + str(process_result.text) + '\n')
+              ' | queue_len:       ' + str(queue_len) + '\n' +
+              ' | try_count:       ' + str(try_count) + '\n' +
+              ' | retrying in:     ' + str(sleep_time) + '\n' +
+              ' | process_result:  ' + str(process_result) + '\n')
 
 def log_connection_refused(queue, try_count, sleep_time):
 

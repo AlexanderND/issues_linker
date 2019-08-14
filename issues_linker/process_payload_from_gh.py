@@ -38,8 +38,11 @@ from issues_linker.my_functions import allow_correct_github_labels
 
 def process_payload_from_gh(payload):
 
-    #payload.replace("'", '"')
-    #payload = json.loads(payload)   # превращаем payload в JSON
+    try:
+        hook = payload['hook']
+        return HttpResponse('This is the first hook', status=200)
+    except:
+        pass
 
 
     # =================================================== ПОДГОТОВКА ===================================================
@@ -388,16 +391,44 @@ def process_payload_from_gh(payload):
         linked_issues = linked_issues[0]
 
         # проверка: что issue был отклонён (запрещаем открывать вновь)
+        """
         if (linked_issues.status_id_rm == status_ids_rm[4]):
 
             if (is_opened == True):
 
                 return close_gh_issue(linked_issues, url_gh)
+        """
 
+        # настройка label-ов
+        tracker_id_rm = None
+
+        for label in issue['labels']:
+
+            tracker_rm = match_label_to_rm(label['name'])
+
+            # если label известный
+            if (tracker_rm != None):
+
+                if (tracker_rm['type'] == 'Tracker'):
+
+                    if (tracker_id_rm == None):
+                        tracker_id_rm = tracker_rm['id_rm']
+
+                    # если пользователь выбрал более одного трекера -> значение по умолчанию
+                    else:
+                        tracker_id_rm = tracker_ids_rm[0]
+
+        # проверяем, был ли установлен трекер
+        if (tracker_id_rm == None):
+            tracker_id_rm = tracker_ids_rm[0]
+
+        # корректируем label-ы в гитхабе
+        tracker = match_tracker_to_gh(linked_issues.tracker_id_rm)
+        correct_gh_labels(issue, tracker, linked_issues)
 
         # обновляем информацию в таблице
         update_linked_issues(linked_issues,
-                             linked_issues.tracker_id_rm,
+                             tracker_id_rm,
                              linked_issues.status_id_rm,
                              linked_issues.priority_id_rm,
                              is_opened)
