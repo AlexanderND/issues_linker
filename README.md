@@ -92,6 +92,13 @@ Then, choose "Let me select individual events" and select **only** "Issue commen
 
 #### Link the projects together:
 
+First, you have to actually run the server. In order to do that, just type in console:
+
+
+$ cd ./PycharmProjects/issues_linker
+
+$ python3 manage.py runserver 0:9000
+
 In order to link projects, you just have to open up in your browser "http://<SERVER_IP>:9000/linked_projects/", input the urls to your projects and click "POST".
 
 url_rm exemple: http://localhost:3000/projects/issues_linker
