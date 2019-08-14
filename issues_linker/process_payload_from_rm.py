@@ -531,6 +531,9 @@ def process_payload_from_rm(payload):
             return HttpResponse(error_text, status=200)
 
         if (allow_issues_post_rm_to_gh):
+            request_result = post_issue(linked_projects, issue)
+
+        else:
 
             error_text = "WARNING: process_payload_from_rm\n" + \
                          "PROHIBITED ACTION"
@@ -540,8 +543,6 @@ def process_payload_from_rm(payload):
                       error_text)
 
             return HttpResponse(error_text, status=200)
-
-        request_result = post_issue(linked_projects, issue)
 
     elif (issue['action'] == 'updated'):
 

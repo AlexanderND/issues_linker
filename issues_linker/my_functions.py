@@ -363,6 +363,7 @@ url_rm = "https://redmine.redsolution.ru/issues.json"
 # ----------------------------------------------------- ФУНКЦИИ --------------------------------------------------
 
 def chk_if_rm_user_is_our_bot(user_id_rm):
+
     if (user_id_rm == BOT_ID_RM):
         return True
     else:

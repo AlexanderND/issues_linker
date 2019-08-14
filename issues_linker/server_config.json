@@ -8,6 +8,6 @@
 	"allow_queue_daemon_restarting":"True",
 	"allow_projects_relinking":"False",
 	"allow_issues_post_rm_to_gh":"False",
-	"BOT_ID_GH":"6",
-	"BOT_ID_RM":"53174303"
+	"BOT_ID_GH":"53174303",
+	"BOT_ID_RM":"6"
 }
