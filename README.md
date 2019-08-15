@@ -74,6 +74,32 @@ issues_linker uses bots toy link issues. In order for the project to work correc
 
 After you're done setting up the bots, you need to open up <SOME_PATH>/issues_linker/issues_linker/server_config.json and override default BOT_ID_GH and BOT_ID_RM with ids of your bots in Github and Redmine.
 
+#### Setup labels:
+
+While linking projects, issues_linker will automatically create default labels in Github's repository.
+
+But you will have to create the labels in Redmine yourself and provide issues_linker with theirs ids. You will have to manually edit the "tracker_ids_rm", "status_ids_rm" and "priority_ids_rm" in server_config.json
+
+You should change the default values in the lists to your values.
+
+```
+[id_in_list] (default_id_in_redmine)  | label_name
+
+[0] (4)   | Tracker: task
+[1] (5)   | Tracker: bug
+
+[0] (7)   | Status: new
+[1] (8)   | Status: working
+[2] (9)   | Status: feedback
+[3] (10)  | Status: verification
+[4] (11)  | Status: rejected
+[5] (12)  | Status: closed
+
+[0] (11)  | Priority: normal
+[1] (10)  | Priority: low
+[2] (12)  | Priority: urgent
+```
+
 
 ## Linking projects.
 
