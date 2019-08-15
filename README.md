@@ -12,7 +12,7 @@ Linux / Ubuntu >= 16.04
 
 Redmine >= 3.4.11
 
-redmine_webhook >= 0.0.5
+redmine_webhook >= 0.0.4
 
 python >= 3.5.2
 
@@ -52,7 +52,7 @@ If you have trouble installing issues_linker via console, Github provides anothe
 
 Skip this step, if you already have a Redmine server.
 
-In order to installl Redmine server, you first need to install gems. If you are using Ubuntu, try this:
+In order to install Redmine server, you first need to install gems. If you are using Ubuntu, try this:
 
 https://gorails.com/setup/ubuntu/16.04
 
