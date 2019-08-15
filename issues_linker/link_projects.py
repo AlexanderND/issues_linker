@@ -40,19 +40,12 @@ def link_projects(payload):
     url_gh = payload['url_gh']
 
     # авторизация в redmine по токену (локальный сервер)
-    api_key_redmime = read_file('api_keys/api_key_redmime_local.txt')   # загрузка ключа для redmine api
-    #api_key_redmime = read_file('api_keys/api_key_redmime.txt')        # загрузка ключа для redmine api
-    api_key_redmime = api_key_redmime.replace('\n', '')                 # избавляемся от \n в конце строки
-
-    '''
-    # авторизация в redmine по токену (реальный сервер)
-    api_key_redmime = read_file('api_keys/api_key_redmime_local.txt')   # загрузка ключа для redmine api
-    api_key_redmime = api_key_redmime.replace('\n', '')                 # избавляемся от \n в конце строки
-    '''
+    api_key_redmime = read_file('api_keys/api_key_redmime.txt')     # загрузка ключа для redmine api
+    api_key_redmime = api_key_redmime.replace('\n', '')             # избавляемся от \n в конце строки
 
     # авторизация в гитхабе по токену
-    api_key_github = read_file('api_keys/api_key_github.txt')           # загрузка ключа для github api
-    api_key_github = api_key_github.replace('\n', '')                   # избавляемся от \n в конце строки
+    api_key_github = read_file('api_keys/api_key_github.txt')       # загрузка ключа для github api
+    api_key_github = api_key_github.replace('\n', '')               # избавляемся от \n в конце строки
 
     # заголовки авторизации и приложения, при отправке запросов на редмайн
     headers_rm = {'X-Redmine-API-Key': api_key_redmime,

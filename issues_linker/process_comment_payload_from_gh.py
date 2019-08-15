@@ -73,13 +73,12 @@ def process_comment_payload_from_gh(payload):
     issue = parse_payload(payload)
 
     # авторизация в redmine по токену
-    api_key_redmime = read_file('api_keys/api_key_redmime_local.txt')   # загрузка ключа для redmine api
-    #api_key_redmime = read_file('api_keys/api_key_redmime.txt')        # загрузка ключа для redmine api
-    api_key_redmime = api_key_redmime.replace('\n', '')  # избавляемся от \n в конце строки
+    api_key_redmime = read_file('api_keys/api_key_redmime.txt')     # загрузка ключа для redmine api
+    api_key_redmime = api_key_redmime.replace('\n', '')             # избавляемся от \n в конце строки
 
     # загрузка template из файла
     issue_redmine_template = read_file('data/issue_redmine_template.json')
-    issue_redmine_template = Template(issue_redmine_template)  # шаблон для каждого issue
+    issue_redmine_template = Template(issue_redmine_template)       # шаблон для каждого issue
 
     # заголовки авторизации и приложения, при отправке запросов на редмайн
     headers = {'X-Redmine-API-Key': api_key_redmime,

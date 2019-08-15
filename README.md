@@ -74,6 +74,8 @@ issues_linker uses bots toy link issues. In order for the project to work correc
 
 After you're done setting up the bots, you need to open up <SOME_PATH>/issues_linker/issues_linker/server_config.json and override default BOT_ID_GH and BOT_ID_RM with ids of your bots in Github and Redmine.
 
+Then, you will need to provide issues_linker with your bot's api_keys. Generate api_keys from their profiles and input them into <SOME_PATH>/issues_linker/api_keys/api_key_redmine.txt and SOME_PATH>/issues_linker/api_keys/api_key_redmine.txt respectively.
+
 #### Setup labels:
 
 While linking projects, issues_linker will automatically create default labels in Github's repository.
