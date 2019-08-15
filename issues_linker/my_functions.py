@@ -36,6 +36,16 @@ def configure_server_constant_int(constant_name):
     constant_int = int(server_config[constant_name])
     return constant_int
 
+def configure_server_constant_list(constant_name):
+
+    constant_list = server_config[constant_name]
+    return constant_list
+
+def configure_server_constant_char(constant_name):
+
+    constant_char = server_config[constant_name]
+    return constant_char
+
 
 # =================================================== КОНСТАНТЫ СЕРВЕРА ================================================
 
@@ -301,47 +311,33 @@ def match_priority_to_gh(priority_id_rm):
 # ======================================================== REDMINE =====================================================
 
 
-# ------------------------------------------- КОНСТАНТЫ (локальный сервер) ---------------------------------------
-
+# ----------------------------------------------------- КОНСТАНТЫ ------------------------------------------------
 
 '''
+-------------------------------- локальный сервер ------------------------------
+
 0 (4)  - Задача                         | Tracker: task
 1 (5)  - Ошибка                         | Tracker: bug
+
+--------------------------------- реальный сервер ------------------------------
+
+0 (3) - Задача                          | Tracker: task
+1 (1) - Ошибка                          | Tracker: bug
 '''
-tracker_ids_rm = [4, 5]
+tracker_ids_rm = configure_server_constant_list('tracker_ids_rm')
 
 '''
+-------------------------------- локальный сервер ------------------------------
+
 0 (7)  - Новый                          | Status: new
 1 (8)  - Выполнение: в работе           | Status: working
 2 (9)  - Выполнение: обратная связь     | Status: feedback
 3 (10) - Выполнение: проверка           | Status: verification
 4 (11) - Отказ                          | Status: rejected
 5 (12) - Закрыт                         | Status: closed
-'''
-status_ids_rm = [7, 8, 9, 10, 11, 12]
 
-'''
-0 (11) - Нормальный                     | Priority: normal
-1 (10) - Низкий                         | Priority: low
-2 (12) - Высокий                        | Priority: urgent
-'''
-priority_ids_rm = [11, 10, 12]
+--------------------------------- реальный сервер ------------------------------
 
-url_rm = "http://localhost:3000/issues.json"    # локальный сервер редмайна (тестовый сервер)
-
-# -------------------------------------------- КОНСТАНТЫ (реальный сервер) ---------------------------------------
-"""
-BOT_ID_RM = 6           # id бота в редмайне (предотвращение зацикливания)
-
-# project_id_rm = 455     # 455 - тестовый проект на реальном сервере редмайна
-
-'''
-0 (3) - Задача                          | Tracker: task
-1 (1) - Ошибка                          | Tracker: bug
-'''
-tracker_ids_rm = [ 3, 1 ]
-
-'''
 0 (1) - Новый                           | Status: new
 1 (2) - Выполнение: в работе            | Status: working
 2 (4) - Выполнение: обратная связь      | Status: feedback
@@ -349,17 +345,27 @@ tracker_ids_rm = [ 3, 1 ]
 4 (6) - Отказ                           | Status: rejected
 5 (5) - Закрыт                          | Status: closed
 '''
-status_ids_rm = [ 1, 2, 4, 7, 6, 5 ]
+status_ids_rm = configure_server_constant_list('status_ids_rm')
 
 '''
+-------------------------------- локальный сервер ------------------------------
+
+0 (11) - Нормальный                     | Priority: normal
+1 (10) - Низкий                         | Priority: low
+2 (12) - Высокий                        | Priority: urgent
+
+--------------------------------- реальный сервер ------------------------------
+
 0 (4) - Нормальный                      | Priority: normal
 1 (3) - Низкий                          | Priority: low
 2 (5) - Высокий                         | Priority: urgent
 '''
-priority_ids_rm = [ 4, 3, 5 ]
+priority_ids_rm = configure_server_constant_list('priority_ids_rm')
 
-url_rm = "https://redmine.redsolution.ru/issues.json"
-"""
+# "http://localhost:3000/issues.json"               локальный сервер
+# "https://redmine.redsolution.ru/issues.json"      реальный сервер
+url_rm = configure_server_constant_char('url_rm')
+
 # ----------------------------------------------------- ФУНКЦИИ --------------------------------------------------
 
 def chk_if_rm_user_is_our_bot(user_id_rm):

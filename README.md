@@ -8,6 +8,12 @@ This project was created using **PyCharm** 2019.1.3 (Community Edition)
 ## Requirements
 
 ```
+Linux / Ubuntu >= 16.04
+
+Redmine >= 3.4.11
+
+redmine_webhook >= 0.0.5
+
 python >= 3.5.2
 
 Django >= 2.2.4

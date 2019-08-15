@@ -9,5 +9,9 @@
 	"allow_projects_relinking":"False",
 	"allow_issues_post_rm_to_gh":"False",
 	"BOT_ID_GH":"53174303",
-	"BOT_ID_RM":"6"
+	"BOT_ID_RM":"6",
+	"tracker_ids_rm":[4, 5],
+	"status_ids_rm":[7, 8, 9, 10, 11, 12],
+	"priority_ids_rm":[11, 10, 12],
+	"url_rm":"http://localhost:3000/issues.json"
 }

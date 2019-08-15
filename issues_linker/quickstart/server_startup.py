@@ -8,7 +8,7 @@ from issues_linker.link_projects import link_projects
 # константы сервера
 from issues_linker.my_functions import allow_log, allow_log_file, allow_log_cyclic, allow_log_project_linking,\
     detailed_log_project_linking, allow_correct_github_labels, allow_projects_relinking, allow_queue_daemon_restarting,\
-    allow_issues_post_rm_to_gh, BOT_ID_RM, BOT_ID_GH
+    allow_issues_post_rm_to_gh, BOT_ID_RM, BOT_ID_GH, tracker_ids_rm, status_ids_rm, priority_ids_rm, url_rm
 
 # мои модели (связь)
 from issues_linker.quickstart.models import Linked_Projects, Linked_Issues, Linked_Comments
@@ -38,7 +38,11 @@ def server_startup():
                   '               | allow_projects_relinking:       ' + str(allow_projects_relinking) + '\n' +
                   '               | allow_issues_post_rm_to_gh:     ' + str(allow_issues_post_rm_to_gh) + '\n' +
                   '               | BOT_ID_RM:                      ' + str(BOT_ID_RM) + '\n' +
-                  '               | BOT_ID_GH:                      ' + str(BOT_ID_GH) + '\n')
+                  '               | BOT_ID_GH:                      ' + str(BOT_ID_GH) + '\n' +
+                  '               | tracker_ids_rm:                 ' + str(tracker_ids_rm) + '\n' +
+                  '               | status_ids_rm:                  ' + str(status_ids_rm) + '\n' +
+                  '               | priority_ids_rm:                ' + str(priority_ids_rm) + '\n' +
+                  '               | url_rm:                         ' + str(url_rm) + '\n')
 
 
     if (allow_queue_daemon_restarting):
