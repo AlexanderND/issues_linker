@@ -4,27 +4,42 @@ issues_linker is a small project designed to link issues from various projects b
 
 This project was created using **PyCharm** 2019.1.3 (Community Edition)
 
-## How to Install.
 
-In order to Install issues_linker on your local machine, you just simply need to clone this repository into some directory.
+## Requirements
+
+python >= 3.5.2
+
+Django >= 2.2.4
+
+djangorestframework >= 3.10.2
+
+Jinja2 >= 2.10.1
+
+requests >= 2.22.0
+
+
+## Installation
+
+To Install issues_linker, clone this repository to local directory.
 
 #### Installation via Linux console:
 
 Open the console and cd into some path:
 
-$ cd <SOME_PATH>/
+`$ cd <SOME_PATH>/`
 
 Then, type in console:
 
-$ git clone https://github.com/AlexanderND/issues_linker
+`$ git clone https://github.com/AlexanderND/issues_linker`
 
 Just wait a bit for your system to download the data, and you're good to go!
 
 #### Installation via Github:
-Github provides a better option to clone repositories. Just click the "Clone or download" button, wait for the archive to download and then extract it into some directory.
+
+If you have trouble installing issues_linker via console, Github provides another option to clone repositories. Just click the "Clone or download" button, wait for the archive to download and then extract it into some local directory.
 
 
-## How to Setup.
+## Setup
 
 #### Install Redmine server:
 
@@ -52,7 +67,8 @@ issues_linker uses bots toy link issues. In order for the project to work correc
 
 After you're done setting up the bots, you need to open up <SOME_PATH>/issues_linker/issues_linker/server_config.json and override default BOT_ID_GH and BOT_ID_RM with ids of your bots in Github and Redmine.
 
-## How to link projects.
+
+## Linking projects.
 
 #### Give your bots necessary permitions on the projects:
 
@@ -94,10 +110,9 @@ Then, choose "Let me select individual events" and select **only** "Issue commen
 
 First, you have to actually run the server. In order to do that, just type in console:
 
+`$ cd <SOME_PATH>/issues_linker`
 
-$ cd ./PycharmProjects/issues_linker
-
-$ python3 manage.py runserver 0:9000
+`$ python3 manage.py runserver 0:9000`
 
 In order to link projects, you just have to open up in your browser "http://<SERVER_IP>:9000/linked_projects/", input the urls to your projects and click "POST".
 
