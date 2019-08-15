@@ -85,9 +85,11 @@ You should change the default values in the lists to your values.
 ```
 [id_in_list] (default_id_in_redmine)  | label_name
 
+tracker_ids_rm:
 [0] (4)   | Tracker: task
 [1] (5)   | Tracker: bug
 
+status_ids_rm:
 [0] (7)   | Status: new
 [1] (8)   | Status: working
 [2] (9)   | Status: feedback
@@ -95,6 +97,7 @@ You should change the default values in the lists to your values.
 [4] (11)  | Status: rejected
 [5] (12)  | Status: closed
 
+priority_ids_rm:
 [0] (11)  | Priority: normal
 [1] (10)  | Priority: low
 [2] (12)  | Priority: urgent
