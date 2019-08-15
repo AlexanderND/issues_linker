@@ -133,4 +133,11 @@ That's it! Now, just sit back and watch issues_linker do the magic!
 
 Note that the "Add webhooks to the projects" step *might* be automized in future releases.
 
-Feel free to contact me if you encounter any problems (via e-mail: aleksandr.nenakhov@redsolution.ru).
+
+## Known issues
+
+1. issues_linker won't automatically re-synchronize any updates, witch were made while the issues_linker server was down.
+
+2. issues_linker allows to change issue's tracker label from github, but if you change issues's tracker and try to change some other labels, it will post a notification about the change in Redmine multiple times.
+
+Feel free to contact me if you encounter any other problems (via e-mail: aleksandr.nenakhov@redsolution.ru).
