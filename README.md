@@ -7,6 +7,7 @@ This project was created using **PyCharm** 2019.1.3 (Community Edition)
 
 ## Requirements
 
+```
 python >= 3.5.2
 
 Django >= 2.2.4
@@ -16,7 +17,7 @@ djangorestframework >= 3.10.2
 Jinja2 >= 2.10.1
 
 requests >= 2.22.0
-
+```
 
 ## Installation
 
@@ -24,13 +25,13 @@ To Install issues_linker, clone this repository to local directory.
 
 #### Installation via Linux console:
 
-Open the console and cd into some path:
+Open the console and type:
 
-`$ cd <SOME_PATH>/`
+```
+$ cd <SOME_PATH>/
 
-Then, type in console:
-
-`$ git clone https://github.com/AlexanderND/issues_linker`
+$ git clone https://github.com/AlexanderND/issues_linker
+```
 
 Just wait a bit for your system to download the data, and you're good to go!
 
@@ -108,11 +109,13 @@ Then, choose "Let me select individual events" and select **only** "Issue commen
 
 #### Link the projects together:
 
-First, you have to actually run the server. In order to do that, just type in console:
+First, you have to actually run the server. In order to do that, type in console:
 
-`$ cd <SOME_PATH>/issues_linker`
+```
+$ cd <SOME_PATH>/issues_linker
 
-`$ python3 manage.py runserver 0:9000`
+$ python3 manage.py runserver 0:9000
+```
 
 In order to link projects, you just have to open up in your browser "http://<SERVER_IP>:9000/linked_projects/", input the urls to your projects and click "POST".
 
