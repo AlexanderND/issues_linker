@@ -105,6 +105,22 @@ priority_ids_rm:
 [2] (12)  | Priority: urgent
 ```
 
+#### Setup issues_linker:
+
+Go back to server_config.json and edit allowed_ips.
+
+Add to the list your Redmine server's ip and any other ip, from witch you want to be able to access issues_linker server.
+
+Then, edit the secret_gh.
+
+In order to make your connection to Github the most secure, open up the terminal and type:
+
+```
+$ ruby -rsecurerandom -e 'puts SecureRandom.hex(20)'
+```
+
+The commend should output a random string of 20 characters. Override the default value of secret_gh with it.
+
 
 ## Linking projects.
 
@@ -134,6 +150,8 @@ Type into the "Payload URl" field "http://<SERVER_IP>:9000/payloads_from_github/
 
 Choose "Content-type" as "application/json"
 
+Set "Secret" to the value of your secret_gh in server_config.json, which you've generated previously. 
+
 Then, choose "Let me select individual events" and select **only** "Issues"
 
 2. Go into your project's "Settings->Webhooks" and click "Add webhook".
@@ -141,6 +159,8 @@ Then, choose "Let me select individual events" and select **only** "Issues"
 Type into the "Payload URl" field "http://<SERVER_IP>:9000/comment_payloads_from_github/"
 
 Choose "Content-type" as "application/json"
+
+Set "Secret" to the value of your secret_gh in server_config.json, which you've generated previously. 
 
 Then, choose "Let me select individual events" and select **only** "Issue comments"
 

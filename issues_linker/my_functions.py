@@ -73,6 +73,9 @@ BOT_ID_RM = configure_server_constant_int('BOT_ID_RM')
 # id бота в гитхабе (предотвращение зацикливания)
 BOT_ID_GH = configure_server_constant_int('BOT_ID_GH')
 
+allowed_ips = configure_server_constant_list('allowed_ips')
+secret_gh = configure_server_constant_char('secret_gh')
+
 
 # ===================================================== СПЕЦ. ФУНКЦИИ ==================================================
 
