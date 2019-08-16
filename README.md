@@ -119,7 +119,9 @@ In order to make your connection to Github the most secure, open up the terminal
 $ ruby -rsecurerandom -e 'puts SecureRandom.hex(20)'
 ```
 
-The commend should output a random string of 20 characters. Override the default value of secret_gh with it.
+The command should output a random string of 20 characters. Override the default value of secret_gh with it.
+
+For more info on secret tokens look into "Setting your secret token" on https://developer.github.com/webhooks/securing/
 
 
 ## Linking projects.

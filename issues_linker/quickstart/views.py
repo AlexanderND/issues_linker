@@ -31,8 +31,6 @@ import datetime
 from issues_linker.my_functions import allowed_ips, secret_gh
 
 import hmac
-#import OpenSSL
-#from hashlib import sha1
 import hashlib
 
 
@@ -79,56 +77,18 @@ def chk_if_ip_is_allowed(ip):
 
     return False
 
-def chk_if_secret_is_valid(secret, payload_body):
+def chk_if_secret_gh_is_valid(request):
 
-    '''secret_encoded = bytearray(secret, encoding='utf8')
-    #payload_body_encoded = bytearray(str(payload_body), encoding='utf8')
-    payload_body_encoded = bytearray(json.dumps(payload_body), encoding='utf8')'''
+    secret_gh_encoded = bytearray(secret_gh, encoding='utf8')
+    body_digest = hmac.new(secret_gh_encoded,
+                           msg=request.body,
+                           digestmod=hashlib.sha1
+                           ).hexdigest()
 
+    HTTP_X_HUB_SIGNATURE = request.META['HTTP_X_HUB_SIGNATURE']
+    algorithm, signature_digest = HTTP_X_HUB_SIGNATURE.split('=')
 
-    '''signature = 'sha1=' + OpenSSL::HMAC.hexdigest(OpenSSL::Digest.new('sha1'), bytearray(secret_gh, encoding='utf8'), payload_body_encoded)'''
-    #sha = sha1(payload_body_encoded)
-    #sha.update(bytearray(secret_gh, encoding='utf8'))
-    #sha = sha1(bytearray(secret_gh, encoding='utf8'))
-    #sha.update(payload_body_encoded)
-
-    #signature = 'sha1=' + str(sha.hexdigest())
-    #signature = sha.hexdigest()
-
-    '''signature = hmac.new(
-        secret_gh.encode(),
-        json.dumps(payload_body, separators=(',', ':')).encode(),
-        sha1
-    ).hexdigest()'''
-
-    secret_gh_encoded = secret_gh.encode(secret_gh)
-    payload_body_encoded = json.dumps(payload_body)
-    payload_body_encoded = payload_body_encoded.encode()
-
-    signature = hashlib.sha1(secret_gh)
-    #signature.update(secret_gh_encoded)
-    #signature.update(payload_body_encoded)
-    signature = signature.hexdigest()
-    """signature = hmac.new(secret_gh_encoded,
-                         msg=payload_body_encoded,
-                         digestmod=hashlib.sha1
-                         ).hexdigest()"""
-
-    signature = 'sha1=' + signature
-
-    WRITE_LOG('\nsecret_gh:')
-    WRITE_LOG(str(secret_gh))
-
-    WRITE_LOG('\nsecret:')
-    WRITE_LOG(str(secret))
-
-    WRITE_LOG('\nsignature:')
-    WRITE_LOG(signature)
-
-    if(secret == signature):
-        return True
-
-    return False
+    return hmac.compare_digest(body_digest, signature_digest)
 
 
 # ================================================ ОЧЕРЕДЬ ОБРАБОТКИ ЗАДАЧ =============================================
@@ -161,11 +121,9 @@ class Payload_From_GH_ViewSet(viewsets.ModelViewSet):
     # переопределение create, чтобы сразу отправлять загруженные issue на RM
     def create(self, request, *args, **kwargs):
 
-        """
         try:
             # проверка секрета гитхаба
-            secret_gh = request.META['HTTP_X_HUB_SIGNATURE']
-            if(not chk_if_secret_is_valid(secret_gh, request.data)):
+            if(not chk_if_secret_gh_is_valid(request)):
 
                 error_text = "ERROR: received POST request: payloads_from_gh\n" +\
                              "But the HTTP_X_HUB_SIGNATURE doesn't match the secret_gh\n" +\
@@ -175,9 +133,8 @@ class Payload_From_GH_ViewSet(viewsets.ModelViewSet):
         except:
 
             error_text = "ERROR: received POST request: payloads_from_gh\n" +\
-                         "But the request doesn't have the 'HTTP_X_HUB_SIGNATURE' header"
+                         "Probably, the request doesn't have the 'HTTP_X_HUB_SIGNATURE' header"
             return error_server_response(error_text, 400)
-        """
 
         payload = request.data
         put_task_in_queue(payload, 3)    # добавление задачи в очередь на обработку
@@ -196,11 +153,9 @@ class Comment_Payload_From_GH_ViewSet(viewsets.ModelViewSet):
     # переопределение create, чтобы сразу отправлять загруженные issue на RM
     def create(self, request, *args, **kwargs):
 
-        """
         try:
             # проверка секрета гитхаба
-            secret_gh = request.META['HTTP_X_HUB_SIGNATURE']
-            if(not chk_if_secret_is_valid(secret_gh, request.data)):
+            if(not chk_if_secret_gh_is_valid(request)):
 
                 error_text = "ERROR: received POST request: comment_payloads_from_gh\n" +\
                              "But the HTTP_X_HUB_SIGNATURE doesn't match the secret_gh\n" +\
@@ -210,9 +165,8 @@ class Comment_Payload_From_GH_ViewSet(viewsets.ModelViewSet):
         except:
 
             error_text = "ERROR: received POST request: comment_payloads_from_gh\n" +\
-                         "But the request doesn't have the 'HTTP_X_HUB_SIGNATURE' header"
+                         "Probably, the request doesn't have the 'HTTP_X_HUB_SIGNATURE' header"
             return error_server_response(error_text, 400)
-        """
 
         payload = request.data
         put_task_in_queue(payload, 4)    # добавление задачи в очередь на обработку
@@ -249,7 +203,7 @@ class Payload_From_RM_ViewSet(viewsets.ModelViewSet):
         except:
 
             error_text = "ERROR: received POST request: payloads_from_rm\n" +\
-                         "But the request doesn't have the 'REMOTE_ADDR' header"
+                         "Probably, the request doesn't have the 'REMOTE_ADDR' header"
             return error_server_response(error_text, 400)
 
         payload = request.data
@@ -301,7 +255,7 @@ class Linked_Projects_ViewSet(viewsets.ModelViewSet):
         except:
 
             error_text = "ERROR: received POST request: linked_projects\n" +\
-                         "But the request doesn't have the 'REMOTE_ADDR' header"
+                         "Probably, the request doesn't have the 'REMOTE_ADDR' header"
             return error_server_response(error_text, 400)
 
         payload = json.dumps(request.data)  # превращаем QueryDict в JSON - сериализуемую строку
