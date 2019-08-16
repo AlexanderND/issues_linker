@@ -29,12 +29,6 @@ from issues_linker.my_functions import align_request_result         # созда
 
 def process_comment_payload_from_gh(payload):
 
-    try:
-        hook = payload['hook']
-        return HttpResponse('This is the first hook', status=200)
-    except:
-        pass
-
 
     # =================================================== ПОДГОТОВКА ===================================================
 
@@ -70,7 +64,18 @@ def process_comment_payload_from_gh(payload):
 
         return payload_parsed
 
-    issue = parse_payload(payload)
+    try:
+        issue = parse_payload(payload)
+
+    except:
+
+        error_text = 'ERROR: unknown payload type'
+
+        WRITE_LOG('\n' + '=' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 35 + '\n' +
+                  'received webhook from GITHUB: issues comments' + '\n' +
+                  error_text)
+
+        return HttpResponse(error_text, status=200)
 
     # авторизация в redmine по токену
     api_key_redmime = read_file('api_keys/api_key_redmime.txt')     # загрузка ключа для redmine api

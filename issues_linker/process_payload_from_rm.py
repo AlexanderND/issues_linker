@@ -43,19 +43,13 @@ from issues_linker.my_functions import allow_issues_post_rm_to_gh
 
 def process_payload_from_rm(payload):
 
-    try:
-        hook = payload['hook']
-        return HttpResponse('This is the first hook', status=200)
-    except:
-        pass
-
-    payload = payload['payload']    # достаём содержимое payload. payload payload. payload? payload!
-
 
     # =================================================== ПОДГОТОВКА ===================================================
 
 
     def parse_payload(payload):
+
+        payload = payload['payload']  # достаём содержимое payload. payload payload. payload? payload!
 
         payload_parsed = {}  # словарь issue (название, описание, ссылка)
 
@@ -98,7 +92,18 @@ def process_payload_from_rm(payload):
 
         return payload_parsed
 
-    issue = parse_payload(payload)
+    try:
+        issue = parse_payload(payload)
+
+    except:
+
+        error_text = 'ERROR: unknown payload type'
+
+        WRITE_LOG('\n' + '=' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 35 + '\n' +
+                  'received webhook from REDMINE: issues' + '\n' +
+                  error_text)
+
+        return HttpResponse(error_text, status=200)
 
     # авторизация в гитхабе по токену
     api_key_github = read_file('api_keys/api_key_github.txt')   # загрузка ключа для github api
