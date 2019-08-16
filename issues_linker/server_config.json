@@ -13,5 +13,7 @@
 	"tracker_ids_rm":[4, 5],
 	"status_ids_rm":[7, 8, 9, 10, 11, 12],
 	"priority_ids_rm":[11, 10, 12],
-	"url_rm":"http://localhost:3000/issues.json"
+	"url_rm":"http://localhost:3000/issues.json",
+	"allowed_ips":["<ALLOWED_IP>"],
+	"secret_gh":"<SECRET_GH>"
 }
