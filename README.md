@@ -175,8 +175,6 @@ url_gh example: https://github.com/AlexanderND/issues_linker
 
 That's it! Now, just sit back and watch issues_linker do the magic!
 
-Note that the **Add webhooks to the projects** step *might* be automized in future releases.
-
 
 ## Known issues
 
@@ -185,3 +183,18 @@ Note that the **Add webhooks to the projects** step *might* be automized in futu
 2. issues_linker allows to change issue's tracker label from github, but if you change issues's tracker and try to change some other labels, it will post a notification about the change in Redmine multiple times.
 
 Feel free to contact me if you encounter any other problems (via e-mail: aleksandr.nenakhov@redsolution.ru).
+
+
+## Planned
+
+1. Automate the **Add webhooks to the projects** step
+
+2. Change the logic of correcting labels in Github (process each label individually)
+
+3. Add bot phrase on correcting labels in Github: "You can't change the <LABEL_NAME> label from Github! Please, stop trying."
+
+4. Add projects re-sync function, when the server starts up (in case issues_linker server was down for a long time)
+
+5. Improve the linking procedure (make a form, automize, etc...)
+
+6. Improve the installation and setup procedures (it's a bit complex right now, might be confusing for inexperienced users)
