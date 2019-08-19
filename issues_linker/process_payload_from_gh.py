@@ -126,8 +126,10 @@ def process_payload_from_gh(payload):
             author_url_gh = '"' + issue['issue_author_login'] + '":' + 'https://github.com/' + issue['issue_author_login']
             issue_url_gh = '"issue":' + issue['issue_url']
             issue_body = '>I am a bot, bleep-bloop.\n' +\
-                         '>' + author_url_gh + ' Has opened the ' + issue_url_gh + ' in Github.\n\n' +\
+                         '>' + author_url_gh + ' Has opened the ' + issue_url_gh + ' in Github.\n' +\
                          issue['issue_body']
+
+            return issue_body
 
         # добавляем фразу бота (комментарием) к действию в гитхабе (закрыл, изменил и т.д.)
         elif (to == 'comment_body_action'):
@@ -135,7 +137,7 @@ def process_payload_from_gh(payload):
             author_url = '"' + issue['sender_login'] + '":' + 'https://github.com/' + issue['sender_login']
             issue_url = '"issue":' + issue['issue_url']
             comment_body = 'I am a bot, bleep-bloop.\n' +\
-                         author_url + ' Has ' + issue['action'] + ' the ' + issue_url + ' in Github.\n\n'
+                         author_url + ' Has ' + issue['action'] + ' the ' + issue_url + ' in Github.\n'
 
             return comment_body
 
@@ -723,6 +725,14 @@ def process_payload_from_gh(payload):
         # корректируем label-ы в гитхабе
         tracker = match_tracker_to_gh(tracker_id_rm)
         request_result = correct_gh_labels(issue, tracker, linked_issues)  # корректируем label-ы в гитхабе
+
+        if (request_result.status_code != 200):
+
+            # сообщаем об ошибке
+            error_text = "ERROR: process_payload_from_gh.label_issue\n" +\
+                         "Encountered some error while trying to correct labels in Github"
+
+            return LOGICAL_ERR(error_text)
 
         # TODO: похоже, он не успевает изменить linked_issues.tracker_id_rm: вебхуки приходят почти одновременно
         # проверяем, был ли изменён трекер и предотвращаем множественную отправку сообщений в гитхаб

@@ -44,7 +44,7 @@ def log_process_error(queue, try_count, sleep_time, process_result):
     else:   # type == 5
         action = 'relink_projects'
 
-    error_text = 'encountered some internal server error (process_error)'
+    error_text = 'encountered some error (process_error)'
 
     WRITE_LOG('\n' + '=' * 35 + ' ' + str(datetime.datetime.today()) + ' ' + '=' * 35 + '\n' +
               'WARNING: Tried to ' + action + ', but ' + error_text + '\n' +
@@ -210,23 +210,6 @@ def tasks_queue_daemon(sleep_retry):
             log_connection_refused(queue, try_count, retry_wait)
 
             pass
-
-        # какая-то ошибка в процессе обработки
-        except:
-
-            if (try_count < 2):
-
-                retry_wait += sleep_retry  # увеличение времени ожидания (чтобы не перегружать сервер)
-
-                try_count += 1
-                log_process_error(queue, try_count, retry_wait, None)
-
-            else:
-
-                retry_wait = 0          # сброс времени ожидания перед повторным запуском
-                try_count = 0           # сброс счётчика попыток
-
-                queue.objects.popleft() # удаляем задачу из очереди
 
 
         time.sleep(retry_wait)  # ждём перед следующим запуском

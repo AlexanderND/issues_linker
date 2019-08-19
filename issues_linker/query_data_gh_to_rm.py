@@ -200,7 +200,7 @@ def query_data_gh_to_rm(linked_projects):
             author_url_gh = '"' + issue['issue_author_login'] + '":' + 'https://github.com/' + issue['issue_author_login']
             issue_url_gh = '"issue":' + issue['issue_url']
             issue_body = '>I am a bot, bleep-bloop.\n' +\
-                         '>' + author_url_gh + ' Has opened the ' + issue_url_gh + ' in Github.\n\n' +\
+                         '>' + author_url_gh + ' Has opened the ' + issue_url_gh + ' in Github.\n' +\
                          issue['issue_body']
 
             return issue_body
@@ -212,7 +212,7 @@ def query_data_gh_to_rm(linked_projects):
             author_url = '"' + issue['comment_author_login'] + '":' + 'https://github.com/' + issue['comment_author_login']
             comment_url = '"comment":' + issue['issue_url'] + '#issuecomment-' + str(issue['comment_id'])
             comment_body = '>I am a bot, bleep-bloop.\n' +\
-                           '>' + author_url + ' Has left a ' + comment_url + ' in Github.\n\n' +\
+                           '>' + author_url + ' Has left a ' + comment_url + ' in Github.\n' +\
                            issue['comment_body']
 
             return comment_body
