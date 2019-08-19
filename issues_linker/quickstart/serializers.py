@@ -2,7 +2,8 @@
 from rest_framework import serializers
 
 # мои модели (хранение на сервере)
-from issues_linker.quickstart.models import Comment_Payload_GH, Payload_GH, Payload_RM
+#from issues_linker.quickstart.models import Comment_Payload_GH
+from issues_linker.quickstart.models import Payload_GH, Payload_RM
 
 # мои модели (связь)
 from issues_linker.quickstart.models import Linked_Projects, Linked_Issues, Linked_Comments
@@ -33,6 +34,7 @@ class GroupSerializer(serializers.HyperlinkedModelSerializer):
 
 
 ''' payloads от гитхаба '''
+"""
 class Comment_Payload_GH_Serializer(serializers.HyperlinkedModelSerializer):
 
     id = serializers.IntegerField(read_only=True)
@@ -63,6 +65,7 @@ class Comment_Payload_GH_Serializer(serializers.HyperlinkedModelSerializer):
     def create(self, payload):
         parsed_payload = Comment_Payload_GH.objects.create_parsed_payload(payload)
         return parsed_payload
+"""
 
 ''' comment payloads от гитхаба '''
 class Payload_GH_Serializer(serializers.HyperlinkedModelSerializer):

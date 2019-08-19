@@ -43,7 +43,7 @@ Just wait a bit for your system to download the data, and you're good to go!
 
 #### Installation via Github:
 
-If you have trouble installing issues_linker via console, Github provides another option to clone repositories. Just click the "Clone or download" button, wait for the archive to download and then extract it into some local directory.
+If you have trouble installing issues_linker via console, Github provides another option to clone repositories. Just click the **Clone or download** button, wait for the archive to download and then extract it into some local directory.
 
 
 ## Setup
@@ -70,7 +70,7 @@ https://github.com/suer/redmine_webhook
 
 #### Setup bots:
 
-issues_linker uses bots toy link issues. In order for the project to work correctly, you need to set up bots on Github and Redmine. You can use the default bot on Github - [RedsolutionBot](https://github.com/RedsolutionBot "bleep-bloop"), we won't mind, but you will have to set up a bot on your Redmine server.
+issues_linker uses bots toy link issues. In order for the project to work correctly, you need to set up bots on Github and Redmine. Skip this step, if you already have bots set up on Github and your Redmine server
 
 After you're done setting up the bots, you need to open up <SOME_PATH>/issues_linker/issues_linker/server_config.json and override default BOT_ID_GH and BOT_ID_RM with ids of your bots in Github and Redmine.
 
@@ -80,7 +80,7 @@ Then, you will need to provide issues_linker with your bot's api_keys. Generate 
 
 While linking projects, issues_linker will automatically create default labels in Github's repository.
 
-But you will have to create the labels in Redmine yourself and provide issues_linker with theirs ids. You will have to manually edit the "tracker_ids_rm", "status_ids_rm" and "priority_ids_rm" in server_config.json
+But you will have to create the labels in Redmine yourself and provide issues_linker with theirs ids. You will have to manually edit the **tracker_ids_rm**, **status_ids_rm** and **priority_ids_rm** in server_config.json
 
 You should change the default values in the lists to your values.
 
@@ -121,50 +121,41 @@ $ ruby -rsecurerandom -e 'puts SecureRandom.hex(20)'
 
 The command should output a random string of 20 characters. Override the default value of secret_gh with it.
 
-For more info on secret tokens look into "Setting your secret token" on https://developer.github.com/webhooks/securing/
+For more info on secret tokens look into **Setting your secret token** on https://developer.github.com/webhooks/securing/
 
 
 ## Linking projects.
 
 #### Give your bots necessary permitions on the projects:
 
-On Redmine: open up your project and add your bot into "Members".
+On Redmine: open up your project and add your bot into **Members**.
 
-In order to do that, go into "Settings->Members->New Member", type yor bot's name into the field and click "Add".
+In order to do that, go into **Settings->Members->New Member**, type yor bot's name into the field and click **Add**.
 
-On Github: open up your project's repository and add your bot into "Collaborators".
+On Github: open up your project's repository and add your bot into **Collaborators**.
 
-In order to do that, go into "Settings->Collaborators", type yor bot's name into the field and click "Add Colaborator".
+In order to do that, go into **Settings->Collaborators**, type yor bot's name into the field and click **Add Colaborator**.
 
-Pleaso note that, unlike in Redmine, your bot needs to accept the invitation! Just log in from your bot's account, go into "https://github.com/<SOME_REPOSITORY>/invitations" and click "accept".
+Pleaso note that, unlike in Redmine, your bot needs to accept the invitation! Just log in from your bot's account, go into **https://github.com/<SOME_REPOSITORY>/invitations** and click **accept**.
 
 #### Add webhooks to the projects:
 
 On Redmine:
 
-go into your project's "Settings->WebHook", type into the field "http://<SERVER_IP>:9000/payloads_from_redmine/" and click "Add".
+go into your project's **Settings->WebHook**, type into the field **http://<SERVER_IP>:9000/payloads_from_redmine/** and click **Add**.
 
-On Github you will need to add 2 webhooks:
+On Github:
 
-1. Go into your project's "Settings->Webhooks" and click "Add webhook".
+Go into your project's **Settings->Webhooks** and click **Add webhook**.
 
-Type into the "Payload URl" field "http://<SERVER_IP>:9000/payloads_from_github/"
+Type into the **Payload URl** field **http://<SERVER_IP>:9000/payloads_from_github/**
 
-Choose "Content-type" as "application/json"
+Choose **Content-type** as **application/json**
 
-Set "Secret" to the value of your secret_gh in server_config.json, which you've generated previously. 
+Set **Secret** to the value of your secret_gh in server_config.json, which you've generated previously. 
 
-Then, choose "Let me select individual events" and select **only** "Issues"
+Then, choose **Let me select individual events** and select **Issues** and **Issue comments**
 
-2. Go into your project's "Settings->Webhooks" and click "Add webhook".
-
-Type into the "Payload URl" field "http://<SERVER_IP>:9000/comment_payloads_from_github/"
-
-Choose "Content-type" as "application/json"
-
-Set "Secret" to the value of your secret_gh in server_config.json, which you've generated previously. 
-
-Then, choose "Let me select individual events" and select **only** "Issue comments"
 
 #### Link the projects together:
 
@@ -176,7 +167,7 @@ $ cd <SOME_PATH>/issues_linker
 $ python3 manage.py runserver 0:9000
 ```
 
-In order to link projects, you just have to open up in your browser "http://<SERVER_IP>:9000/linked_projects/", input the urls to your projects and click "POST".
+In order to link projects, you just have to open up in your browser **http://<SERVER_IP>:9000/linked_projects/**, input the urls to your projects and click **POST**.
 
 url_rm exemple: http://localhost:3000/projects/issues_linker
 
@@ -184,7 +175,7 @@ url_gh example: https://github.com/AlexanderND/issues_linker
 
 That's it! Now, just sit back and watch issues_linker do the magic!
 
-Note that the "Add webhooks to the projects" step *might* be automized in future releases.
+Note that the **Add webhooks to the projects** step *might* be automized in future releases.
 
 
 ## Known issues

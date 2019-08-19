@@ -16,6 +16,7 @@ import datetime
 
 
 ''' Класс "Comment_Payload_GH" - payload-ы комментариев с гитхаба '''
+"""
 class Comment_Payload_GH_Manager(models.Manager):
     use_in_migrations = True
 
@@ -98,6 +99,7 @@ class Comment_Payload_GH(models.Model):
     class Meta:
         verbose_name = 'payload_from_rm'
         verbose_name_plural = 'payloads_from_rm'
+"""
 
 # TODO: ПЕРЕДЕЛАТЬ ЛОГИКУ КОРРЕКТИРОВАНИЯ LABELS!!!
 ''' Класс "Payload_GH" - payload-ы с гитхаба '''

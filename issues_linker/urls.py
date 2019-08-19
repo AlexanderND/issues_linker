@@ -17,7 +17,8 @@ from django.urls import include, path
 from rest_framework import routers
 
 # мои модели (хранение на сервере)
-from issues_linker.quickstart.views import Payload_From_GH_ViewSet, Comment_Payload_From_GH_ViewSet, Payload_From_RM_ViewSet
+#from issues_linker.quickstart.views import Comment_Payload_From_GH_ViewSet
+from issues_linker.quickstart.views import Payload_From_GH_ViewSet, Payload_From_RM_ViewSet
 
 # мои модели (связь)
 from issues_linker.quickstart.views import Linked_Projects_ViewSet, Linked_Issues_ViewSet, Linked_Comments_ViewSet
@@ -37,7 +38,7 @@ router.register(r'groups', views.GroupViewSet)'''
 
 # ХРАНЕНИЕ НА СЕРВЕРЕ
 router.register(r'payloads_from_github', Payload_From_GH_ViewSet)
-router.register(r'comment_payloads_from_github', Comment_Payload_From_GH_ViewSet)
+#router.register(r'comment_payloads_from_github', Comment_Payload_From_GH_ViewSet)
 router.register(r'payloads_from_redmine', Payload_From_RM_ViewSet)
 
 

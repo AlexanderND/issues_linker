@@ -121,8 +121,9 @@ class Payload_From_GH_ViewSet(viewsets.ModelViewSet):
     # переопределение create, чтобы сразу отправлять загруженные issue на RM
     def create(self, request, *args, **kwargs):
 
+        # проверка секрета гитхаба
         try:
-            # проверка секрета гитхаба
+
             if(not chk_if_secret_gh_is_valid(request)):
 
                 error_text = "ERROR: received POST request: payloads_from_gh\n" +\
@@ -133,28 +134,56 @@ class Payload_From_GH_ViewSet(viewsets.ModelViewSet):
         except:
 
             error_text = "ERROR: received POST request: payloads_from_gh\n" +\
-                         "Probably, the request doesn't have the 'HTTP_X_HUB_SIGNATURE' header"
+                         "Probably, the request doesn't have the 'HTTP_X_HUB_SIGNATURE' header\n"
             return error_server_response(error_text, 400)
 
-        payload = request.data
-        put_task_in_queue(payload, 3)    # добавление задачи в очередь на обработку
-        return standard_server_response('Github')
+        # определение event: issues, issue_comment
+        try:
+
+            payload = request.data
+
+            HTTP_X_GITHUB_EVENT = request.META['HTTP_X_GITHUB_EVENT']
+
+            if (HTTP_X_GITHUB_EVENT == 'issues'):
+
+                put_task_in_queue(payload, 3)    # добавление задачи в очередь на обработку
+                return standard_server_response('Github')
+
+            elif (HTTP_X_GITHUB_EVENT == 'issue_comment'):
+
+                put_task_in_queue(payload, 4)    # добавление задачи в очередь на обработку
+                return standard_server_response('Github')
+
+            else:
+
+                error_text = "ERROR: received POST request: payloads_from_gh\n" +\
+                             "But the HTTP_X_GITHUB_EVENT doesn't match any of the known HTTP_X_GITHUB_EVENT.\n" +\
+                             "HTTP_X_GITHUB_EVENT: " + HTTP_X_GITHUB_EVENT + '\n' +\
+                             'Allowed HTTP_X_GITHUB_EVENT: issues, issue_comment'
+                return error_server_response(error_text, 401)
+
+        except:
+
+            error_text = "ERROR: received POST request: payloads_from_gh\n" +\
+                         "Probably, the request doesn't have the 'HTTP_X_GITHUB_EVENT' header\n"
+            return error_server_response(error_text, 401)
 
 ''' payloads от гитхаба (комментарии) '''
+"""
 class Comment_Payload_From_GH_ViewSet(viewsets.ModelViewSet):
-    """
+    '''
     Comment_Payload_From_GH_ViewSet.\n
     Сюда приходят Payloads с гитхаба (комментарии).\n
     Затем, они отправляются на редмайн.
-    """
+    '''
     queryset = Payload_GH.objects.all()
     serializer_class = Payload_GH_Serializer
 
     # переопределение create, чтобы сразу отправлять загруженные issue на RM
     def create(self, request, *args, **kwargs):
 
+        # проверка секрета гитхаба
         try:
-            # проверка секрета гитхаба
             if(not chk_if_secret_gh_is_valid(request)):
 
                 error_text = "ERROR: received POST request: comment_payloads_from_gh\n" +\
@@ -171,7 +200,7 @@ class Comment_Payload_From_GH_ViewSet(viewsets.ModelViewSet):
         payload = request.data
         put_task_in_queue(payload, 4)    # добавление задачи в очередь на обработку
         return standard_server_response('Github')
-
+"""
 
 # ======================================================= REDMINE ======================================================
 
@@ -190,8 +219,8 @@ class Payload_From_RM_ViewSet(viewsets.ModelViewSet):
     # переопределение create, чтобы сразу отправлять загруженные issue на GH
     def create(self, request, *args, **kwargs):
 
+        # проверка, что с данного ip разрешено принимать POST запросы
         try:
-            # проверка, что с данного ip разрешено принимать POST запросы
             sender_ip = request.META['REMOTE_ADDR']
             if(not chk_if_ip_is_allowed(sender_ip)):
 

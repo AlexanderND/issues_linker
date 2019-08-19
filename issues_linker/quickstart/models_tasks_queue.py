@@ -26,12 +26,6 @@ from requests.exceptions import RequestException
 
 import datetime
 
-# мои модели (хранение на сервере)
-from issues_linker.quickstart.models import Comment_Payload_GH, Payload_GH, Payload_RM
-
-# мои модели (связь)
-from issues_linker.quickstart.models import Linked_Projects
-
 
 def log_process_error(queue, try_count, sleep_time, process_result):
 
