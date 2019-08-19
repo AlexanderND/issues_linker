@@ -169,22 +169,24 @@ def align_special_symbols(str):
 # удаление фразы бота из текста
 def del_bot_phrase(body):
 
-    body_parts = body.split(': ')  # разбиваем body на части (часть 0 - фраза бота)
+    # если есть фраза бота
+    if (body.find('I am a bot, bleep-bloop.')):
 
-    # если body пустой - значит, фраза бота закончилась на точку (нет опсания)
-    body_processed = ''
-    if (len(body_parts) > 1):
+        body_parts = body.split('.\n')  # разбиваем body на части (часть 0 - фраза бота)
 
-        for body_part in range(1, len(body_parts)):
-            body_processed += body_parts[body_part]
+        body_processed = ''
+        for body_part_id in range(2, len(body_parts)):
+            body_processed += body_parts[body_part_id]
 
-            # много частей, если пользователь использовал ': ' в тексте
-            if (body_part < len(body_parts) - 1):
-                body_processed += ': '
+            # много частей, если пользователь использовал '.\n' в тексте
+            if (body_part_id < len(body_parts) - 1):
+                body_processed += '.\n'
 
-        body_processed = body_processed.replace('\n>', '\n')  # убираем цитирование бота
+        return body_processed
 
-    return body_processed
+    # иначе - ничего не удаляем
+    else:
+        return body
 
 # создание корректного ответа серверу
 def align_request_result(request_result):

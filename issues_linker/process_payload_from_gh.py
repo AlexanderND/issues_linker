@@ -125,22 +125,9 @@ def process_payload_from_gh(payload):
             # добавляем фразу бота
             author_url_gh = '"' + issue['issue_author_login'] + '":' + 'https://github.com/' + issue['issue_author_login']
             issue_url_gh = '"issue":' + issue['issue_url']
-            issue_body = 'I am a bot, bleep-bloop.\n' +\
-                         author_url_gh + ' Has opened the ' + issue_url_gh + ' in Github'
-                         #author_url_gh + ' Has ' + issue['action'] + ' an issue on ' + issue_url_gh
-
-            # добавляем описание задачи
-            if (issue['issue_body'] == ''):
-                issue_body += '.'
-
-            else:
-                # добавляем цитирование
-                issue_body_ = issue['issue_body'].replace('\n', '\n>')
-                issue_body_ = '>' + issue_body_
-
-                issue_body += ': \n\n' + issue_body_
-
-            return issue_body
+            issue_body = '>I am a bot, bleep-bloop.\n' +\
+                         '>' + author_url_gh + ' Has opened the ' + issue_url_gh + ' in Github.\n\n' +\
+                         issue['issue_body']
 
         # добавляем фразу бота (комментарием) к действию в гитхабе (закрыл, изменил и т.д.)
         elif (to == 'comment_body_action'):
@@ -148,8 +135,7 @@ def process_payload_from_gh(payload):
             author_url = '"' + issue['sender_login'] + '":' + 'https://github.com/' + issue['sender_login']
             issue_url = '"issue":' + issue['issue_url']
             comment_body = 'I am a bot, bleep-bloop.\n' +\
-                         author_url + ' Has ' + issue['action'] + ' the ' + issue_url + ' in Github.'
-                         #author_url + ' Has ' + issue['action'] + ' a comment on ' + issue_url + '.'
+                         author_url + ' Has ' + issue['action'] + ' the ' + issue_url + ' in Github.\n\n'
 
             return comment_body
 

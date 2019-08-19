@@ -134,51 +134,39 @@ def process_payload_from_rm(payload):
 
         # добавляем фразу бота к описанию issue
         if (to == 'issue_body'):
+
+            firstname = issue['issue_author_firstname']
+            lastname = issue['issue_author_lastname']
+            login = issue['issue_author_login']
             # добавляем фразу бота
-            issue_body = 'I am a bot, bleep-bloop.\n' +\
-                         issue['issue_author_firstname'] + ' ' +\
-                         issue['issue_author_lastname'] + ' (' +\
-                         issue['issue_author_login'] +\
-                         ') Has opened the issue in Redmine'
-
-            # добавляем описание задачи
-            if (issue['issue_body'] == ''):
-                issue_body += '.'
-            else:
-                # добавляем цитирование
-                issue_body_ = issue['issue_body'].replace('\n', '\n>')
-                issue_body_ = '>' + issue_body_
-
-                issue_body += ': \n\n' + issue_body_
+            issue_body = '>I am a bot, bleep-bloop.\n' +\
+                         '>' + firstname + ' ' + lastname + ' (' + login + ') Has opened the issue in Redmine.\n\n' +\
+                         issue['issue_body']
 
             return issue_body
 
         # добавляем фразу бота к комментарию
         elif (to == 'comment_body'):
 
-            # добавляем цитирование
-            comment_body = issue['comment_body'].replace('\n', '\n>')
-            comment_body = '>' + comment_body
-
+            firstname = issue['comment_author_firstname']
+            lastname = issue['comment_author_lastname']
+            login = issue['comment_author_login']
             # добавляем фразу бота
-            comment_body = 'I am a bot, bleep-bloop.\n' + \
-                           issue['comment_author_firstname'] + ' ' + \
-                           issue['comment_author_lastname'] + ' (' + \
-                           issue['comment_author_login'] + \
-                           ') Has commented / edited with comment the issue in Redmine: \n\n' + \
-                           comment_body
+            comment_body = '>I am a bot, bleep-bloop.\n' + \
+                           '>' + firstname + ' ' + lastname + ' (' + login + ') Has commented / edited with comment the issue in Redmine.\n\n' +\
+                           issue['comment_body']
 
             return comment_body
 
         # добавляем фразу бота (комментарием) к действию в редмайне (закрыл, изменил и т.д.)
         elif (to == 'comment_body_action'):
 
+            firstname = issue['comment_author_firstname']
+            lastname = issue['comment_author_lastname']
+            login = issue['comment_author_login']
             # добавляем фразу бота
-            comment_body = 'I am a bot, bleep-bloop.\n' + \
-                           issue['comment_author_firstname'] + ' ' + \
-                           issue['comment_author_lastname'] + ' (' + \
-                           issue['comment_author_login'] + \
-                           ') Has edited the issue in Redmine.'
+            comment_body = 'I am a bot, bleep-bloop.\n' +\
+                           firstname + ' ' + lastname + ' (' + login + ') Has edited the issue in Redmine.\n\n'
 
             return comment_body
 
