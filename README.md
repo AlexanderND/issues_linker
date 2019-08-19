@@ -29,7 +29,7 @@ requests >= 2.22.0
 
 To Install issues_linker, clone this repository to local directory.
 
-#### Installation via Linux console:
+### Installation via Linux console:
 
 Open the console and type:
 
@@ -41,14 +41,14 @@ $ git clone https://github.com/AlexanderND/issues_linker
 
 Just wait a bit for your system to download the data, and you're good to go!
 
-#### Installation via Github:
+### Installation via Github:
 
 If you have trouble installing issues_linker via console, Github provides another option to clone repositories. Just click the **Clone or download** button, wait for the archive to download and then extract it into some local directory.
 
 
 ## Setup
 
-#### Install Redmine server:
+### Install Redmine server:
 
 Skip this step, if you already have a Redmine server.
 
@@ -60,7 +60,7 @@ Then, install the Redmine server:
 
 https://www.redmine.org/projects/redmine/wiki/RedmineInstall
 
-#### Setup Redmine server:
+### Setup Redmine server:
 
 issues_linker uses webhook plugin for Redmine. In order for issues_linker to work correctly, you need to install the plugin on your Redmine server. Skip this step, if your Redmine server already has the plugin installed.
 
@@ -68,7 +68,7 @@ In order to install the plugin on your Redmine server, just click the link and f
 
 https://github.com/suer/redmine_webhook
 
-#### Setup bots:
+### Setup bots:
 
 issues_linker uses bots toy link issues. In order for the project to work correctly, you need to set up bots on Github and Redmine. Skip this step, if you already have bots set up on Github and your Redmine server
 
@@ -76,7 +76,7 @@ After you're done setting up the bots, you need to open up <SOME_PATH>/issues_li
 
 Then, you will need to provide issues_linker with your bot's api_keys. Generate api_keys from their profiles and input them into <SOME_PATH>/issues_linker/api_keys/api_key_redmine.txt and <SOME_PATH>/issues_linker/api_keys/api_key_github.txt respectively.
 
-#### Setup labels:
+### Setup labels:
 
 While linking projects, issues_linker will automatically create default labels in Github's repository.
 
@@ -105,7 +105,7 @@ priority_ids_rm:
 [2] (12)  | Priority: urgent
 ```
 
-#### Setup issues_linker:
+### Setup issues_linker:
 
 Go back to server_config.json and edit allowed_ips.
 
@@ -126,7 +126,7 @@ For more info on secret tokens look into **Setting your secret token** on https:
 
 ## Linking projects.
 
-#### Give your bots necessary permitions on the projects:
+### Give your bots necessary permitions on the projects:
 
 On Redmine: open up your project and add your bot into **Members**.
 
@@ -138,7 +138,7 @@ In order to do that, go into **Settings->Collaborators**, type yor bot's name in
 
 Pleaso note that, unlike in Redmine, your bot needs to accept the invitation! Just log in from your bot's account, go into **https://github.com/<SOME_REPOSITORY>/invitations** and click **accept**.
 
-#### Add webhooks to the projects:
+### Add webhooks to the projects:
 
 On Redmine:
 
@@ -157,7 +157,7 @@ Set **Secret** to the value of your secret_gh in server_config.json, which you'v
 Then, choose **Let me select individual events** and select **Issues** and **Issue comments**
 
 
-#### Link the projects together:
+### Link the projects together:
 
 First, you have to actually run the server. In order to do that, type in console:
 
