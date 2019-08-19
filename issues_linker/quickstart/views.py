@@ -33,6 +33,11 @@ from issues_linker.my_functions import allowed_ips, secret_gh
 import hmac
 import hashlib
 
+# форма связи проектов
+from issues_linker.quickstart.forms import Linked_Projects_Form
+
+from django.shortcuts  import render
+
 
 '''# testing
 class UserViewSet(viewsets.ModelViewSet):
@@ -295,42 +300,13 @@ class Linked_Projects_ViewSet(viewsets.ModelViewSet):
         server_response = 'you. Check the server logs for more detailed information.'
         return standard_server_response(server_response)
 
+    """def create(self, request, *args, **kwargs):
+
+        script_dir = os.path.dirname(__file__)  # <-- absolute dir the script is in
+        file_path_absolute = os.path.join(script_dir, "linked_projects_form.html")
+
+        linked_projects_form = Linked_Projects_Form(field_order=["url_rm", "url_gh"])
+        return render(request, file_path_absolute, {"form": linked_projects_form})"""
+
     queryset = Linked_Projects.objects.all()
     serializer_class = Linked_Projects_Serializer
-
-
-# ================================================= ФОРМА СВЯЗИ ПРОЕКТОВ ===============================================
-
-
-class Linked_Projects_List(APIView):
-
-    renderer_classes = [TemplateHTMLRenderer]
-
-    script_dir = os.path.dirname(__file__)  # <-- absolute dir the script is in
-    template_name = os.path.join(script_dir, 'data/linked_projects_list.html')
-
-
-    def get(self, request):
-        queryset = Linked_Projects.objects.all()
-        return Response({'linked_projects': queryset})
-
-class Linked_Project_Detail(APIView):
-
-    renderer_classes = [TemplateHTMLRenderer]
-
-    script_dir = os.path.dirname(__file__)  # <-- absolute dir the script is in
-    template_name = os.path.join(script_dir, 'data/linked_project_detail.html')
-
-
-    def get(self, request, pk):
-        linked_project = get_object_or_404(Linked_Projects, pk=pk)
-        serializer = Linked_Projects_Serializer(linked_project)
-        return Response({'serializer': serializer, 'profile': linked_project})
-
-    def post(self, request, pk):
-        linked_project = get_object_or_404(Linked_Projects, pk=pk)
-        serializer = Linked_Projects_Serializer(linked_project, data=request.data)
-        if not serializer.is_valid():
-            return Response({'serializer': serializer, 'linked_project': linked_project})
-        serializer.save()
-        return redirect('linked_projects_list')
